@@ -1,0 +1,13 @@
+<div class="greeting-section">
+    <span>Hello </span>
+    <span [text-content]="name"></span>!
+</div>
+
+<div class="greeting-section">
+    <input #yourname type="text" placeholder="Enter your name"
+           (keyup)="update(yourname.value)" [value]="name">
+</div>
+
+<div class="greeting-section">
+    <button (click)="log()">Log</button>
+</div>
