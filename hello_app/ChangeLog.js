@@ -17,7 +17,7 @@ export class ChangeLog {
 
   pushLog(logEntry) {
   	console.log('pushLog', logEntry);
-    this.logs.push(logEntry);
+    this.logs.push({msg:logEntry});
   }
 
 }

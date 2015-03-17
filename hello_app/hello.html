@@ -1,4 +1,4 @@
 <div class="simple">
-    <greeter></greeter>
-    <change-log></change-log>
+    <greeter (log)="log.pushLog($event)"></greeter>
+    <change-log #log></change-log>
 </div>
