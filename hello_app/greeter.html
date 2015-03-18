@@ -1,13 +1,14 @@
-<div class="greeting-section">
+<h2>Greet someone</h2>
+<div>
     <span>Hello </span>
     <span [text-content]="name"></span>!
 </div>
 
-<div class="greeting-section">
+<div>
     <input #yourname type="text" placeholder="Enter your name"
-           (keyup)="update(yourname.value)" [value]="name">
+           (keyup)="update(yourname.value)">
 </div>
 
-<div class="greeting-section">
+<div>
     <button (click)="log()">Log</button>
 </div>

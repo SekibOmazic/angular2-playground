@@ -1,0 +1,15 @@
+<h2>Friends</h2>
+<div>
+    <span>Your new friend </span>
+    <span [text-content]="name"></span>
+</div>
+
+<div>
+    <!-- can't say #name !!!! -->
+    <input #friendname type="text" placeholder="Enter friend's name"
+           (keyup)="update(friendname.value)">
+</div>
+
+<div>
+    <button (click)="add()">New friend</button>
+</div>
