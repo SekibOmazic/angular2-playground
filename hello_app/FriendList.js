@@ -17,6 +17,7 @@ export class FriendList {
   }
 
   get friends() {
+    console.log('FriendList.friends() returns', this.friendsService.friendList());
     return this.friendsService.friendList();
   }
 

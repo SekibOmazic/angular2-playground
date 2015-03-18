@@ -9,8 +9,8 @@ export class FriendsService {
   }
   
   addFriend(name:string) {
-    console.log('Service gets', name);
     this.friends.push({name: name});
+    console.log('FriendsService:', this.friends);
   }
 
 }
