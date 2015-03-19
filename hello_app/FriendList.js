@@ -12,6 +12,8 @@ import {FriendsService} from './FriendsService';
 })
 export class FriendList {
 
+  friendsService:FriendsService;
+
   constructor(friendsService:FriendsService) {
     this.friendsService = friendsService;
   }
