@@ -1,10 +1,9 @@
 import {Component, Template, Foreach} from 'angular2/angular2';
-
+import {Inject} from 'angular2/di';
 import {FriendsService} from 'hello_app/FriendsService';
 
 @Component({
-  selector: 'friend-list',
-  services: [FriendsService]
+  selector: 'friend-list'
 })
 @Template({
   inline: `<ul><li *foreach="#friend in friends">{{friend.name}}</li></ul>`,
@@ -14,7 +13,7 @@ export class FriendList {
 
   friendsService:FriendsService;
 
-  constructor(friendsService:FriendsService) {
+  constructor(@Inject(FriendsService)friendsService:FriendsService) {
     this.friendsService = friendsService;
   }
 

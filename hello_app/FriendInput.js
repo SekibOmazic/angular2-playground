@@ -1,9 +1,9 @@
 import {Component, Template} from 'angular2/angular2';
+import {Inject} from 'angular2/di';
 import {FriendsService} from 'hello_app/FriendsService';
 
 @Component({
-  selector: 'friend-input',
-  services: [FriendsService]
+  selector: 'friend-input'
 })
 @Template({
   url: `hello_app/friend_input.html`
@@ -13,7 +13,7 @@ export class FriendInput {
   name:string;
   friendsService:FriendsService;
 
-  constructor(friendsService:FriendsService) {
+  constructor(@Inject(FriendsService)friendsService:FriendsService) {
     this.friendsService = friendsService;
     this.name = '';
   }
