@@ -1,6 +1,6 @@
-import {Component, Template, Foreach} from '../angular2/angular2';
+import {Component, Template, Foreach} from 'angular2/angular2';
 
-import {Greeter} from './Greeter';
+import {Greeter} from 'hello_app/Greeter';
 
 @Component({
   selector: 'change-log'

@@ -1,14 +1,14 @@
-import {Component, Template} from '../angular2/angular2';
-import {FriendsService} from './FriendsService';
+import {Component, Template} from 'angular2/angular2';
+import {FriendsService} from 'hello_app/FriendsService';
 
 @Component({
-  selector: 'friend-factory',
+  selector: 'friend-input',
   services: [FriendsService]
 })
 @Template({
-  url: `hello_app/friend_factory.html`
+  url: `hello_app/friend_input.html`
 })
-export class FriendFactory {
+export class FriendInput {
 
   name:string;
   friendsService:FriendsService;

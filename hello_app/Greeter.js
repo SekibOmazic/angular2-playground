@@ -1,5 +1,5 @@
-import {Component, Template, Foreach} from '../angular2/angular2';
-import {EventEmitter} from '../angular2/src/core/annotations/di';
+import {Component, Template, Foreach} from 'angular2/angular2';
+import {EventEmitter} from 'angular2/src/core/annotations/di';
 
 @Component({
   selector: 'greeter'

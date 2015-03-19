@@ -1,19 +1,18 @@
-import {Component, Template} from '../angular2/angular2';
-import {If} from '../angular2/angular2';
+import {Component, Template, If} from 'angular2/angular2';
 
-import {Greeter} from './Greeter';
-import {ChangeLog} from './ChangeLog';
+import {Greeter} from 'hello_app/Greeter';
+import {ChangeLog} from 'hello_app/ChangeLog';
 
 //import {FriendsService} from './FriendsService';
-import {FriendFactory} from './FriendFactory';
-import {FriendList} from './FriendList';
+import {FriendInput} from 'hello_app/FriendInput';
+import {FriendList} from 'hello_app/FriendList';
 
 @Component({
   selector: 'hello'
 })
 @Template({
   url: `hello_app/hello.html`,
-  directives: [Greeter, ChangeLog, FriendFactory, FriendList]
+  directives: [Greeter, ChangeLog, FriendInput, FriendList]
 })
 export class Hello {
 

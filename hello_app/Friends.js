@@ -1,26 +1,18 @@
 import {Component, Template, Foreach} from 'angular2/angular2';
-
 import {FriendsService} from 'hello_app/FriendsService';
 
 @Component({
-  selector: 'friend-list',
+  selector: 'friends',
   services: [FriendsService]
 })
 @Template({
-  inline: `<ul><li *foreach="#friend in friends">{{friend.name}}</li></ul>`,
-  directives: [Foreach]
+  url: `hello_app/friends.html`
 })
-export class FriendList {
-
+export class Friends {
   friendsService:FriendsService;
 
   constructor(friendsService:FriendsService) {
     this.friendsService = friendsService;
-  }
-
-  get friends() {
-    console.log('FriendList.friends() returns', this.friendsService.friendList());
-    return this.friendsService.friendList();
   }
 
 }
