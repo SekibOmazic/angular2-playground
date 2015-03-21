@@ -1,0 +1,18 @@
+<div class="panel panel-primary">
+
+    <div class="panel-body">
+
+        <div>
+            <span>&nbsp;</span><span *if="name">Your new friend: '{{name}}'</span>
+        </div>
+
+        <form class="form-inline">
+            <div class="form-group">
+                <input class="form-control" type="text" placeholder="Your new friend" #friend (keyup)="update(friend.value)">
+                <a href="#" class="btn btn-primary" (click)="add()">Add</a>
+            </div>
+        </form>
+
+    </div>
+
+</div>

@@ -6,7 +6,7 @@ import {FriendsService} from 'hello_app/FriendsService';
   selector: 'friend-list'
 })
 @Template({
-  inline: `<ul><li *foreach="#friend in friends">{{friend.name}}</li></ul>`,
+  url: `hello_app/byservice/friend_list.html`,
   directives: [Foreach]
 })
 export class FriendList {
@@ -15,11 +15,17 @@ export class FriendList {
 
   constructor(@Inject(FriendsService)friendsService:FriendsService) {
     this.friendsService = friendsService;
+    this.init();
   }
 
-  get friends() {
-    console.log('FriendList.friends() returns', this.friendsService.friendList());
-    return this.friendsService.friendList();
+  init() {
+    this.friendsService.getAll().then(
+      items => { this.friends = items; }
+    );
+  }
+
+  delete(item) {
+    this.friendsService.remove(item);
   }
 
 }

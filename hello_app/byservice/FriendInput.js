@@ -1,4 +1,4 @@
-import {Component, Template} from 'angular2/angular2';
+import {Component, Template, If} from 'angular2/angular2';
 import {Inject} from 'angular2/di';
 import {FriendsService} from 'hello_app/FriendsService';
 
@@ -6,7 +6,8 @@ import {FriendsService} from 'hello_app/FriendsService';
   selector: 'friend-input'
 })
 @Template({
-  url: `hello_app/friend_input.html`
+  url: `hello_app/byservice/friend_input.html`,
+  directives: [If]
 })
 export class FriendInput {
 
@@ -24,9 +25,7 @@ export class FriendInput {
 
   add() {
     if (this.name !== undefined && this.name !== '') {
-      // need to copy this.name?
-      this.friendsService.addFriend('' + this.name);
-      //this.name='';
+      this.friendsService.add('' + this.name);
     }
   }
 

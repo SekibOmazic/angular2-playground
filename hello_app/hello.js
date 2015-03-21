@@ -1,11 +1,12 @@
 import {Component, Template, If} from 'angular2/angular2';
 
-import {Greeter} from 'hello_app/Greeter';
-import {ChangeLog} from 'hello_app/ChangeLog';
+import {GadgetInput} from 'hello_app/byevents/GadgetInput';
+import {GadgetList} from 'hello_app/byevents/GadgetList';
 
 import {FriendsService} from 'hello_app/FriendsService';
-import {FriendInput} from 'hello_app/FriendInput';
-import {FriendList} from 'hello_app/FriendList';
+
+import {FriendInput} from 'hello_app/byservice/FriendInput';
+import {FriendList} from 'hello_app/byservice/FriendList';
 
 @Component({
   selector: 'hello',
@@ -13,7 +14,7 @@ import {FriendList} from 'hello_app/FriendList';
 })
 @Template({
   url: `hello_app/hello.html`,
-  directives: [Greeter, ChangeLog, FriendInput, FriendList]
+  directives: [GadgetInput, GadgetList, FriendInput, FriendList]
 })
 export class Hello {
 
