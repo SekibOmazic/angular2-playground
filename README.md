@@ -1,5 +1,8 @@
 # angular2-playground
 
+Just want to show how components can interact
+
+
 ##Demo
 
 See <a href="http://rawgit.com/SekibOmazic/angular2-playground/master/index.html">Live demo</a>

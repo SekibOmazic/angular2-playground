@@ -8,13 +8,17 @@ import {FriendsService} from 'hello_app/FriendsService';
 import {FriendInput} from 'hello_app/byservice/FriendInput';
 import {FriendList} from 'hello_app/byservice/FriendList';
 
+import {PetList} from 'hello_app/byinjection/PetList';
+import {PetInput} from 'hello_app/byinjection/PetInput';
+
+
 @Component({
   selector: 'hello',
   services: [FriendsService]
 })
 @Template({
   url: `hello_app/hello.html`,
-  directives: [GadgetInput, GadgetList, FriendInput, FriendList]
+  directives: [GadgetInput, GadgetList, FriendInput, FriendList, PetInput, PetList]
 })
 export class Hello {
 
