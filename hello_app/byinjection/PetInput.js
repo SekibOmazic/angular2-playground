@@ -28,7 +28,7 @@ export class PetInput {
 
   add() {
     if (this.name !== undefined && this.name !== '') {
-      this.petList.add('' + this.name);
+      this.petList.addItem('' + this.name);
     }
   }
 
