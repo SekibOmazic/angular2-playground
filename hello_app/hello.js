@@ -11,8 +11,6 @@ import {FriendList} from 'hello_app/byservice/FriendList';
 import {PetList} from 'hello_app/byinjection/PetList';
 import {PetInput} from 'hello_app/byinjection/PetInput';
 
-import {Draggable} from 'hello_app/draggable/Draggable';
-
 
 @Component({
   selector: 'hello',
@@ -20,7 +18,7 @@ import {Draggable} from 'hello_app/draggable/Draggable';
 })
 @Template({
   url: `hello_app/hello.html`,
-  directives: [GadgetInput, GadgetList, FriendInput, FriendList, PetInput, PetList, Draggable]
+  directives: [GadgetInput, GadgetList, FriendInput, FriendList, PetInput, PetList]
 })
 export class Hello {
 
