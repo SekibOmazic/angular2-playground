@@ -3,13 +3,19 @@
 Just want to show how components can interact
 
 
-##Demo
+## Demo
 
-See <a href="http://rawgit.com/SekibOmazic/angular2-playground/master/index.html">Live demo</a>
+See <a href="http://rawgit.com/SekibOmazic/angular2-playground/master/dist/index.html">Live demo</a>
 
-Or download everything and:
+## Install
 
-- `npm install -g http-server`
-- `cd angular2-playground`
-- `http-server -c-1`
-- Go to http://localhost:8080 in your browser
+Clone this repo and execute in your favourite shell:
+
+* `npm i -g gulp` to install gulp globally (if you don't have it installed already)
+* `npm i` to install local npm dependencies
+
+## Play
+
+After completing installation type in your favourite shell:
+
+* `gulp play` to start a this app in a new browser window. App files are observed and will be re-transpiled on each change.

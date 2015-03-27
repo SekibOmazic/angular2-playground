@@ -1,0 +1,18 @@
+<div class="panel panel-primary">
+
+    <div class="panel-body">
+
+        <div>
+            <span>&nbsp;</span><span *if="name">Your new gadget: '{{name}}'</span>
+        </div>
+
+        <form class="form-inline">
+            <div class="form-group">
+                <input class="form-control" type="text" placeholder="Your new gadget" #gadget (keyup)="update(gadget.value)">
+                <a href="#" class="btn btn-primary" (click)="add()">Add</a>
+            </div>
+        </form>
+
+    </div>
+
+</div>

@@ -1,0 +1,53 @@
+<style>@import "lib/bootstrap.css"</style>
+
+
+<style>
+    .drag {
+        top: 100px;
+        left:200px;
+        cursor:pointer;
+        position: absolute;
+        width: 100px;
+        height: 100px;
+        border: 1px solid red;
+        background-color: lightgray;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <h2>How components communicate? </h2>
+        <p>Just learning Angular2 and want to show how two components can interact. <strong>Feedback welcome.</strong></p>
+    </div>
+    <div class="row">
+
+        <div class="col-lg-6">
+            <h4>By events</h4>
+            <gadget-input (add)="gadget.addItem($event)"></gadget-input>
+            <gadget-list #gadget></gadget-list>
+        </div>
+
+        <div class="col-lg-6">
+            <h4>By service</h4>
+            <friend-input></friend-input>
+            <friend-list></friend-list>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <h4>By injecting one component into another</h4>
+
+            <pet-list>
+                <pet-input></pet-input>
+            </pet-list>
+        </div>
+
+        <div class="col-lg-6">
+            <h4>By other means?</h4>
+            <p>TO DO</p>
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,33 @@
+{
+  "name": "angular2-playground",
+  "version": "0.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/SekibOmazic/angular2-playground.git"
+  },
+  "bugs": {
+    "url": "https://github.com/SekibOmazic/angular2-playground/issues"
+  },
+  "homepage": "https://github.com/SekibOmazic/angular2-playground",
+  "devDependencies": {
+    "connect": "^3.3.4",
+    "del": "~1.1.1",
+    "gulp": "~3.8.10",
+    "gulp-concat": "~2.5.0",
+    "gulp-plumber": "^1.0.0",
+    "gulp-rename": "~1.2.0",
+    "gulp-traceur": "0.16.*",
+    "open": "0.0.5",
+    "serve-static": "~1.8.1",
+    "through2": "~0.6.3"
+  },
+  "dependencies": {
+    "angular2": "2.0.0-alpha.15",
+    "zone.js": "0.4.1",
+    "es6-module-loader": "~0.11.0",
+    "systemjs": "~0.11.0"
+  }
+}

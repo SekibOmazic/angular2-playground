@@ -1,0 +1,18 @@
+<div class="panel panel-danger">
+
+    <div class="panel-body">
+
+        <div>
+            <span>&nbsp;</span><span *if="name">Your new pet: '{{name}}'</span>
+        </div>
+
+        <form class="form-inline">
+            <div class="form-group">
+                <input class="form-control" type="text" placeholder="Your new pet" #pet (keyup)="update(pet.value)">
+                <a href="#" class="btn btn-danger" (click)="add()">Add</a>
+            </div>
+        </form>
+
+    </div>
+
+</div>
