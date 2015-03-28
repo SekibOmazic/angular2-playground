@@ -2,14 +2,12 @@
 export class FriendsService {
 
   getAll() {
-    console.log('FriendsService.getAll!!!', items);
     return new Promise(resolve => {
         resolve(items);
       });
   }
 
   add(name:string) {
-    console.log('FriendsService.add!!!', items, name);
     return new Promise(resolve => {
       var item = {name: name};
       items.push(item);
@@ -18,7 +16,6 @@ export class FriendsService {
   }
 
   remove(item){
-    console.log('FriendsService.remove!!!');
     return new Promise(resolve => {
       if (contains(items, item)) {
         remove(items, item);

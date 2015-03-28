@@ -21,13 +21,11 @@ System.register("FriendsService", [], function($__export) {
         var FriendsService = function FriendsService() {};
         return ($traceurRuntime.createClass)(FriendsService, {
           getAll: function() {
-            console.log('FriendsService.getAll!!!', items);
             return new Promise((function(resolve) {
               resolve(items);
             }));
           },
           add: function(name) {
-            console.log('FriendsService.add!!!', items, name);
             return new Promise((function(resolve) {
               var item = {name: name};
               items.push(item);
@@ -35,7 +33,6 @@ System.register("FriendsService", [], function($__export) {
             }));
           },
           remove: function(item) {
-            console.log('FriendsService.remove!!!');
             return new Promise((function(resolve) {
               if (contains(items, item)) {
                 remove(items, item);
