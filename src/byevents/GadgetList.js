@@ -10,7 +10,7 @@ import {List, ListWrapper} from 'angular2/src/facade/collection';
 })
 export class GadgetList {
 
-  //gadgets: List;
+  gadgets: List;
 
   constructor() {
     this.gadgets = [];

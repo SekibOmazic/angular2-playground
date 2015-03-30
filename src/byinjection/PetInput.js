@@ -14,8 +14,8 @@ import {PetList} from 'byinjection/PetList';
 })
 export class PetInput {
 
-  //name: string;
-  //petList: PetList;
+  name: string;
+  petList: PetList;
 
   constructor(@Parent() petList:PetList) {
     this.petList = petList;

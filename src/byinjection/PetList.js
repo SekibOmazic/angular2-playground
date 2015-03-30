@@ -11,7 +11,7 @@ import {List, ListWrapper} from 'angular2/src/facade/collection';
 })
 export class PetList {
 
-  //pets: List;
+  pets: List;
 
   constructor() {
     this.pets = [];

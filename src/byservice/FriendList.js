@@ -11,7 +11,7 @@ import {FriendsService} from 'FriendsService';
 })
 export class FriendList {
 
-  //friendsService:FriendsService;
+  friendsService:FriendsService;
 
   constructor(@Inject(FriendsService)friendsService:FriendsService) {
     this.friendsService = friendsService;

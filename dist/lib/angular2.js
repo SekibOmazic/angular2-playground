@@ -2611,6 +2611,826 @@ System.register("angular2/src/core/exception_handler", ["angular2/di", "angular2
   };
 });
 
+System.register("angular2/src/di/annotations", ["angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/di/annotations";
+  var CONST,
+      Inject,
+      InjectPromise,
+      InjectLazy,
+      Optional,
+      DependencyAnnotation,
+      Injectable;
+  return {
+    setters: [function($__m) {
+      CONST = $__m.CONST;
+    }],
+    execute: function() {
+      Inject = $__export("Inject", (function() {
+        var Inject = function Inject(token) {
+          this.token = token;
+        };
+        return ($traceurRuntime.createClass)(Inject, {}, {});
+      }()));
+      Object.defineProperty(Inject, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      InjectPromise = $__export("InjectPromise", (function() {
+        var InjectPromise = function InjectPromise(token) {
+          this.token = token;
+        };
+        return ($traceurRuntime.createClass)(InjectPromise, {}, {});
+      }()));
+      Object.defineProperty(InjectPromise, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      InjectLazy = $__export("InjectLazy", (function() {
+        var InjectLazy = function InjectLazy(token) {
+          this.token = token;
+        };
+        return ($traceurRuntime.createClass)(InjectLazy, {}, {});
+      }()));
+      Object.defineProperty(InjectLazy, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Optional = $__export("Optional", (function() {
+        var Optional = function Optional() {};
+        return ($traceurRuntime.createClass)(Optional, {}, {});
+      }()));
+      Object.defineProperty(Optional, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      DependencyAnnotation = $__export("DependencyAnnotation", (function() {
+        var DependencyAnnotation = function DependencyAnnotation() {};
+        return ($traceurRuntime.createClass)(DependencyAnnotation, {}, {});
+      }()));
+      Object.defineProperty(DependencyAnnotation, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Injectable = $__export("Injectable", (function() {
+        var Injectable = function Injectable() {};
+        return ($traceurRuntime.createClass)(Injectable, {}, {});
+      }()));
+      Object.defineProperty(Injectable, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/di/binding", ["angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/reflection/reflection", "./key", "./annotations", "./exceptions"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/di/binding";
+  var Type,
+      isBlank,
+      isPresent,
+      List,
+      MapWrapper,
+      ListWrapper,
+      reflector,
+      Key,
+      Inject,
+      InjectLazy,
+      InjectPromise,
+      Optional,
+      DependencyAnnotation,
+      NoAnnotationError,
+      Dependency,
+      Binding,
+      BindingBuilder;
+  function bind(token) {
+    return new BindingBuilder(token);
+  }
+  function _dependenciesFor(typeOrFunc) {
+    var params = reflector.parameters(typeOrFunc);
+    if (isBlank(params))
+      return [];
+    if (ListWrapper.any(params, (function(p) {
+      return isBlank(p);
+    })))
+      throw new NoAnnotationError(typeOrFunc);
+    return ListWrapper.map(params, (function(p) {
+      return _extractToken(typeOrFunc, p);
+    }));
+  }
+  function _extractToken(typeOrFunc, annotations) {
+    var depProps = [];
+    var token = null;
+    var optional = false;
+    var lazy = false;
+    var asPromise = false;
+    for (var i = 0; i < annotations.length; ++i) {
+      var paramAnnotation = annotations[i];
+      if (paramAnnotation instanceof Type) {
+        token = paramAnnotation;
+      } else if (paramAnnotation instanceof Inject) {
+        token = paramAnnotation.token;
+      } else if (paramAnnotation instanceof InjectPromise) {
+        token = paramAnnotation.token;
+        asPromise = true;
+      } else if (paramAnnotation instanceof InjectLazy) {
+        token = paramAnnotation.token;
+        lazy = true;
+      } else if (paramAnnotation instanceof Optional) {
+        optional = true;
+      } else if (paramAnnotation instanceof DependencyAnnotation) {
+        ListWrapper.push(depProps, paramAnnotation);
+      } else if (paramAnnotation.name === "string") {
+        token = paramAnnotation;
+      }
+    }
+    if (isPresent(token)) {
+      return _createDependency(token, asPromise, lazy, optional, depProps);
+    } else {
+      throw new NoAnnotationError(typeOrFunc);
+    }
+  }
+  function _createDependency(token, asPromise, lazy, optional, depProps) {
+    return new Dependency(Key.get(token), asPromise, lazy, optional, depProps);
+  }
+  $__export("bind", bind);
+  return {
+    setters: [function($__m) {
+      Type = $__m.Type;
+      isBlank = $__m.isBlank;
+      isPresent = $__m.isPresent;
+    }, function($__m) {
+      List = $__m.List;
+      MapWrapper = $__m.MapWrapper;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      reflector = $__m.reflector;
+    }, function($__m) {
+      Key = $__m.Key;
+    }, function($__m) {
+      Inject = $__m.Inject;
+      InjectLazy = $__m.InjectLazy;
+      InjectPromise = $__m.InjectPromise;
+      Optional = $__m.Optional;
+      DependencyAnnotation = $__m.DependencyAnnotation;
+    }, function($__m) {
+      NoAnnotationError = $__m.NoAnnotationError;
+    }],
+    execute: function() {
+      Dependency = $__export("Dependency", (function() {
+        var Dependency = function Dependency(key, asPromise, lazy, optional, properties) {
+          this.key = key;
+          this.asPromise = asPromise;
+          this.lazy = lazy;
+          this.optional = optional;
+          this.properties = properties;
+        };
+        return ($traceurRuntime.createClass)(Dependency, {}, {fromKey: function(key) {
+            return new Dependency(key, false, false, false, []);
+          }});
+      }()));
+      Object.defineProperty(Dependency, "parameters", {get: function() {
+          return [[Key], [assert.type.boolean], [assert.type.boolean], [assert.type.boolean], [List]];
+        }});
+      Object.defineProperty(Dependency.fromKey, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Binding = $__export("Binding", (function() {
+        var Binding = function Binding(key, factory, dependencies, providedAsPromise) {
+          this.key = key;
+          this.factory = factory;
+          this.dependencies = dependencies;
+          this.providedAsPromise = providedAsPromise;
+        };
+        return ($traceurRuntime.createClass)(Binding, {}, {});
+      }()));
+      Object.defineProperty(Binding, "parameters", {get: function() {
+          return [[Key], [Function], [List], [assert.type.boolean]];
+        }});
+      BindingBuilder = $__export("BindingBuilder", (function() {
+        var BindingBuilder = function BindingBuilder(token) {
+          this.token = token;
+        };
+        return ($traceurRuntime.createClass)(BindingBuilder, {
+          toClass: function(type) {
+            return new Binding(Key.get(this.token), reflector.factory(type), _dependenciesFor(type), false);
+          },
+          toValue: function(value) {
+            return new Binding(Key.get(this.token), (function() {
+              return value;
+            }), [], false);
+          },
+          toAlias: function(aliasToken) {
+            return new Binding(Key.get(this.token), (function(aliasInstance) {
+              return aliasInstance;
+            }), [Dependency.fromKey(Key.get(aliasToken))], false);
+          },
+          toFactory: function(factoryFunction) {
+            var dependencies = arguments[1] !== (void 0) ? arguments[1] : null;
+            return new Binding(Key.get(this.token), factoryFunction, this._constructDependencies(factoryFunction, dependencies), false);
+          },
+          toAsyncFactory: function(factoryFunction) {
+            var dependencies = arguments[1] !== (void 0) ? arguments[1] : null;
+            return new Binding(Key.get(this.token), factoryFunction, this._constructDependencies(factoryFunction, dependencies), true);
+          },
+          _constructDependencies: function(factoryFunction, dependencies) {
+            return isBlank(dependencies) ? _dependenciesFor(factoryFunction) : ListWrapper.map(dependencies, (function(t) {
+              return Dependency.fromKey(Key.get(t));
+            }));
+          }
+        }, {});
+      }()));
+      Object.defineProperty(BindingBuilder.prototype.toClass, "parameters", {get: function() {
+          return [[Type]];
+        }});
+      Object.defineProperty(BindingBuilder.prototype.toFactory, "parameters", {get: function() {
+          return [[Function], [List]];
+        }});
+      Object.defineProperty(BindingBuilder.prototype.toAsyncFactory, "parameters", {get: function() {
+          return [[Function], [List]];
+        }});
+      Object.defineProperty(BindingBuilder.prototype._constructDependencies, "parameters", {get: function() {
+          return [[Function], [List]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/di/exceptions", ["angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/di/exceptions";
+  var ListWrapper,
+      List,
+      stringify,
+      KeyMetadataError,
+      ProviderError,
+      NoProviderError,
+      AsyncBindingError,
+      CyclicDependencyError,
+      InstantiationError,
+      InvalidBindingError,
+      NoAnnotationError;
+  function findFirstClosedCycle(keys) {
+    var res = [];
+    for (var i = 0; i < keys.length; ++i) {
+      if (ListWrapper.contains(res, keys[i])) {
+        ListWrapper.push(res, keys[i]);
+        return res;
+      } else {
+        ListWrapper.push(res, keys[i]);
+      }
+    }
+    return res;
+  }
+  function constructResolvingPath(keys) {
+    if (keys.length > 1) {
+      var reversed = findFirstClosedCycle(ListWrapper.reversed(keys));
+      var tokenStrs = ListWrapper.map(reversed, (function(k) {
+        return stringify(k.token);
+      }));
+      return " (" + tokenStrs.join(' -> ') + ")";
+    } else {
+      return "";
+    }
+  }
+  return {
+    setters: [function($__m) {
+      ListWrapper = $__m.ListWrapper;
+      List = $__m.List;
+    }, function($__m) {
+      stringify = $__m.stringify;
+    }],
+    execute: function() {
+      Object.defineProperty(findFirstClosedCycle, "parameters", {get: function() {
+          return [[List]];
+        }});
+      Object.defineProperty(constructResolvingPath, "parameters", {get: function() {
+          return [[List]];
+        }});
+      KeyMetadataError = $__export("KeyMetadataError", (function($__super) {
+        var KeyMetadataError = function KeyMetadataError() {
+          $traceurRuntime.superConstructor(KeyMetadataError).apply(this, arguments);
+        };
+        return ($traceurRuntime.createClass)(KeyMetadataError, {}, {}, $__super);
+      }(Error)));
+      ProviderError = $__export("ProviderError", (function($__super) {
+        var ProviderError = function ProviderError(key, constructResolvingMessage) {
+          $traceurRuntime.superConstructor(ProviderError).call(this);
+          this.keys = [key];
+          this.constructResolvingMessage = constructResolvingMessage;
+          this.message = this.constructResolvingMessage(this.keys);
+        };
+        return ($traceurRuntime.createClass)(ProviderError, {
+          addKey: function(key) {
+            ListWrapper.push(this.keys, key);
+            this.message = this.constructResolvingMessage(this.keys);
+          },
+          toString: function() {
+            return this.message;
+          }
+        }, {}, $__super);
+      }(Error)));
+      Object.defineProperty(ProviderError, "parameters", {get: function() {
+          return [[], [Function]];
+        }});
+      NoProviderError = $__export("NoProviderError", (function($__super) {
+        var NoProviderError = function NoProviderError(key) {
+          $traceurRuntime.superConstructor(NoProviderError).call(this, key, function(keys) {
+            var first = stringify(ListWrapper.first(keys).token);
+            return ("No provider for " + first + "!" + constructResolvingPath(keys));
+          });
+        };
+        return ($traceurRuntime.createClass)(NoProviderError, {}, {}, $__super);
+      }(ProviderError)));
+      AsyncBindingError = $__export("AsyncBindingError", (function($__super) {
+        var AsyncBindingError = function AsyncBindingError(key) {
+          $traceurRuntime.superConstructor(AsyncBindingError).call(this, key, function(keys) {
+            var first = stringify(ListWrapper.first(keys).token);
+            return ("Cannot instantiate " + first + " synchronously. ") + ("It is provided as a promise!" + constructResolvingPath(keys));
+          });
+        };
+        return ($traceurRuntime.createClass)(AsyncBindingError, {}, {}, $__super);
+      }(ProviderError)));
+      CyclicDependencyError = $__export("CyclicDependencyError", (function($__super) {
+        var CyclicDependencyError = function CyclicDependencyError(key) {
+          $traceurRuntime.superConstructor(CyclicDependencyError).call(this, key, function(keys) {
+            return ("Cannot instantiate cyclic dependency!" + constructResolvingPath(keys));
+          });
+        };
+        return ($traceurRuntime.createClass)(CyclicDependencyError, {}, {}, $__super);
+      }(ProviderError)));
+      InstantiationError = $__export("InstantiationError", (function($__super) {
+        var InstantiationError = function InstantiationError(originalException, key) {
+          $traceurRuntime.superConstructor(InstantiationError).call(this, key, function(keys) {
+            var first = stringify(ListWrapper.first(keys).token);
+            return ("Error during instantiation of " + first + "!" + constructResolvingPath(keys) + ".") + (" ORIGINAL ERROR: " + originalException);
+          });
+        };
+        return ($traceurRuntime.createClass)(InstantiationError, {}, {}, $__super);
+      }(ProviderError)));
+      InvalidBindingError = $__export("InvalidBindingError", (function($__super) {
+        var InvalidBindingError = function InvalidBindingError(binding) {
+          $traceurRuntime.superConstructor(InvalidBindingError).call(this);
+          this.message = ("Invalid binding " + binding);
+        };
+        return ($traceurRuntime.createClass)(InvalidBindingError, {toString: function() {
+            return this.message;
+          }}, {}, $__super);
+      }(Error)));
+      NoAnnotationError = $__export("NoAnnotationError", (function($__super) {
+        var NoAnnotationError = function NoAnnotationError(typeOrFunc) {
+          $traceurRuntime.superConstructor(NoAnnotationError).call(this);
+          this.message = ("Cannot resolve all parameters for " + stringify(typeOrFunc));
+        };
+        return ($traceurRuntime.createClass)(NoAnnotationError, {toString: function() {
+            return this.message;
+          }}, {}, $__super);
+      }(Error)));
+    }
+  };
+});
+
+System.register("angular2/src/di/injector", ["angular2/src/facade/collection", "./binding", "./exceptions", "angular2/src/facade/lang", "angular2/src/facade/async", "./key"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/di/injector";
+  var Map,
+      List,
+      MapWrapper,
+      ListWrapper,
+      Binding,
+      BindingBuilder,
+      bind,
+      ProviderError,
+      NoProviderError,
+      InvalidBindingError,
+      AsyncBindingError,
+      CyclicDependencyError,
+      InstantiationError,
+      FunctionWrapper,
+      Type,
+      isPresent,
+      isBlank,
+      Promise,
+      PromiseWrapper,
+      Key,
+      _constructing,
+      _notFound,
+      _Waiting,
+      Injector,
+      _SyncInjectorStrategy,
+      _AsyncInjectorStrategy;
+  function _isWaiting(obj) {
+    return obj instanceof _Waiting;
+  }
+  function _flattenBindings(bindings, res) {
+    ListWrapper.forEach(bindings, function(b) {
+      if (b instanceof Binding) {
+        MapWrapper.set(res, b.key.id, b);
+      } else if (b instanceof Type) {
+        var s = bind(b).toClass(b);
+        MapWrapper.set(res, s.key.id, s);
+      } else if (b instanceof List) {
+        _flattenBindings(b, res);
+      } else if (b instanceof BindingBuilder) {
+        throw new InvalidBindingError(b.token);
+      } else {
+        throw new InvalidBindingError(b);
+      }
+    });
+    return res;
+  }
+  return {
+    setters: [function($__m) {
+      Map = $__m.Map;
+      List = $__m.List;
+      MapWrapper = $__m.MapWrapper;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      Binding = $__m.Binding;
+      BindingBuilder = $__m.BindingBuilder;
+      bind = $__m.bind;
+    }, function($__m) {
+      ProviderError = $__m.ProviderError;
+      NoProviderError = $__m.NoProviderError;
+      InvalidBindingError = $__m.InvalidBindingError;
+      AsyncBindingError = $__m.AsyncBindingError;
+      CyclicDependencyError = $__m.CyclicDependencyError;
+      InstantiationError = $__m.InstantiationError;
+    }, function($__m) {
+      FunctionWrapper = $__m.FunctionWrapper;
+      Type = $__m.Type;
+      isPresent = $__m.isPresent;
+      isBlank = $__m.isBlank;
+    }, function($__m) {
+      Promise = $__m.Promise;
+      PromiseWrapper = $__m.PromiseWrapper;
+    }, function($__m) {
+      Key = $__m.Key;
+    }],
+    execute: function() {
+      _constructing = new Object();
+      _notFound = new Object();
+      _Waiting = (function() {
+        var _Waiting = function _Waiting(promise) {
+          this.promise = promise;
+        };
+        return ($traceurRuntime.createClass)(_Waiting, {}, {});
+      }());
+      Object.defineProperty(_Waiting, "parameters", {get: function() {
+          return [[Promise]];
+        }});
+      Injector = $__export("Injector", (function() {
+        var Injector = function Injector(bindings) {
+          var $__3,
+              $__4;
+          var $__2 = arguments[1] !== (void 0) ? arguments[1] : {},
+              parent = ($__3 = $__2.parent) === void 0 ? null : $__3,
+              defaultBindings = ($__4 = $__2.defaultBindings) === void 0 ? false : $__4;
+          var flatten = _flattenBindings(bindings, MapWrapper.create());
+          this._bindings = this._createListOfBindings(flatten);
+          this._instances = this._createInstances();
+          this._parent = parent;
+          this._defaultBindings = defaultBindings;
+          this._asyncStrategy = new _AsyncInjectorStrategy(this);
+          this._syncStrategy = new _SyncInjectorStrategy(this);
+        };
+        return ($traceurRuntime.createClass)(Injector, {
+          get: function(token) {
+            return this._getByKey(Key.get(token), false, false, false);
+          },
+          getOptional: function(token) {
+            return this._getByKey(Key.get(token), false, false, true);
+          },
+          asyncGet: function(token) {
+            return this._getByKey(Key.get(token), true, false, false);
+          },
+          createChild: function(bindings) {
+            return new Injector(bindings, {parent: this});
+          },
+          _createListOfBindings: function(flattenBindings) {
+            var bindings = ListWrapper.createFixedSize(Key.numberOfKeys + 1);
+            MapWrapper.forEach(flattenBindings, (function(v, keyId) {
+              return bindings[keyId] = v;
+            }));
+            return bindings;
+          },
+          _createInstances: function() {
+            return ListWrapper.createFixedSize(Key.numberOfKeys + 1);
+          },
+          _getByKey: function(key, returnPromise, returnLazy, optional) {
+            var $__0 = this;
+            if (returnLazy) {
+              return (function() {
+                return $__0._getByKey(key, returnPromise, false, optional);
+              });
+            }
+            var strategy = returnPromise ? this._asyncStrategy : this._syncStrategy;
+            var instance = strategy.readFromCache(key);
+            if (instance !== _notFound)
+              return instance;
+            instance = strategy.instantiate(key);
+            if (instance !== _notFound)
+              return instance;
+            if (isPresent(this._parent)) {
+              return this._parent._getByKey(key, returnPromise, returnLazy, optional);
+            }
+            if (optional) {
+              return null;
+            } else {
+              throw new NoProviderError(key);
+            }
+          },
+          _resolveDependencies: function(key, binding, forceAsync) {
+            var $__0 = this;
+            try {
+              var getDependency = (function(d) {
+                return $__0._getByKey(d.key, forceAsync || d.asPromise, d.lazy, d.optional);
+              });
+              return ListWrapper.map(binding.dependencies, getDependency);
+            } catch (e) {
+              this._clear(key);
+              if (e instanceof ProviderError)
+                e.addKey(key);
+              throw e;
+            }
+          },
+          _getInstance: function(key) {
+            if (this._instances.length <= key.id)
+              return null;
+            return ListWrapper.get(this._instances, key.id);
+          },
+          _setInstance: function(key, obj) {
+            ListWrapper.set(this._instances, key.id, obj);
+          },
+          _getBinding: function(key) {
+            var binding = this._bindings.length <= key.id ? null : ListWrapper.get(this._bindings, key.id);
+            if (isBlank(binding) && this._defaultBindings) {
+              return bind(key.token).toClass(key.token);
+            } else {
+              return binding;
+            }
+          },
+          _markAsConstructing: function(key) {
+            this._setInstance(key, _constructing);
+          },
+          _clear: function(key) {
+            this._setInstance(key, null);
+          }
+        }, {});
+      }()));
+      Object.defineProperty(Injector, "parameters", {get: function() {
+          return [[List], []];
+        }});
+      Object.defineProperty(Injector.prototype.createChild, "parameters", {get: function() {
+          return [[List]];
+        }});
+      Object.defineProperty(Injector.prototype._getByKey, "parameters", {get: function() {
+          return [[Key], [assert.type.boolean], [assert.type.boolean], [assert.type.boolean]];
+        }});
+      Object.defineProperty(Injector.prototype._resolveDependencies, "parameters", {get: function() {
+          return [[Key], [Binding], [assert.type.boolean]];
+        }});
+      Object.defineProperty(Injector.prototype._getInstance, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Object.defineProperty(Injector.prototype._setInstance, "parameters", {get: function() {
+          return [[Key], []];
+        }});
+      Object.defineProperty(Injector.prototype._getBinding, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Object.defineProperty(Injector.prototype._markAsConstructing, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Object.defineProperty(Injector.prototype._clear, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      _SyncInjectorStrategy = (function() {
+        var _SyncInjectorStrategy = function _SyncInjectorStrategy(injector) {
+          this.injector = injector;
+        };
+        return ($traceurRuntime.createClass)(_SyncInjectorStrategy, {
+          readFromCache: function(key) {
+            if (key.token === Injector) {
+              return this.injector;
+            }
+            var instance = this.injector._getInstance(key);
+            if (instance === _constructing) {
+              throw new CyclicDependencyError(key);
+            } else if (isPresent(instance) && !_isWaiting(instance)) {
+              return instance;
+            } else {
+              return _notFound;
+            }
+          },
+          instantiate: function(key) {
+            var binding = this.injector._getBinding(key);
+            if (isBlank(binding))
+              return _notFound;
+            if (binding.providedAsPromise)
+              throw new AsyncBindingError(key);
+            this.injector._markAsConstructing(key);
+            var deps = this.injector._resolveDependencies(key, binding, false);
+            return this._createInstance(key, binding, deps);
+          },
+          _createInstance: function(key, binding, deps) {
+            try {
+              var instance = FunctionWrapper.apply(binding.factory, deps);
+              this.injector._setInstance(key, instance);
+              return instance;
+            } catch (e) {
+              this.injector._clear(key);
+              throw new InstantiationError(e, key);
+            }
+          }
+        }, {});
+      }());
+      Object.defineProperty(_SyncInjectorStrategy, "parameters", {get: function() {
+          return [[Injector]];
+        }});
+      Object.defineProperty(_SyncInjectorStrategy.prototype.readFromCache, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Object.defineProperty(_SyncInjectorStrategy.prototype.instantiate, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Object.defineProperty(_SyncInjectorStrategy.prototype._createInstance, "parameters", {get: function() {
+          return [[Key], [Binding], [List]];
+        }});
+      _AsyncInjectorStrategy = (function() {
+        var _AsyncInjectorStrategy = function _AsyncInjectorStrategy(injector) {
+          this.injector = injector;
+        };
+        return ($traceurRuntime.createClass)(_AsyncInjectorStrategy, {
+          readFromCache: function(key) {
+            if (key.token === Injector) {
+              return PromiseWrapper.resolve(this.injector);
+            }
+            var instance = this.injector._getInstance(key);
+            if (instance === _constructing) {
+              throw new CyclicDependencyError(key);
+            } else if (_isWaiting(instance)) {
+              return instance.promise;
+            } else if (isPresent(instance)) {
+              return PromiseWrapper.resolve(instance);
+            } else {
+              return _notFound;
+            }
+          },
+          instantiate: function(key) {
+            var $__0 = this;
+            var binding = this.injector._getBinding(key);
+            if (isBlank(binding))
+              return _notFound;
+            this.injector._markAsConstructing(key);
+            var deps = this.injector._resolveDependencies(key, binding, true);
+            var depsPromise = PromiseWrapper.all(deps);
+            var promise = PromiseWrapper.then(depsPromise, null, (function(e) {
+              return $__0._errorHandler(key, e);
+            })).then((function(deps) {
+              return $__0._findOrCreate(key, binding, deps);
+            })).then((function(instance) {
+              return $__0._cacheInstance(key, instance);
+            }));
+            this.injector._setInstance(key, new _Waiting(promise));
+            return promise;
+          },
+          _errorHandler: function(key, e) {
+            if (e instanceof ProviderError)
+              e.addKey(key);
+            return PromiseWrapper.reject(e);
+          },
+          _findOrCreate: function(key, binding, deps) {
+            try {
+              var instance = this.injector._getInstance(key);
+              if (!_isWaiting(instance))
+                return instance;
+              return FunctionWrapper.apply(binding.factory, deps);
+            } catch (e) {
+              this.injector._clear(key);
+              throw new InstantiationError(e, key);
+            }
+          },
+          _cacheInstance: function(key, instance) {
+            this.injector._setInstance(key, instance);
+            return instance;
+          }
+        }, {});
+      }());
+      Object.defineProperty(_AsyncInjectorStrategy, "parameters", {get: function() {
+          return [[Injector]];
+        }});
+      Object.defineProperty(_AsyncInjectorStrategy.prototype.readFromCache, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Object.defineProperty(_AsyncInjectorStrategy.prototype.instantiate, "parameters", {get: function() {
+          return [[Key]];
+        }});
+      Object.defineProperty(_AsyncInjectorStrategy.prototype._errorHandler, "parameters", {get: function() {
+          return [[Key], []];
+        }});
+      Object.defineProperty(_AsyncInjectorStrategy.prototype._findOrCreate, "parameters", {get: function() {
+          return [[Key], [Binding], [List]];
+        }});
+      Object.defineProperty(_flattenBindings, "parameters", {get: function() {
+          return [[List], [Map]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/di/key", ["./exceptions", "angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/di/key";
+  var KeyMetadataError,
+      MapWrapper,
+      Map,
+      int,
+      isPresent,
+      Key,
+      KeyRegistry,
+      _globalKeyRegistry;
+  return {
+    setters: [function($__m) {
+      KeyMetadataError = $__m.KeyMetadataError;
+    }, function($__m) {
+      MapWrapper = $__m.MapWrapper;
+      Map = $__m.Map;
+    }, function($__m) {
+      int = $__m.int;
+      isPresent = $__m.isPresent;
+    }],
+    execute: function() {
+      Key = $__export("Key", (function() {
+        var Key = function Key(token, id) {
+          this.token = token;
+          this.id = id;
+          this.metadata = null;
+        };
+        return ($traceurRuntime.createClass)(Key, {}, {
+          setMetadata: function(key, metadata) {
+            if (isPresent(key.metadata) && key.metadata !== metadata) {
+              throw new KeyMetadataError();
+            }
+            key.metadata = metadata;
+            return key;
+          },
+          get: function(token) {
+            return _globalKeyRegistry.get(token);
+          },
+          get numberOfKeys() {
+            return _globalKeyRegistry.numberOfKeys;
+          }
+        });
+      }()));
+      Object.defineProperty(Key, "parameters", {get: function() {
+          return [[], [int]];
+        }});
+      Object.defineProperty(Key.setMetadata, "parameters", {get: function() {
+          return [[Key], []];
+        }});
+      KeyRegistry = $__export("KeyRegistry", (function() {
+        var KeyRegistry = function KeyRegistry() {
+          this._allKeys = MapWrapper.create();
+        };
+        return ($traceurRuntime.createClass)(KeyRegistry, {
+          get: function(token) {
+            if (token instanceof Key)
+              return token;
+            if (MapWrapper.contains(this._allKeys, token)) {
+              return MapWrapper.get(this._allKeys, token);
+            }
+            var newKey = new Key(token, Key.numberOfKeys);
+            MapWrapper.set(this._allKeys, token, newKey);
+            return newKey;
+          },
+          get numberOfKeys() {
+            return MapWrapper.size(this._allKeys);
+          }
+        }, {});
+      }()));
+      _globalKeyRegistry = new KeyRegistry();
+    }
+  };
+});
+
+System.register("angular2/src/di/opaque_token", [], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/di/opaque_token";
+  var OpaqueToken;
+  return {
+    setters: [],
+    execute: function() {
+      OpaqueToken = $__export("OpaqueToken", (function() {
+        var OpaqueToken = function OpaqueToken(desc) {
+          this._desc = ("Token(" + desc + ")");
+        };
+        return ($traceurRuntime.createClass)(OpaqueToken, {toString: function() {
+            return this._desc;
+          }}, {});
+      }()));
+      Object.defineProperty(OpaqueToken, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+    }
+  };
+});
+
 System.register("angular2/src/facade/async", ["angular2/src/facade/lang", "angular2/src/facade/collection", "rx/dist/rx.all"], function($__export) {
   "use strict";
   var __moduleName = "angular2/src/facade/async";
@@ -3481,1169 +4301,6 @@ System.register("angular2/src/facade/math", ["angular2/src/facade/lang"], functi
   };
 });
 
-System.register("angular2/src/di/annotations", ["angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/di/annotations";
-  var CONST,
-      Inject,
-      InjectPromise,
-      InjectLazy,
-      Optional,
-      DependencyAnnotation,
-      Injectable;
-  return {
-    setters: [function($__m) {
-      CONST = $__m.CONST;
-    }],
-    execute: function() {
-      Inject = $__export("Inject", (function() {
-        var Inject = function Inject(token) {
-          this.token = token;
-        };
-        return ($traceurRuntime.createClass)(Inject, {}, {});
-      }()));
-      Object.defineProperty(Inject, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      InjectPromise = $__export("InjectPromise", (function() {
-        var InjectPromise = function InjectPromise(token) {
-          this.token = token;
-        };
-        return ($traceurRuntime.createClass)(InjectPromise, {}, {});
-      }()));
-      Object.defineProperty(InjectPromise, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      InjectLazy = $__export("InjectLazy", (function() {
-        var InjectLazy = function InjectLazy(token) {
-          this.token = token;
-        };
-        return ($traceurRuntime.createClass)(InjectLazy, {}, {});
-      }()));
-      Object.defineProperty(InjectLazy, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Optional = $__export("Optional", (function() {
-        var Optional = function Optional() {};
-        return ($traceurRuntime.createClass)(Optional, {}, {});
-      }()));
-      Object.defineProperty(Optional, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      DependencyAnnotation = $__export("DependencyAnnotation", (function() {
-        var DependencyAnnotation = function DependencyAnnotation() {};
-        return ($traceurRuntime.createClass)(DependencyAnnotation, {}, {});
-      }()));
-      Object.defineProperty(DependencyAnnotation, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Injectable = $__export("Injectable", (function() {
-        var Injectable = function Injectable() {};
-        return ($traceurRuntime.createClass)(Injectable, {}, {});
-      }()));
-      Object.defineProperty(Injectable, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/di/binding", ["angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/reflection/reflection", "./key", "./annotations", "./exceptions"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/di/binding";
-  var Type,
-      isBlank,
-      isPresent,
-      List,
-      MapWrapper,
-      ListWrapper,
-      reflector,
-      Key,
-      Inject,
-      InjectLazy,
-      InjectPromise,
-      Optional,
-      DependencyAnnotation,
-      NoAnnotationError,
-      Dependency,
-      Binding,
-      BindingBuilder;
-  function bind(token) {
-    return new BindingBuilder(token);
-  }
-  function _dependenciesFor(typeOrFunc) {
-    var params = reflector.parameters(typeOrFunc);
-    if (isBlank(params))
-      return [];
-    if (ListWrapper.any(params, (function(p) {
-      return isBlank(p);
-    })))
-      throw new NoAnnotationError(typeOrFunc);
-    return ListWrapper.map(params, (function(p) {
-      return _extractToken(typeOrFunc, p);
-    }));
-  }
-  function _extractToken(typeOrFunc, annotations) {
-    var depProps = [];
-    var token = null;
-    var optional = false;
-    var lazy = false;
-    var asPromise = false;
-    for (var i = 0; i < annotations.length; ++i) {
-      var paramAnnotation = annotations[i];
-      if (paramAnnotation instanceof Type) {
-        token = paramAnnotation;
-      } else if (paramAnnotation instanceof Inject) {
-        token = paramAnnotation.token;
-      } else if (paramAnnotation instanceof InjectPromise) {
-        token = paramAnnotation.token;
-        asPromise = true;
-      } else if (paramAnnotation instanceof InjectLazy) {
-        token = paramAnnotation.token;
-        lazy = true;
-      } else if (paramAnnotation instanceof Optional) {
-        optional = true;
-      } else if (paramAnnotation instanceof DependencyAnnotation) {
-        ListWrapper.push(depProps, paramAnnotation);
-      } else if (paramAnnotation.name === "string") {
-        token = paramAnnotation;
-      }
-    }
-    if (isPresent(token)) {
-      return _createDependency(token, asPromise, lazy, optional, depProps);
-    } else {
-      throw new NoAnnotationError(typeOrFunc);
-    }
-  }
-  function _createDependency(token, asPromise, lazy, optional, depProps) {
-    return new Dependency(Key.get(token), asPromise, lazy, optional, depProps);
-  }
-  $__export("bind", bind);
-  return {
-    setters: [function($__m) {
-      Type = $__m.Type;
-      isBlank = $__m.isBlank;
-      isPresent = $__m.isPresent;
-    }, function($__m) {
-      List = $__m.List;
-      MapWrapper = $__m.MapWrapper;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      reflector = $__m.reflector;
-    }, function($__m) {
-      Key = $__m.Key;
-    }, function($__m) {
-      Inject = $__m.Inject;
-      InjectLazy = $__m.InjectLazy;
-      InjectPromise = $__m.InjectPromise;
-      Optional = $__m.Optional;
-      DependencyAnnotation = $__m.DependencyAnnotation;
-    }, function($__m) {
-      NoAnnotationError = $__m.NoAnnotationError;
-    }],
-    execute: function() {
-      Dependency = $__export("Dependency", (function() {
-        var Dependency = function Dependency(key, asPromise, lazy, optional, properties) {
-          this.key = key;
-          this.asPromise = asPromise;
-          this.lazy = lazy;
-          this.optional = optional;
-          this.properties = properties;
-        };
-        return ($traceurRuntime.createClass)(Dependency, {}, {fromKey: function(key) {
-            return new Dependency(key, false, false, false, []);
-          }});
-      }()));
-      Object.defineProperty(Dependency, "parameters", {get: function() {
-          return [[Key], [assert.type.boolean], [assert.type.boolean], [assert.type.boolean], [List]];
-        }});
-      Object.defineProperty(Dependency.fromKey, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Binding = $__export("Binding", (function() {
-        var Binding = function Binding(key, factory, dependencies, providedAsPromise) {
-          this.key = key;
-          this.factory = factory;
-          this.dependencies = dependencies;
-          this.providedAsPromise = providedAsPromise;
-        };
-        return ($traceurRuntime.createClass)(Binding, {}, {});
-      }()));
-      Object.defineProperty(Binding, "parameters", {get: function() {
-          return [[Key], [Function], [List], [assert.type.boolean]];
-        }});
-      BindingBuilder = $__export("BindingBuilder", (function() {
-        var BindingBuilder = function BindingBuilder(token) {
-          this.token = token;
-        };
-        return ($traceurRuntime.createClass)(BindingBuilder, {
-          toClass: function(type) {
-            return new Binding(Key.get(this.token), reflector.factory(type), _dependenciesFor(type), false);
-          },
-          toValue: function(value) {
-            return new Binding(Key.get(this.token), (function() {
-              return value;
-            }), [], false);
-          },
-          toAlias: function(aliasToken) {
-            return new Binding(Key.get(this.token), (function(aliasInstance) {
-              return aliasInstance;
-            }), [Dependency.fromKey(Key.get(aliasToken))], false);
-          },
-          toFactory: function(factoryFunction) {
-            var dependencies = arguments[1] !== (void 0) ? arguments[1] : null;
-            return new Binding(Key.get(this.token), factoryFunction, this._constructDependencies(factoryFunction, dependencies), false);
-          },
-          toAsyncFactory: function(factoryFunction) {
-            var dependencies = arguments[1] !== (void 0) ? arguments[1] : null;
-            return new Binding(Key.get(this.token), factoryFunction, this._constructDependencies(factoryFunction, dependencies), true);
-          },
-          _constructDependencies: function(factoryFunction, dependencies) {
-            return isBlank(dependencies) ? _dependenciesFor(factoryFunction) : ListWrapper.map(dependencies, (function(t) {
-              return Dependency.fromKey(Key.get(t));
-            }));
-          }
-        }, {});
-      }()));
-      Object.defineProperty(BindingBuilder.prototype.toClass, "parameters", {get: function() {
-          return [[Type]];
-        }});
-      Object.defineProperty(BindingBuilder.prototype.toFactory, "parameters", {get: function() {
-          return [[Function], [List]];
-        }});
-      Object.defineProperty(BindingBuilder.prototype.toAsyncFactory, "parameters", {get: function() {
-          return [[Function], [List]];
-        }});
-      Object.defineProperty(BindingBuilder.prototype._constructDependencies, "parameters", {get: function() {
-          return [[Function], [List]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/di/exceptions", ["angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/di/exceptions";
-  var ListWrapper,
-      List,
-      stringify,
-      KeyMetadataError,
-      ProviderError,
-      NoProviderError,
-      AsyncBindingError,
-      CyclicDependencyError,
-      InstantiationError,
-      InvalidBindingError,
-      NoAnnotationError;
-  function findFirstClosedCycle(keys) {
-    var res = [];
-    for (var i = 0; i < keys.length; ++i) {
-      if (ListWrapper.contains(res, keys[i])) {
-        ListWrapper.push(res, keys[i]);
-        return res;
-      } else {
-        ListWrapper.push(res, keys[i]);
-      }
-    }
-    return res;
-  }
-  function constructResolvingPath(keys) {
-    if (keys.length > 1) {
-      var reversed = findFirstClosedCycle(ListWrapper.reversed(keys));
-      var tokenStrs = ListWrapper.map(reversed, (function(k) {
-        return stringify(k.token);
-      }));
-      return " (" + tokenStrs.join(' -> ') + ")";
-    } else {
-      return "";
-    }
-  }
-  return {
-    setters: [function($__m) {
-      ListWrapper = $__m.ListWrapper;
-      List = $__m.List;
-    }, function($__m) {
-      stringify = $__m.stringify;
-    }],
-    execute: function() {
-      Object.defineProperty(findFirstClosedCycle, "parameters", {get: function() {
-          return [[List]];
-        }});
-      Object.defineProperty(constructResolvingPath, "parameters", {get: function() {
-          return [[List]];
-        }});
-      KeyMetadataError = $__export("KeyMetadataError", (function($__super) {
-        var KeyMetadataError = function KeyMetadataError() {
-          $traceurRuntime.superConstructor(KeyMetadataError).apply(this, arguments);
-        };
-        return ($traceurRuntime.createClass)(KeyMetadataError, {}, {}, $__super);
-      }(Error)));
-      ProviderError = $__export("ProviderError", (function($__super) {
-        var ProviderError = function ProviderError(key, constructResolvingMessage) {
-          $traceurRuntime.superConstructor(ProviderError).call(this);
-          this.keys = [key];
-          this.constructResolvingMessage = constructResolvingMessage;
-          this.message = this.constructResolvingMessage(this.keys);
-        };
-        return ($traceurRuntime.createClass)(ProviderError, {
-          addKey: function(key) {
-            ListWrapper.push(this.keys, key);
-            this.message = this.constructResolvingMessage(this.keys);
-          },
-          toString: function() {
-            return this.message;
-          }
-        }, {}, $__super);
-      }(Error)));
-      Object.defineProperty(ProviderError, "parameters", {get: function() {
-          return [[], [Function]];
-        }});
-      NoProviderError = $__export("NoProviderError", (function($__super) {
-        var NoProviderError = function NoProviderError(key) {
-          $traceurRuntime.superConstructor(NoProviderError).call(this, key, function(keys) {
-            var first = stringify(ListWrapper.first(keys).token);
-            return ("No provider for " + first + "!" + constructResolvingPath(keys));
-          });
-        };
-        return ($traceurRuntime.createClass)(NoProviderError, {}, {}, $__super);
-      }(ProviderError)));
-      AsyncBindingError = $__export("AsyncBindingError", (function($__super) {
-        var AsyncBindingError = function AsyncBindingError(key) {
-          $traceurRuntime.superConstructor(AsyncBindingError).call(this, key, function(keys) {
-            var first = stringify(ListWrapper.first(keys).token);
-            return ("Cannot instantiate " + first + " synchronously. ") + ("It is provided as a promise!" + constructResolvingPath(keys));
-          });
-        };
-        return ($traceurRuntime.createClass)(AsyncBindingError, {}, {}, $__super);
-      }(ProviderError)));
-      CyclicDependencyError = $__export("CyclicDependencyError", (function($__super) {
-        var CyclicDependencyError = function CyclicDependencyError(key) {
-          $traceurRuntime.superConstructor(CyclicDependencyError).call(this, key, function(keys) {
-            return ("Cannot instantiate cyclic dependency!" + constructResolvingPath(keys));
-          });
-        };
-        return ($traceurRuntime.createClass)(CyclicDependencyError, {}, {}, $__super);
-      }(ProviderError)));
-      InstantiationError = $__export("InstantiationError", (function($__super) {
-        var InstantiationError = function InstantiationError(originalException, key) {
-          $traceurRuntime.superConstructor(InstantiationError).call(this, key, function(keys) {
-            var first = stringify(ListWrapper.first(keys).token);
-            return ("Error during instantiation of " + first + "!" + constructResolvingPath(keys) + ".") + (" ORIGINAL ERROR: " + originalException);
-          });
-        };
-        return ($traceurRuntime.createClass)(InstantiationError, {}, {}, $__super);
-      }(ProviderError)));
-      InvalidBindingError = $__export("InvalidBindingError", (function($__super) {
-        var InvalidBindingError = function InvalidBindingError(binding) {
-          $traceurRuntime.superConstructor(InvalidBindingError).call(this);
-          this.message = ("Invalid binding " + binding);
-        };
-        return ($traceurRuntime.createClass)(InvalidBindingError, {toString: function() {
-            return this.message;
-          }}, {}, $__super);
-      }(Error)));
-      NoAnnotationError = $__export("NoAnnotationError", (function($__super) {
-        var NoAnnotationError = function NoAnnotationError(typeOrFunc) {
-          $traceurRuntime.superConstructor(NoAnnotationError).call(this);
-          this.message = ("Cannot resolve all parameters for " + stringify(typeOrFunc));
-        };
-        return ($traceurRuntime.createClass)(NoAnnotationError, {toString: function() {
-            return this.message;
-          }}, {}, $__super);
-      }(Error)));
-    }
-  };
-});
-
-System.register("angular2/src/di/injector", ["angular2/src/facade/collection", "./binding", "./exceptions", "angular2/src/facade/lang", "angular2/src/facade/async", "./key"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/di/injector";
-  var Map,
-      List,
-      MapWrapper,
-      ListWrapper,
-      Binding,
-      BindingBuilder,
-      bind,
-      ProviderError,
-      NoProviderError,
-      InvalidBindingError,
-      AsyncBindingError,
-      CyclicDependencyError,
-      InstantiationError,
-      FunctionWrapper,
-      Type,
-      isPresent,
-      isBlank,
-      Promise,
-      PromiseWrapper,
-      Key,
-      _constructing,
-      _notFound,
-      _Waiting,
-      Injector,
-      _SyncInjectorStrategy,
-      _AsyncInjectorStrategy;
-  function _isWaiting(obj) {
-    return obj instanceof _Waiting;
-  }
-  function _flattenBindings(bindings, res) {
-    ListWrapper.forEach(bindings, function(b) {
-      if (b instanceof Binding) {
-        MapWrapper.set(res, b.key.id, b);
-      } else if (b instanceof Type) {
-        var s = bind(b).toClass(b);
-        MapWrapper.set(res, s.key.id, s);
-      } else if (b instanceof List) {
-        _flattenBindings(b, res);
-      } else if (b instanceof BindingBuilder) {
-        throw new InvalidBindingError(b.token);
-      } else {
-        throw new InvalidBindingError(b);
-      }
-    });
-    return res;
-  }
-  return {
-    setters: [function($__m) {
-      Map = $__m.Map;
-      List = $__m.List;
-      MapWrapper = $__m.MapWrapper;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      Binding = $__m.Binding;
-      BindingBuilder = $__m.BindingBuilder;
-      bind = $__m.bind;
-    }, function($__m) {
-      ProviderError = $__m.ProviderError;
-      NoProviderError = $__m.NoProviderError;
-      InvalidBindingError = $__m.InvalidBindingError;
-      AsyncBindingError = $__m.AsyncBindingError;
-      CyclicDependencyError = $__m.CyclicDependencyError;
-      InstantiationError = $__m.InstantiationError;
-    }, function($__m) {
-      FunctionWrapper = $__m.FunctionWrapper;
-      Type = $__m.Type;
-      isPresent = $__m.isPresent;
-      isBlank = $__m.isBlank;
-    }, function($__m) {
-      Promise = $__m.Promise;
-      PromiseWrapper = $__m.PromiseWrapper;
-    }, function($__m) {
-      Key = $__m.Key;
-    }],
-    execute: function() {
-      _constructing = new Object();
-      _notFound = new Object();
-      _Waiting = (function() {
-        var _Waiting = function _Waiting(promise) {
-          this.promise = promise;
-        };
-        return ($traceurRuntime.createClass)(_Waiting, {}, {});
-      }());
-      Object.defineProperty(_Waiting, "parameters", {get: function() {
-          return [[Promise]];
-        }});
-      Injector = $__export("Injector", (function() {
-        var Injector = function Injector(bindings) {
-          var $__3,
-              $__4;
-          var $__2 = arguments[1] !== (void 0) ? arguments[1] : {},
-              parent = ($__3 = $__2.parent) === void 0 ? null : $__3,
-              defaultBindings = ($__4 = $__2.defaultBindings) === void 0 ? false : $__4;
-          var flatten = _flattenBindings(bindings, MapWrapper.create());
-          this._bindings = this._createListOfBindings(flatten);
-          this._instances = this._createInstances();
-          this._parent = parent;
-          this._defaultBindings = defaultBindings;
-          this._asyncStrategy = new _AsyncInjectorStrategy(this);
-          this._syncStrategy = new _SyncInjectorStrategy(this);
-        };
-        return ($traceurRuntime.createClass)(Injector, {
-          get: function(token) {
-            return this._getByKey(Key.get(token), false, false, false);
-          },
-          getOptional: function(token) {
-            return this._getByKey(Key.get(token), false, false, true);
-          },
-          asyncGet: function(token) {
-            return this._getByKey(Key.get(token), true, false, false);
-          },
-          createChild: function(bindings) {
-            return new Injector(bindings, {parent: this});
-          },
-          _createListOfBindings: function(flattenBindings) {
-            var bindings = ListWrapper.createFixedSize(Key.numberOfKeys + 1);
-            MapWrapper.forEach(flattenBindings, (function(v, keyId) {
-              return bindings[keyId] = v;
-            }));
-            return bindings;
-          },
-          _createInstances: function() {
-            return ListWrapper.createFixedSize(Key.numberOfKeys + 1);
-          },
-          _getByKey: function(key, returnPromise, returnLazy, optional) {
-            var $__0 = this;
-            if (returnLazy) {
-              return (function() {
-                return $__0._getByKey(key, returnPromise, false, optional);
-              });
-            }
-            var strategy = returnPromise ? this._asyncStrategy : this._syncStrategy;
-            var instance = strategy.readFromCache(key);
-            if (instance !== _notFound)
-              return instance;
-            instance = strategy.instantiate(key);
-            if (instance !== _notFound)
-              return instance;
-            if (isPresent(this._parent)) {
-              return this._parent._getByKey(key, returnPromise, returnLazy, optional);
-            }
-            if (optional) {
-              return null;
-            } else {
-              throw new NoProviderError(key);
-            }
-          },
-          _resolveDependencies: function(key, binding, forceAsync) {
-            var $__0 = this;
-            try {
-              var getDependency = (function(d) {
-                return $__0._getByKey(d.key, forceAsync || d.asPromise, d.lazy, d.optional);
-              });
-              return ListWrapper.map(binding.dependencies, getDependency);
-            } catch (e) {
-              this._clear(key);
-              if (e instanceof ProviderError)
-                e.addKey(key);
-              throw e;
-            }
-          },
-          _getInstance: function(key) {
-            if (this._instances.length <= key.id)
-              return null;
-            return ListWrapper.get(this._instances, key.id);
-          },
-          _setInstance: function(key, obj) {
-            ListWrapper.set(this._instances, key.id, obj);
-          },
-          _getBinding: function(key) {
-            var binding = this._bindings.length <= key.id ? null : ListWrapper.get(this._bindings, key.id);
-            if (isBlank(binding) && this._defaultBindings) {
-              return bind(key.token).toClass(key.token);
-            } else {
-              return binding;
-            }
-          },
-          _markAsConstructing: function(key) {
-            this._setInstance(key, _constructing);
-          },
-          _clear: function(key) {
-            this._setInstance(key, null);
-          }
-        }, {});
-      }()));
-      Object.defineProperty(Injector, "parameters", {get: function() {
-          return [[List], []];
-        }});
-      Object.defineProperty(Injector.prototype.createChild, "parameters", {get: function() {
-          return [[List]];
-        }});
-      Object.defineProperty(Injector.prototype._getByKey, "parameters", {get: function() {
-          return [[Key], [assert.type.boolean], [assert.type.boolean], [assert.type.boolean]];
-        }});
-      Object.defineProperty(Injector.prototype._resolveDependencies, "parameters", {get: function() {
-          return [[Key], [Binding], [assert.type.boolean]];
-        }});
-      Object.defineProperty(Injector.prototype._getInstance, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Object.defineProperty(Injector.prototype._setInstance, "parameters", {get: function() {
-          return [[Key], []];
-        }});
-      Object.defineProperty(Injector.prototype._getBinding, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Object.defineProperty(Injector.prototype._markAsConstructing, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Object.defineProperty(Injector.prototype._clear, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      _SyncInjectorStrategy = (function() {
-        var _SyncInjectorStrategy = function _SyncInjectorStrategy(injector) {
-          this.injector = injector;
-        };
-        return ($traceurRuntime.createClass)(_SyncInjectorStrategy, {
-          readFromCache: function(key) {
-            if (key.token === Injector) {
-              return this.injector;
-            }
-            var instance = this.injector._getInstance(key);
-            if (instance === _constructing) {
-              throw new CyclicDependencyError(key);
-            } else if (isPresent(instance) && !_isWaiting(instance)) {
-              return instance;
-            } else {
-              return _notFound;
-            }
-          },
-          instantiate: function(key) {
-            var binding = this.injector._getBinding(key);
-            if (isBlank(binding))
-              return _notFound;
-            if (binding.providedAsPromise)
-              throw new AsyncBindingError(key);
-            this.injector._markAsConstructing(key);
-            var deps = this.injector._resolveDependencies(key, binding, false);
-            return this._createInstance(key, binding, deps);
-          },
-          _createInstance: function(key, binding, deps) {
-            try {
-              var instance = FunctionWrapper.apply(binding.factory, deps);
-              this.injector._setInstance(key, instance);
-              return instance;
-            } catch (e) {
-              this.injector._clear(key);
-              throw new InstantiationError(e, key);
-            }
-          }
-        }, {});
-      }());
-      Object.defineProperty(_SyncInjectorStrategy, "parameters", {get: function() {
-          return [[Injector]];
-        }});
-      Object.defineProperty(_SyncInjectorStrategy.prototype.readFromCache, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Object.defineProperty(_SyncInjectorStrategy.prototype.instantiate, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Object.defineProperty(_SyncInjectorStrategy.prototype._createInstance, "parameters", {get: function() {
-          return [[Key], [Binding], [List]];
-        }});
-      _AsyncInjectorStrategy = (function() {
-        var _AsyncInjectorStrategy = function _AsyncInjectorStrategy(injector) {
-          this.injector = injector;
-        };
-        return ($traceurRuntime.createClass)(_AsyncInjectorStrategy, {
-          readFromCache: function(key) {
-            if (key.token === Injector) {
-              return PromiseWrapper.resolve(this.injector);
-            }
-            var instance = this.injector._getInstance(key);
-            if (instance === _constructing) {
-              throw new CyclicDependencyError(key);
-            } else if (_isWaiting(instance)) {
-              return instance.promise;
-            } else if (isPresent(instance)) {
-              return PromiseWrapper.resolve(instance);
-            } else {
-              return _notFound;
-            }
-          },
-          instantiate: function(key) {
-            var $__0 = this;
-            var binding = this.injector._getBinding(key);
-            if (isBlank(binding))
-              return _notFound;
-            this.injector._markAsConstructing(key);
-            var deps = this.injector._resolveDependencies(key, binding, true);
-            var depsPromise = PromiseWrapper.all(deps);
-            var promise = PromiseWrapper.then(depsPromise, null, (function(e) {
-              return $__0._errorHandler(key, e);
-            })).then((function(deps) {
-              return $__0._findOrCreate(key, binding, deps);
-            })).then((function(instance) {
-              return $__0._cacheInstance(key, instance);
-            }));
-            this.injector._setInstance(key, new _Waiting(promise));
-            return promise;
-          },
-          _errorHandler: function(key, e) {
-            if (e instanceof ProviderError)
-              e.addKey(key);
-            return PromiseWrapper.reject(e);
-          },
-          _findOrCreate: function(key, binding, deps) {
-            try {
-              var instance = this.injector._getInstance(key);
-              if (!_isWaiting(instance))
-                return instance;
-              return FunctionWrapper.apply(binding.factory, deps);
-            } catch (e) {
-              this.injector._clear(key);
-              throw new InstantiationError(e, key);
-            }
-          },
-          _cacheInstance: function(key, instance) {
-            this.injector._setInstance(key, instance);
-            return instance;
-          }
-        }, {});
-      }());
-      Object.defineProperty(_AsyncInjectorStrategy, "parameters", {get: function() {
-          return [[Injector]];
-        }});
-      Object.defineProperty(_AsyncInjectorStrategy.prototype.readFromCache, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Object.defineProperty(_AsyncInjectorStrategy.prototype.instantiate, "parameters", {get: function() {
-          return [[Key]];
-        }});
-      Object.defineProperty(_AsyncInjectorStrategy.prototype._errorHandler, "parameters", {get: function() {
-          return [[Key], []];
-        }});
-      Object.defineProperty(_AsyncInjectorStrategy.prototype._findOrCreate, "parameters", {get: function() {
-          return [[Key], [Binding], [List]];
-        }});
-      Object.defineProperty(_flattenBindings, "parameters", {get: function() {
-          return [[List], [Map]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/di/key", ["./exceptions", "angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/di/key";
-  var KeyMetadataError,
-      MapWrapper,
-      Map,
-      int,
-      isPresent,
-      Key,
-      KeyRegistry,
-      _globalKeyRegistry;
-  return {
-    setters: [function($__m) {
-      KeyMetadataError = $__m.KeyMetadataError;
-    }, function($__m) {
-      MapWrapper = $__m.MapWrapper;
-      Map = $__m.Map;
-    }, function($__m) {
-      int = $__m.int;
-      isPresent = $__m.isPresent;
-    }],
-    execute: function() {
-      Key = $__export("Key", (function() {
-        var Key = function Key(token, id) {
-          this.token = token;
-          this.id = id;
-          this.metadata = null;
-        };
-        return ($traceurRuntime.createClass)(Key, {}, {
-          setMetadata: function(key, metadata) {
-            if (isPresent(key.metadata) && key.metadata !== metadata) {
-              throw new KeyMetadataError();
-            }
-            key.metadata = metadata;
-            return key;
-          },
-          get: function(token) {
-            return _globalKeyRegistry.get(token);
-          },
-          get numberOfKeys() {
-            return _globalKeyRegistry.numberOfKeys;
-          }
-        });
-      }()));
-      Object.defineProperty(Key, "parameters", {get: function() {
-          return [[], [int]];
-        }});
-      Object.defineProperty(Key.setMetadata, "parameters", {get: function() {
-          return [[Key], []];
-        }});
-      KeyRegistry = $__export("KeyRegistry", (function() {
-        var KeyRegistry = function KeyRegistry() {
-          this._allKeys = MapWrapper.create();
-        };
-        return ($traceurRuntime.createClass)(KeyRegistry, {
-          get: function(token) {
-            if (token instanceof Key)
-              return token;
-            if (MapWrapper.contains(this._allKeys, token)) {
-              return MapWrapper.get(this._allKeys, token);
-            }
-            var newKey = new Key(token, Key.numberOfKeys);
-            MapWrapper.set(this._allKeys, token, newKey);
-            return newKey;
-          },
-          get numberOfKeys() {
-            return MapWrapper.size(this._allKeys);
-          }
-        }, {});
-      }()));
-      _globalKeyRegistry = new KeyRegistry();
-    }
-  };
-});
-
-System.register("angular2/src/di/opaque_token", [], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/di/opaque_token";
-  var OpaqueToken;
-  return {
-    setters: [],
-    execute: function() {
-      OpaqueToken = $__export("OpaqueToken", (function() {
-        var OpaqueToken = function OpaqueToken(desc) {
-          this._desc = ("Token(" + desc + ")");
-        };
-        return ($traceurRuntime.createClass)(OpaqueToken, {toString: function() {
-            return this._desc;
-          }}, {});
-      }()));
-      Object.defineProperty(OpaqueToken, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/directives/for", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/compiler/view", "angular2/src/facade/lang", "angular2/src/facade/collection"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/for";
-  var Viewport,
-      ViewContainer,
-      View,
-      isPresent,
-      isBlank,
-      ListWrapper,
-      For,
-      RecordViewTuple;
-  return {
-    setters: [function($__m) {
-      Viewport = $__m.Viewport;
-    }, function($__m) {
-      ViewContainer = $__m.ViewContainer;
-    }, function($__m) {
-      View = $__m.View;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-      isBlank = $__m.isBlank;
-    }, function($__m) {
-      ListWrapper = $__m.ListWrapper;
-    }],
-    execute: function() {
-      For = $__export("For", (function() {
-        var For = function For(viewContainer) {
-          this.viewContainer = viewContainer;
-        };
-        return ($traceurRuntime.createClass)(For, {
-          set iterableChanges(changes) {
-            if (isBlank(changes)) {
-              this.viewContainer.clear();
-              return ;
-            }
-            var recordViewTuples = [];
-            changes.forEachRemovedItem((function(removedRecord) {
-              return ListWrapper.push(recordViewTuples, new RecordViewTuple(removedRecord, null));
-            }));
-            changes.forEachMovedItem((function(movedRecord) {
-              return ListWrapper.push(recordViewTuples, new RecordViewTuple(movedRecord, null));
-            }));
-            var insertTuples = For.bulkRemove(recordViewTuples, this.viewContainer);
-            changes.forEachAddedItem((function(addedRecord) {
-              return ListWrapper.push(insertTuples, new RecordViewTuple(addedRecord, null));
-            }));
-            For.bulkInsert(insertTuples, this.viewContainer);
-            for (var i = 0; i < insertTuples.length; i++) {
-              this.perViewChange(insertTuples[i].view, insertTuples[i].record);
-            }
-          },
-          perViewChange: function(view, record) {
-            view.setLocal('\$implicit', record.item);
-            view.setLocal('index', record.currentIndex);
-          }
-        }, {
-          bulkRemove: function(tuples, viewContainer) {
-            tuples.sort((function(a, b) {
-              return a.record.previousIndex - b.record.previousIndex;
-            }));
-            var movedTuples = [];
-            for (var i = tuples.length - 1; i >= 0; i--) {
-              var tuple = tuples[i];
-              if (isPresent(tuple.record.currentIndex)) {
-                tuple.view = viewContainer.detach(tuple.record.previousIndex);
-                ListWrapper.push(movedTuples, tuple);
-              } else {
-                viewContainer.remove(tuple.record.previousIndex);
-              }
-            }
-            return movedTuples;
-          },
-          bulkInsert: function(tuples, viewContainer) {
-            tuples.sort((function(a, b) {
-              return a.record.currentIndex - b.record.currentIndex;
-            }));
-            for (var i = 0; i < tuples.length; i++) {
-              var tuple = tuples[i];
-              if (isPresent(tuple.view)) {
-                viewContainer.insert(tuple.view, tuple.record.currentIndex);
-              } else {
-                tuple.view = viewContainer.create(tuple.record.currentIndex);
-              }
-            }
-            return tuples;
-          }
-        });
-      }()));
-      Object.defineProperty(For, "annotations", {get: function() {
-          return [new Viewport({
-            selector: '[for][of]',
-            bind: {'iterableChanges': 'of | iterableDiff'}
-          })];
-        }});
-      Object.defineProperty(For, "parameters", {get: function() {
-          return [[ViewContainer]];
-        }});
-      RecordViewTuple = (function() {
-        var RecordViewTuple = function RecordViewTuple(record, view) {
-          this.record = record;
-          this.view = view;
-        };
-        return ($traceurRuntime.createClass)(RecordViewTuple, {}, {});
-      }());
-    }
-  };
-});
-
-System.register("angular2/src/directives/if", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/if";
-  var Viewport,
-      ViewContainer,
-      isBlank,
-      If;
-  return {
-    setters: [function($__m) {
-      Viewport = $__m.Viewport;
-    }, function($__m) {
-      ViewContainer = $__m.ViewContainer;
-    }, function($__m) {
-      isBlank = $__m.isBlank;
-    }],
-    execute: function() {
-      If = $__export("If", (function() {
-        var If = function If(viewContainer) {
-          this.viewContainer = viewContainer;
-          this.prevCondition = null;
-        };
-        return ($traceurRuntime.createClass)(If, {set condition(newCondition) {
-            if (newCondition && (isBlank(this.prevCondition) || !this.prevCondition)) {
-              this.prevCondition = true;
-              this.viewContainer.create();
-            } else if (!newCondition && (isBlank(this.prevCondition) || this.prevCondition)) {
-              this.prevCondition = false;
-              this.viewContainer.clear();
-            }
-          }}, {});
-      }()));
-      Object.defineProperty(If, "annotations", {get: function() {
-          return [new Viewport({
-            selector: '[if]',
-            bind: {'condition': 'if'}
-          })];
-        }});
-      Object.defineProperty(If, "parameters", {get: function() {
-          return [[ViewContainer]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/directives/non_bindable", ["angular2/src/core/annotations/annotations"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/non_bindable";
-  var Decorator,
-      NonBindable;
-  return {
-    setters: [function($__m) {
-      Decorator = $__m.Decorator;
-    }],
-    execute: function() {
-      NonBindable = $__export("NonBindable", (function() {
-        var NonBindable = function NonBindable() {};
-        return ($traceurRuntime.createClass)(NonBindable, {}, {});
-      }()));
-      Object.defineProperty(NonBindable, "annotations", {get: function() {
-          return [new Decorator({
-            selector: '[non-bindable]',
-            compileChildren: false
-          })];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/directives/switch", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/dom/element", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/core/annotations/visibility"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/switch";
-  var Decorator,
-      Viewport,
-      ViewContainer,
-      NgElement,
-      isPresent,
-      isBlank,
-      normalizeBlank,
-      ListWrapper,
-      List,
-      MapWrapper,
-      Map,
-      Parent,
-      Switch,
-      SwitchWhen,
-      SwitchDefault,
-      _whenDefault;
-  return {
-    setters: [function($__m) {
-      Decorator = $__m.Decorator;
-      Viewport = $__m.Viewport;
-    }, function($__m) {
-      ViewContainer = $__m.ViewContainer;
-    }, function($__m) {
-      NgElement = $__m.NgElement;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-      isBlank = $__m.isBlank;
-      normalizeBlank = $__m.normalizeBlank;
-    }, function($__m) {
-      ListWrapper = $__m.ListWrapper;
-      List = $__m.List;
-      MapWrapper = $__m.MapWrapper;
-      Map = $__m.Map;
-    }, function($__m) {
-      Parent = $__m.Parent;
-    }],
-    execute: function() {
-      Switch = $__export("Switch", (function() {
-        var Switch = function Switch() {
-          this._valueViewContainers = MapWrapper.create();
-          this._activeViewContainers = ListWrapper.create();
-          this._useDefault = false;
-        };
-        return ($traceurRuntime.createClass)(Switch, {
-          set value(value) {
-            this._emptyAllActiveViewContainers();
-            this._useDefault = false;
-            var containers = MapWrapper.get(this._valueViewContainers, value);
-            if (isBlank(containers)) {
-              this._useDefault = true;
-              containers = normalizeBlank(MapWrapper.get(this._valueViewContainers, _whenDefault));
-            }
-            this._activateViewContainers(containers);
-            this._switchValue = value;
-          },
-          _onWhenValueChanged: function(oldWhen, newWhen, viewContainer) {
-            this._deregisterViewContainer(oldWhen, viewContainer);
-            this._registerViewContainer(newWhen, viewContainer);
-            if (oldWhen === this._switchValue) {
-              viewContainer.remove();
-              ListWrapper.remove(this._activeViewContainers, viewContainer);
-            } else if (newWhen === this._switchValue) {
-              if (this._useDefault) {
-                this._useDefault = false;
-                this._emptyAllActiveViewContainers();
-              }
-              viewContainer.create();
-              ListWrapper.push(this._activeViewContainers, viewContainer);
-            }
-            if (this._activeViewContainers.length === 0 && !this._useDefault) {
-              this._useDefault = true;
-              this._activateViewContainers(MapWrapper.get(this._valueViewContainers, _whenDefault));
-            }
-          },
-          _emptyAllActiveViewContainers: function() {
-            var activeContainers = this._activeViewContainers;
-            for (var i = 0; i < activeContainers.length; i++) {
-              activeContainers[i].remove();
-            }
-            this._activeViewContainers = ListWrapper.create();
-          },
-          _activateViewContainers: function(containers) {
-            if (isPresent(containers)) {
-              for (var i = 0; i < containers.length; i++) {
-                containers[i].create();
-              }
-              this._activeViewContainers = containers;
-            }
-          },
-          _registerViewContainer: function(value, container) {
-            var containers = MapWrapper.get(this._valueViewContainers, value);
-            if (isBlank(containers)) {
-              containers = ListWrapper.create();
-              MapWrapper.set(this._valueViewContainers, value, containers);
-            }
-            ListWrapper.push(containers, container);
-          },
-          _deregisterViewContainer: function(value, container) {
-            if (value == _whenDefault)
-              return ;
-            var containers = MapWrapper.get(this._valueViewContainers, value);
-            if (containers.length == 1) {
-              MapWrapper.delete(this._valueViewContainers, value);
-            } else {
-              ListWrapper.remove(containers, container);
-            }
-          }
-        }, {});
-      }()));
-      Object.defineProperty(Switch, "annotations", {get: function() {
-          return [new Decorator({
-            selector: '[switch]',
-            bind: {'value': 'switch'}
-          })];
-        }});
-      Object.defineProperty(Switch.prototype._onWhenValueChanged, "parameters", {get: function() {
-          return [[], [], [ViewContainer]];
-        }});
-      Object.defineProperty(Switch.prototype._activateViewContainers, "parameters", {get: function() {
-          return [[assert.genericType(List, ViewContainer)]];
-        }});
-      Object.defineProperty(Switch.prototype._registerViewContainer, "parameters", {get: function() {
-          return [[], [ViewContainer]];
-        }});
-      Object.defineProperty(Switch.prototype._deregisterViewContainer, "parameters", {get: function() {
-          return [[], [ViewContainer]];
-        }});
-      SwitchWhen = $__export("SwitchWhen", (function() {
-        var SwitchWhen = function SwitchWhen(el, viewContainer, sswitch) {
-          this._value = _whenDefault;
-          this._switch = sswitch;
-          this._viewContainer = viewContainer;
-        };
-        return ($traceurRuntime.createClass)(SwitchWhen, {set when(value) {
-            this._switch._onWhenValueChanged(this._value, value, this._viewContainer);
-            this._value = value;
-          }}, {});
-      }()));
-      Object.defineProperty(SwitchWhen, "annotations", {get: function() {
-          return [new Viewport({
-            selector: '[switch-when]',
-            bind: {'when': 'switch-when'}
-          })];
-        }});
-      Object.defineProperty(SwitchWhen, "parameters", {get: function() {
-          return [[NgElement], [ViewContainer], [Switch, new Parent()]];
-        }});
-      SwitchDefault = $__export("SwitchDefault", (function() {
-        var SwitchDefault = function SwitchDefault(viewContainer, sswitch) {
-          sswitch._registerViewContainer(_whenDefault, viewContainer);
-        };
-        return ($traceurRuntime.createClass)(SwitchDefault, {}, {});
-      }()));
-      Object.defineProperty(SwitchDefault, "annotations", {get: function() {
-          return [new Viewport({selector: '[switch-default]'})];
-        }});
-      Object.defineProperty(SwitchDefault, "parameters", {get: function() {
-          return [[ViewContainer], [Switch, new Parent()]];
-        }});
-      _whenDefault = new Object();
-    }
-  };
-});
-
 System.register("angular2/src/dom/browser_adapter", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./dom_adapter", "./generic_browser_adapter"], function($__export) {
   "use strict";
   var __moduleName = "angular2/src/dom/browser_adapter";
@@ -5473,6 +5130,349 @@ System.register("angular2/src/dom/generic_browser_adapter", ["angular2/src/facad
       Object.defineProperty(GenericBrowserDomAdapter.prototype.cssToRules, "parameters", {get: function() {
           return [[assert.type.string]];
         }});
+    }
+  };
+});
+
+System.register("angular2/src/directives/for", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/compiler/view", "angular2/src/facade/lang", "angular2/src/facade/collection"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/for";
+  var Viewport,
+      ViewContainer,
+      View,
+      isPresent,
+      isBlank,
+      ListWrapper,
+      For,
+      RecordViewTuple;
+  return {
+    setters: [function($__m) {
+      Viewport = $__m.Viewport;
+    }, function($__m) {
+      ViewContainer = $__m.ViewContainer;
+    }, function($__m) {
+      View = $__m.View;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+      isBlank = $__m.isBlank;
+    }, function($__m) {
+      ListWrapper = $__m.ListWrapper;
+    }],
+    execute: function() {
+      For = $__export("For", (function() {
+        var For = function For(viewContainer) {
+          this.viewContainer = viewContainer;
+        };
+        return ($traceurRuntime.createClass)(For, {
+          set iterableChanges(changes) {
+            if (isBlank(changes)) {
+              this.viewContainer.clear();
+              return ;
+            }
+            var recordViewTuples = [];
+            changes.forEachRemovedItem((function(removedRecord) {
+              return ListWrapper.push(recordViewTuples, new RecordViewTuple(removedRecord, null));
+            }));
+            changes.forEachMovedItem((function(movedRecord) {
+              return ListWrapper.push(recordViewTuples, new RecordViewTuple(movedRecord, null));
+            }));
+            var insertTuples = For.bulkRemove(recordViewTuples, this.viewContainer);
+            changes.forEachAddedItem((function(addedRecord) {
+              return ListWrapper.push(insertTuples, new RecordViewTuple(addedRecord, null));
+            }));
+            For.bulkInsert(insertTuples, this.viewContainer);
+            for (var i = 0; i < insertTuples.length; i++) {
+              this.perViewChange(insertTuples[i].view, insertTuples[i].record);
+            }
+          },
+          perViewChange: function(view, record) {
+            view.setLocal('\$implicit', record.item);
+            view.setLocal('index', record.currentIndex);
+          }
+        }, {
+          bulkRemove: function(tuples, viewContainer) {
+            tuples.sort((function(a, b) {
+              return a.record.previousIndex - b.record.previousIndex;
+            }));
+            var movedTuples = [];
+            for (var i = tuples.length - 1; i >= 0; i--) {
+              var tuple = tuples[i];
+              if (isPresent(tuple.record.currentIndex)) {
+                tuple.view = viewContainer.detach(tuple.record.previousIndex);
+                ListWrapper.push(movedTuples, tuple);
+              } else {
+                viewContainer.remove(tuple.record.previousIndex);
+              }
+            }
+            return movedTuples;
+          },
+          bulkInsert: function(tuples, viewContainer) {
+            tuples.sort((function(a, b) {
+              return a.record.currentIndex - b.record.currentIndex;
+            }));
+            for (var i = 0; i < tuples.length; i++) {
+              var tuple = tuples[i];
+              if (isPresent(tuple.view)) {
+                viewContainer.insert(tuple.view, tuple.record.currentIndex);
+              } else {
+                tuple.view = viewContainer.create(tuple.record.currentIndex);
+              }
+            }
+            return tuples;
+          }
+        });
+      }()));
+      Object.defineProperty(For, "annotations", {get: function() {
+          return [new Viewport({
+            selector: '[for][of]',
+            bind: {'iterableChanges': 'of | iterableDiff'}
+          })];
+        }});
+      Object.defineProperty(For, "parameters", {get: function() {
+          return [[ViewContainer]];
+        }});
+      RecordViewTuple = (function() {
+        var RecordViewTuple = function RecordViewTuple(record, view) {
+          this.record = record;
+          this.view = view;
+        };
+        return ($traceurRuntime.createClass)(RecordViewTuple, {}, {});
+      }());
+    }
+  };
+});
+
+System.register("angular2/src/directives/if", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/if";
+  var Viewport,
+      ViewContainer,
+      isBlank,
+      If;
+  return {
+    setters: [function($__m) {
+      Viewport = $__m.Viewport;
+    }, function($__m) {
+      ViewContainer = $__m.ViewContainer;
+    }, function($__m) {
+      isBlank = $__m.isBlank;
+    }],
+    execute: function() {
+      If = $__export("If", (function() {
+        var If = function If(viewContainer) {
+          this.viewContainer = viewContainer;
+          this.prevCondition = null;
+        };
+        return ($traceurRuntime.createClass)(If, {set condition(newCondition) {
+            if (newCondition && (isBlank(this.prevCondition) || !this.prevCondition)) {
+              this.prevCondition = true;
+              this.viewContainer.create();
+            } else if (!newCondition && (isBlank(this.prevCondition) || this.prevCondition)) {
+              this.prevCondition = false;
+              this.viewContainer.clear();
+            }
+          }}, {});
+      }()));
+      Object.defineProperty(If, "annotations", {get: function() {
+          return [new Viewport({
+            selector: '[if]',
+            bind: {'condition': 'if'}
+          })];
+        }});
+      Object.defineProperty(If, "parameters", {get: function() {
+          return [[ViewContainer]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/directives/non_bindable", ["angular2/src/core/annotations/annotations"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/non_bindable";
+  var Decorator,
+      NonBindable;
+  return {
+    setters: [function($__m) {
+      Decorator = $__m.Decorator;
+    }],
+    execute: function() {
+      NonBindable = $__export("NonBindable", (function() {
+        var NonBindable = function NonBindable() {};
+        return ($traceurRuntime.createClass)(NonBindable, {}, {});
+      }()));
+      Object.defineProperty(NonBindable, "annotations", {get: function() {
+          return [new Decorator({
+            selector: '[non-bindable]',
+            compileChildren: false
+          })];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/directives/switch", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/dom/element", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/core/annotations/visibility"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/switch";
+  var Decorator,
+      Viewport,
+      ViewContainer,
+      NgElement,
+      isPresent,
+      isBlank,
+      normalizeBlank,
+      ListWrapper,
+      List,
+      MapWrapper,
+      Map,
+      Parent,
+      Switch,
+      SwitchWhen,
+      SwitchDefault,
+      _whenDefault;
+  return {
+    setters: [function($__m) {
+      Decorator = $__m.Decorator;
+      Viewport = $__m.Viewport;
+    }, function($__m) {
+      ViewContainer = $__m.ViewContainer;
+    }, function($__m) {
+      NgElement = $__m.NgElement;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+      isBlank = $__m.isBlank;
+      normalizeBlank = $__m.normalizeBlank;
+    }, function($__m) {
+      ListWrapper = $__m.ListWrapper;
+      List = $__m.List;
+      MapWrapper = $__m.MapWrapper;
+      Map = $__m.Map;
+    }, function($__m) {
+      Parent = $__m.Parent;
+    }],
+    execute: function() {
+      Switch = $__export("Switch", (function() {
+        var Switch = function Switch() {
+          this._valueViewContainers = MapWrapper.create();
+          this._activeViewContainers = ListWrapper.create();
+          this._useDefault = false;
+        };
+        return ($traceurRuntime.createClass)(Switch, {
+          set value(value) {
+            this._emptyAllActiveViewContainers();
+            this._useDefault = false;
+            var containers = MapWrapper.get(this._valueViewContainers, value);
+            if (isBlank(containers)) {
+              this._useDefault = true;
+              containers = normalizeBlank(MapWrapper.get(this._valueViewContainers, _whenDefault));
+            }
+            this._activateViewContainers(containers);
+            this._switchValue = value;
+          },
+          _onWhenValueChanged: function(oldWhen, newWhen, viewContainer) {
+            this._deregisterViewContainer(oldWhen, viewContainer);
+            this._registerViewContainer(newWhen, viewContainer);
+            if (oldWhen === this._switchValue) {
+              viewContainer.remove();
+              ListWrapper.remove(this._activeViewContainers, viewContainer);
+            } else if (newWhen === this._switchValue) {
+              if (this._useDefault) {
+                this._useDefault = false;
+                this._emptyAllActiveViewContainers();
+              }
+              viewContainer.create();
+              ListWrapper.push(this._activeViewContainers, viewContainer);
+            }
+            if (this._activeViewContainers.length === 0 && !this._useDefault) {
+              this._useDefault = true;
+              this._activateViewContainers(MapWrapper.get(this._valueViewContainers, _whenDefault));
+            }
+          },
+          _emptyAllActiveViewContainers: function() {
+            var activeContainers = this._activeViewContainers;
+            for (var i = 0; i < activeContainers.length; i++) {
+              activeContainers[i].remove();
+            }
+            this._activeViewContainers = ListWrapper.create();
+          },
+          _activateViewContainers: function(containers) {
+            if (isPresent(containers)) {
+              for (var i = 0; i < containers.length; i++) {
+                containers[i].create();
+              }
+              this._activeViewContainers = containers;
+            }
+          },
+          _registerViewContainer: function(value, container) {
+            var containers = MapWrapper.get(this._valueViewContainers, value);
+            if (isBlank(containers)) {
+              containers = ListWrapper.create();
+              MapWrapper.set(this._valueViewContainers, value, containers);
+            }
+            ListWrapper.push(containers, container);
+          },
+          _deregisterViewContainer: function(value, container) {
+            if (value == _whenDefault)
+              return ;
+            var containers = MapWrapper.get(this._valueViewContainers, value);
+            if (containers.length == 1) {
+              MapWrapper.delete(this._valueViewContainers, value);
+            } else {
+              ListWrapper.remove(containers, container);
+            }
+          }
+        }, {});
+      }()));
+      Object.defineProperty(Switch, "annotations", {get: function() {
+          return [new Decorator({
+            selector: '[switch]',
+            bind: {'value': 'switch'}
+          })];
+        }});
+      Object.defineProperty(Switch.prototype._onWhenValueChanged, "parameters", {get: function() {
+          return [[], [], [ViewContainer]];
+        }});
+      Object.defineProperty(Switch.prototype._activateViewContainers, "parameters", {get: function() {
+          return [[assert.genericType(List, ViewContainer)]];
+        }});
+      Object.defineProperty(Switch.prototype._registerViewContainer, "parameters", {get: function() {
+          return [[], [ViewContainer]];
+        }});
+      Object.defineProperty(Switch.prototype._deregisterViewContainer, "parameters", {get: function() {
+          return [[], [ViewContainer]];
+        }});
+      SwitchWhen = $__export("SwitchWhen", (function() {
+        var SwitchWhen = function SwitchWhen(el, viewContainer, sswitch) {
+          this._value = _whenDefault;
+          this._switch = sswitch;
+          this._viewContainer = viewContainer;
+        };
+        return ($traceurRuntime.createClass)(SwitchWhen, {set when(value) {
+            this._switch._onWhenValueChanged(this._value, value, this._viewContainer);
+            this._value = value;
+          }}, {});
+      }()));
+      Object.defineProperty(SwitchWhen, "annotations", {get: function() {
+          return [new Viewport({
+            selector: '[switch-when]',
+            bind: {'when': 'switch-when'}
+          })];
+        }});
+      Object.defineProperty(SwitchWhen, "parameters", {get: function() {
+          return [[NgElement], [ViewContainer], [Switch, new Parent()]];
+        }});
+      SwitchDefault = $__export("SwitchDefault", (function() {
+        var SwitchDefault = function SwitchDefault(viewContainer, sswitch) {
+          sswitch._registerViewContainer(_whenDefault, viewContainer);
+        };
+        return ($traceurRuntime.createClass)(SwitchDefault, {}, {});
+      }()));
+      Object.defineProperty(SwitchDefault, "annotations", {get: function() {
+          return [new Viewport({selector: '[switch-default]'})];
+        }});
+      Object.defineProperty(SwitchDefault, "parameters", {get: function() {
+          return [[ViewContainer], [Switch, new Parent()]];
+        }});
+      _whenDefault = new Object();
     }
   };
 });
@@ -6319,34 +6319,6 @@ System.register("angular2/src/forms/validators", ["angular2/src/facade/lang", "a
   };
 });
 
-System.register("angular2/src/services/title", ["angular2/src/dom/dom_adapter"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/services/title";
-  var DOM,
-      Title;
-  return {
-    setters: [function($__m) {
-      DOM = $__m.DOM;
-    }],
-    execute: function() {
-      Title = $__export("Title", (function() {
-        var Title = function Title() {};
-        return ($traceurRuntime.createClass)(Title, {
-          getTitle: function() {
-            return DOM.getTitle();
-          },
-          setTitle: function(newTitle) {
-            DOM.setTitle(newTitle);
-          }
-        }, {});
-      }()));
-      Object.defineProperty(Title.prototype.setTitle, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-    }
-  };
-});
-
 System.register("angular2/src/reflection/reflection", ["angular2/src/facade/lang", "angular2/src/facade/collection", "./reflector", "./reflection_capabilities"], function($__export) {
   "use strict";
   var __moduleName = "angular2/src/reflection/reflection";
@@ -6625,6 +6597,34 @@ System.register("angular2/src/reflection/types", [], function($__export) {
       SetterFn = $__export("SetterFn", Function);
       GetterFn = $__export("GetterFn", Function);
       MethodFn = $__export("MethodFn", Function);
+    }
+  };
+});
+
+System.register("angular2/src/services/title", ["angular2/src/dom/dom_adapter"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/services/title";
+  var DOM,
+      Title;
+  return {
+    setters: [function($__m) {
+      DOM = $__m.DOM;
+    }],
+    execute: function() {
+      Title = $__export("Title", (function() {
+        var Title = function Title() {};
+        return ($traceurRuntime.createClass)(Title, {
+          getTitle: function() {
+            return DOM.getTitle();
+          },
+          setTitle: function(newTitle) {
+            DOM.setTitle(newTitle);
+          }
+        }, {});
+      }()));
+      Object.defineProperty(Title.prototype.setTitle, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
     }
   };
 });
@@ -7300,1708 +7300,6 @@ System.register("angular2/src/test_lib/utils", ["angular2/src/facade/collection"
           }
         }, {});
       }()));
-    }
-  };
-});
-
-System.register("angular2/src/core/annotations/annotations", ["angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/di"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/annotations";
-  var ABSTRACT,
-      CONST,
-      normalizeBlank,
-      isPresent,
-      ListWrapper,
-      List,
-      Injectable,
-      Directive,
-      Component,
-      DynamicComponent,
-      Decorator,
-      Viewport,
-      onDestroy,
-      onChange,
-      onAllChangesDone;
-  return {
-    setters: [function($__m) {
-      ABSTRACT = $__m.ABSTRACT;
-      CONST = $__m.CONST;
-      normalizeBlank = $__m.normalizeBlank;
-      isPresent = $__m.isPresent;
-    }, function($__m) {
-      ListWrapper = $__m.ListWrapper;
-      List = $__m.List;
-    }, function($__m) {
-      Injectable = $__m.Injectable;
-    }],
-    execute: function() {
-      Directive = $__export("Directive", (function($__super) {
-        var Directive = function Directive() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(Directive).call(this);
-          this.selector = selector;
-          this.bind = bind;
-          this.events = events;
-          this.lifecycle = lifecycle;
-        };
-        return ($traceurRuntime.createClass)(Directive, {hasLifecycleHook: function(hook) {
-            return isPresent(this.lifecycle) ? ListWrapper.contains(this.lifecycle, hook) : false;
-          }}, {}, $__super);
-      }(Injectable)));
-      Object.defineProperty(Directive, "annotations", {get: function() {
-          return [new ABSTRACT(), new CONST()];
-        }});
-      Object.defineProperty(Directive.prototype.hasLifecycleHook, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Component = $__export("Component", (function($__super) {
-        var Component = function Component() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              services = $__1.services,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(Component).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-          this.services = services;
-        };
-        return ($traceurRuntime.createClass)(Component, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(Component, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      DynamicComponent = $__export("DynamicComponent", (function($__super) {
-        var DynamicComponent = function DynamicComponent() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              services = $__1.services,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(DynamicComponent).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-          this.services = services;
-        };
-        return ($traceurRuntime.createClass)(DynamicComponent, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(DynamicComponent, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Decorator = $__export("Decorator", (function($__super) {
-        var Decorator = function Decorator() {
-          var $__2;
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              lifecycle = $__1.lifecycle,
-              compileChildren = ($__2 = $__1.compileChildren) === void 0 ? true : $__2;
-          $traceurRuntime.superConstructor(Decorator).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-          this.compileChildren = compileChildren;
-        };
-        return ($traceurRuntime.createClass)(Decorator, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(Decorator, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Viewport = $__export("Viewport", (function($__super) {
-        var Viewport = function Viewport() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(Viewport).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-        };
-        return ($traceurRuntime.createClass)(Viewport, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(Viewport, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      onDestroy = $__export("onDestroy", "onDestroy");
-      onChange = $__export("onChange", "onChange");
-      onAllChangesDone = $__export("onAllChangesDone", "onAllChangesDone");
-    }
-  };
-});
-
-System.register("angular2/src/core/annotations/di", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/di";
-  var CONST,
-      DependencyAnnotation,
-      EventEmitter,
-      PropertySetter,
-      Attribute;
-  return {
-    setters: [function($__m) {
-      CONST = $__m.CONST;
-    }, function($__m) {
-      DependencyAnnotation = $__m.DependencyAnnotation;
-    }],
-    execute: function() {
-      EventEmitter = $__export("EventEmitter", (function($__super) {
-        var EventEmitter = function EventEmitter(eventName) {
-          $traceurRuntime.superConstructor(EventEmitter).call(this);
-          this.eventName = eventName;
-        };
-        return ($traceurRuntime.createClass)(EventEmitter, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(EventEmitter, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      PropertySetter = $__export("PropertySetter", (function($__super) {
-        var PropertySetter = function PropertySetter(propName) {
-          $traceurRuntime.superConstructor(PropertySetter).call(this);
-          this.propName = propName;
-        };
-        return ($traceurRuntime.createClass)(PropertySetter, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(PropertySetter, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Attribute = $__export("Attribute", (function($__super) {
-        var Attribute = function Attribute(attributeName) {
-          $traceurRuntime.superConstructor(Attribute).call(this);
-          this.attributeName = attributeName;
-        };
-        return ($traceurRuntime.createClass)(Attribute, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(Attribute, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/annotations/template", ["angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/template";
-  var ABSTRACT,
-      CONST,
-      Type,
-      Template;
-  return {
-    setters: [function($__m) {
-      ABSTRACT = $__m.ABSTRACT;
-      CONST = $__m.CONST;
-      Type = $__m.Type;
-    }],
-    execute: function() {
-      Template = $__export("Template", (function() {
-        var Template = function Template($__1) {
-          var $__2 = $__1,
-              url = $__2.url,
-              inline = $__2.inline,
-              directives = $__2.directives,
-              formatters = $__2.formatters,
-              source = $__2.source,
-              locale = $__2.locale,
-              device = $__2.device;
-          this.url = url;
-          this.inline = inline;
-          this.directives = directives;
-          this.formatters = formatters;
-          this.source = source;
-          this.locale = locale;
-          this.device = device;
-        };
-        return ($traceurRuntime.createClass)(Template, {}, {});
-      }()));
-      Object.defineProperty(Template, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/annotations/visibility", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/visibility";
-  var CONST,
-      DependencyAnnotation,
-      Parent,
-      Ancestor;
-  return {
-    setters: [function($__m) {
-      CONST = $__m.CONST;
-    }, function($__m) {
-      DependencyAnnotation = $__m.DependencyAnnotation;
-    }],
-    execute: function() {
-      Parent = $__export("Parent", (function($__super) {
-        var Parent = function Parent() {
-          $traceurRuntime.superConstructor(Parent).call(this);
-        };
-        return ($traceurRuntime.createClass)(Parent, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(Parent, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Ancestor = $__export("Ancestor", (function($__super) {
-        var Ancestor = function Ancestor() {
-          $traceurRuntime.superConstructor(Ancestor).call(this);
-        };
-        return ($traceurRuntime.createClass)(Ancestor, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(Ancestor, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/change_detection/pipes/iterable_changes", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./pipe"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/change_detection/pipes/iterable_changes";
-  var isListLikeIterable,
-      iterateListLike,
-      ListWrapper,
-      MapWrapper,
-      int,
-      isBlank,
-      isPresent,
-      stringify,
-      getMapKey,
-      looseIdentical,
-      NO_CHANGE,
-      Pipe,
-      IterableChangesFactory,
-      IterableChanges,
-      CollectionChangeRecord,
-      _DuplicateItemRecordList,
-      _DuplicateMap;
-  return {
-    setters: [function($__m) {
-      isListLikeIterable = $__m.isListLikeIterable;
-      iterateListLike = $__m.iterateListLike;
-      ListWrapper = $__m.ListWrapper;
-      MapWrapper = $__m.MapWrapper;
-    }, function($__m) {
-      int = $__m.int;
-      isBlank = $__m.isBlank;
-      isPresent = $__m.isPresent;
-      stringify = $__m.stringify;
-      getMapKey = $__m.getMapKey;
-      looseIdentical = $__m.looseIdentical;
-    }, function($__m) {
-      NO_CHANGE = $__m.NO_CHANGE;
-      Pipe = $__m.Pipe;
-    }],
-    execute: function() {
-      IterableChangesFactory = $__export("IterableChangesFactory", (function() {
-        var IterableChangesFactory = function IterableChangesFactory() {};
-        return ($traceurRuntime.createClass)(IterableChangesFactory, {
-          supports: function(obj) {
-            return IterableChanges.supportsObj(obj);
-          },
-          create: function(bpc) {
-            return new IterableChanges();
-          }
-        }, {});
-      }()));
-      IterableChanges = $__export("IterableChanges", (function($__super) {
-        var IterableChanges = function IterableChanges() {
-          $traceurRuntime.superConstructor(IterableChanges).call(this);
-          this._collection = null;
-          this._length = null;
-          this._linkedRecords = null;
-          this._unlinkedRecords = null;
-          this._previousItHead = null;
-          this._itHead = null;
-          this._itTail = null;
-          this._additionsHead = null;
-          this._additionsTail = null;
-          this._movesHead = null;
-          this._movesTail = null;
-          this._removalsHead = null;
-          this._removalsTail = null;
-        };
-        return ($traceurRuntime.createClass)(IterableChanges, {
-          supports: function(obj) {
-            return IterableChanges.supportsObj(obj);
-          },
-          get collection() {
-            return this._collection;
-          },
-          get length() {
-            return this._length;
-          },
-          forEachItem: function(fn) {
-            var record;
-            for (record = this._itHead; record !== null; record = record._next) {
-              fn(record);
-            }
-          },
-          forEachPreviousItem: function(fn) {
-            var record;
-            for (record = this._previousItHead; record !== null; record = record._nextPrevious) {
-              fn(record);
-            }
-          },
-          forEachAddedItem: function(fn) {
-            var record;
-            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
-              fn(record);
-            }
-          },
-          forEachMovedItem: function(fn) {
-            var record;
-            for (record = this._movesHead; record !== null; record = record._nextMoved) {
-              fn(record);
-            }
-          },
-          forEachRemovedItem: function(fn) {
-            var record;
-            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
-              fn(record);
-            }
-          },
-          transform: function(collection) {
-            if (this.check(collection)) {
-              return this;
-            } else {
-              return NO_CHANGE;
-            }
-          },
-          check: function(collection) {
-            var $__0 = this;
-            this._reset();
-            var record = this._itHead;
-            var mayBeDirty = false;
-            var index;
-            var item;
-            if (ListWrapper.isList(collection)) {
-              var list = collection;
-              this._length = collection.length;
-              for (index = 0; index < this._length; index++) {
-                item = list[index];
-                if (record === null || !looseIdentical(record.item, item)) {
-                  record = this._mismatch(record, item, index);
-                  mayBeDirty = true;
-                } else if (mayBeDirty) {
-                  record = this._verifyReinsertion(record, item, index);
-                }
-                record = record._next;
-              }
-            } else {
-              index = 0;
-              iterateListLike(collection, (function(item) {
-                if (record === null || !looseIdentical(record.item, item)) {
-                  record = $__0._mismatch(record, item, index);
-                  mayBeDirty = true;
-                } else if (mayBeDirty) {
-                  record = $__0._verifyReinsertion(record, item, index);
-                }
-                record = record._next;
-                index++;
-              }));
-              this._length = index;
-            }
-            this._truncate(record);
-            this._collection = collection;
-            return this.isDirty;
-          },
-          get isDirty() {
-            return this._additionsHead !== null || this._movesHead !== null || this._removalsHead !== null;
-          },
-          _reset: function() {
-            if (this.isDirty) {
-              var record;
-              var nextRecord;
-              for (record = this._previousItHead = this._itHead; record !== null; record = record._next) {
-                record._nextPrevious = record._next;
-              }
-              for (record = this._additionsHead; record !== null; record = record._nextAdded) {
-                record.previousIndex = record.currentIndex;
-              }
-              this._additionsHead = this._additionsTail = null;
-              for (record = this._movesHead; record !== null; record = nextRecord) {
-                record.previousIndex = record.currentIndex;
-                nextRecord = record._nextMoved;
-              }
-              this._movesHead = this._movesTail = null;
-              this._removalsHead = this._removalsTail = null;
-            }
-          },
-          _mismatch: function(record, item, index) {
-            var previousRecord;
-            if (record === null) {
-              previousRecord = this._itTail;
-            } else {
-              previousRecord = record._prev;
-              this._remove(record);
-            }
-            record = this._linkedRecords === null ? null : this._linkedRecords.get(item, index);
-            if (record !== null) {
-              this._moveAfter(record, previousRecord, index);
-            } else {
-              record = this._unlinkedRecords === null ? null : this._unlinkedRecords.get(item);
-              if (record !== null) {
-                this._reinsertAfter(record, previousRecord, index);
-              } else {
-                record = this._addAfter(new CollectionChangeRecord(item), previousRecord, index);
-              }
-            }
-            return record;
-          },
-          _verifyReinsertion: function(record, item, index) {
-            var reinsertRecord = this._unlinkedRecords === null ? null : this._unlinkedRecords.get(item);
-            if (reinsertRecord !== null) {
-              record = this._reinsertAfter(reinsertRecord, record._prev, index);
-            } else if (record.currentIndex != index) {
-              record.currentIndex = index;
-              this._addToMoves(record, index);
-            }
-            return record;
-          },
-          _truncate: function(record) {
-            while (record !== null) {
-              var nextRecord = record._next;
-              this._addToRemovals(this._unlink(record));
-              record = nextRecord;
-            }
-            if (this._unlinkedRecords !== null) {
-              this._unlinkedRecords.clear();
-            }
-            if (this._additionsTail !== null) {
-              this._additionsTail._nextAdded = null;
-            }
-            if (this._movesTail !== null) {
-              this._movesTail._nextMoved = null;
-            }
-            if (this._itTail !== null) {
-              this._itTail._next = null;
-            }
-            if (this._removalsTail !== null) {
-              this._removalsTail._nextRemoved = null;
-            }
-          },
-          _reinsertAfter: function(record, prevRecord, index) {
-            if (this._unlinkedRecords !== null) {
-              this._unlinkedRecords.remove(record);
-            }
-            var prev = record._prevRemoved;
-            var next = record._nextRemoved;
-            if (prev === null) {
-              this._removalsHead = next;
-            } else {
-              prev._nextRemoved = next;
-            }
-            if (next === null) {
-              this._removalsTail = prev;
-            } else {
-              next._prevRemoved = prev;
-            }
-            this._insertAfter(record, prevRecord, index);
-            this._addToMoves(record, index);
-            return record;
-          },
-          _moveAfter: function(record, prevRecord, index) {
-            this._unlink(record);
-            this._insertAfter(record, prevRecord, index);
-            this._addToMoves(record, index);
-            return record;
-          },
-          _addAfter: function(record, prevRecord, index) {
-            this._insertAfter(record, prevRecord, index);
-            if (this._additionsTail === null) {
-              this._additionsTail = this._additionsHead = record;
-            } else {
-              this._additionsTail = this._additionsTail._nextAdded = record;
-            }
-            return record;
-          },
-          _insertAfter: function(record, prevRecord, index) {
-            var next = prevRecord === null ? this._itHead : prevRecord._next;
-            record._next = next;
-            record._prev = prevRecord;
-            if (next === null) {
-              this._itTail = record;
-            } else {
-              next._prev = record;
-            }
-            if (prevRecord === null) {
-              this._itHead = record;
-            } else {
-              prevRecord._next = record;
-            }
-            if (this._linkedRecords === null) {
-              this._linkedRecords = new _DuplicateMap();
-            }
-            this._linkedRecords.put(record);
-            record.currentIndex = index;
-            return record;
-          },
-          _remove: function(record) {
-            return this._addToRemovals(this._unlink(record));
-          },
-          _unlink: function(record) {
-            if (this._linkedRecords !== null) {
-              this._linkedRecords.remove(record);
-            }
-            var prev = record._prev;
-            var next = record._next;
-            if (prev === null) {
-              this._itHead = next;
-            } else {
-              prev._next = next;
-            }
-            if (next === null) {
-              this._itTail = prev;
-            } else {
-              next._prev = prev;
-            }
-            return record;
-          },
-          _addToMoves: function(record, toIndex) {
-            if (record.previousIndex === toIndex) {
-              return record;
-            }
-            if (this._movesTail === null) {
-              this._movesTail = this._movesHead = record;
-            } else {
-              this._movesTail = this._movesTail._nextMoved = record;
-            }
-            return record;
-          },
-          _addToRemovals: function(record) {
-            if (this._unlinkedRecords === null) {
-              this._unlinkedRecords = new _DuplicateMap();
-            }
-            this._unlinkedRecords.put(record);
-            record.currentIndex = null;
-            record._nextRemoved = null;
-            if (this._removalsTail === null) {
-              this._removalsTail = this._removalsHead = record;
-              record._prevRemoved = null;
-            } else {
-              record._prevRemoved = this._removalsTail;
-              this._removalsTail = this._removalsTail._nextRemoved = record;
-            }
-            return record;
-          },
-          toString: function() {
-            var record;
-            var list = [];
-            for (record = this._itHead; record !== null; record = record._next) {
-              ListWrapper.push(list, record);
-            }
-            var previous = [];
-            for (record = this._previousItHead; record !== null; record = record._nextPrevious) {
-              ListWrapper.push(previous, record);
-            }
-            var additions = [];
-            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
-              ListWrapper.push(additions, record);
-            }
-            var moves = [];
-            for (record = this._movesHead; record !== null; record = record._nextMoved) {
-              ListWrapper.push(moves, record);
-            }
-            var removals = [];
-            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
-              ListWrapper.push(removals, record);
-            }
-            return "collection: " + list.join(', ') + "\n" + "previous: " + previous.join(', ') + "\n" + "additions: " + additions.join(', ') + "\n" + "moves: " + moves.join(', ') + "\n" + "removals: " + removals.join(', ') + "\n";
-          }
-        }, {supportsObj: function(obj) {
-            return isListLikeIterable(obj);
-          }}, $__super);
-      }(Pipe)));
-      Object.defineProperty(IterableChanges.prototype.forEachItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(IterableChanges.prototype.forEachPreviousItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(IterableChanges.prototype.forEachAddedItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(IterableChanges.prototype.forEachMovedItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(IterableChanges.prototype.forEachRemovedItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._mismatch, "parameters", {get: function() {
-          return [[CollectionChangeRecord], [], [int]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._verifyReinsertion, "parameters", {get: function() {
-          return [[CollectionChangeRecord], [], [int]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._truncate, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._reinsertAfter, "parameters", {get: function() {
-          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._moveAfter, "parameters", {get: function() {
-          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._addAfter, "parameters", {get: function() {
-          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._insertAfter, "parameters", {get: function() {
-          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._remove, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._unlink, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._addToMoves, "parameters", {get: function() {
-          return [[CollectionChangeRecord], [int]];
-        }});
-      Object.defineProperty(IterableChanges.prototype._addToRemovals, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-      CollectionChangeRecord = $__export("CollectionChangeRecord", (function() {
-        var CollectionChangeRecord = function CollectionChangeRecord(item) {
-          this.currentIndex = null;
-          this.previousIndex = null;
-          this.item = item;
-          this._nextPrevious = null;
-          this._prev = null;
-          this._next = null;
-          this._prevDup = null;
-          this._nextDup = null;
-          this._prevRemoved = null;
-          this._nextRemoved = null;
-          this._nextAdded = null;
-          this._nextMoved = null;
-        };
-        return ($traceurRuntime.createClass)(CollectionChangeRecord, {toString: function() {
-            return this.previousIndex === this.currentIndex ? stringify(this.item) : stringify(this.item) + '[' + stringify(this.previousIndex) + '->' + stringify(this.currentIndex) + ']';
-          }}, {});
-      }()));
-      _DuplicateItemRecordList = (function() {
-        var _DuplicateItemRecordList = function _DuplicateItemRecordList() {
-          this._head = null;
-          this._tail = null;
-        };
-        return ($traceurRuntime.createClass)(_DuplicateItemRecordList, {
-          add: function(record) {
-            if (this._head === null) {
-              this._head = this._tail = record;
-              record._nextDup = null;
-              record._prevDup = null;
-            } else {
-              this._tail._nextDup = record;
-              record._prevDup = this._tail;
-              record._nextDup = null;
-              this._tail = record;
-            }
-          },
-          get: function(item, afterIndex) {
-            var record;
-            for (record = this._head; record !== null; record = record._nextDup) {
-              if ((afterIndex === null || afterIndex < record.currentIndex) && looseIdentical(record.item, item)) {
-                return record;
-              }
-            }
-            return null;
-          },
-          remove: function(record) {
-            var prev = record._prevDup;
-            var next = record._nextDup;
-            if (prev === null) {
-              this._head = next;
-            } else {
-              prev._nextDup = next;
-            }
-            if (next === null) {
-              this._tail = prev;
-            } else {
-              next._prevDup = prev;
-            }
-            return this._head === null;
-          }
-        }, {});
-      }());
-      Object.defineProperty(_DuplicateItemRecordList.prototype.add, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-      Object.defineProperty(_DuplicateItemRecordList.prototype.get, "parameters", {get: function() {
-          return [[], [int]];
-        }});
-      Object.defineProperty(_DuplicateItemRecordList.prototype.remove, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-      _DuplicateMap = (function() {
-        var _DuplicateMap = function _DuplicateMap() {
-          this.map = MapWrapper.create();
-        };
-        return ($traceurRuntime.createClass)(_DuplicateMap, {
-          put: function(record) {
-            var key = getMapKey(record.item);
-            var duplicates = MapWrapper.get(this.map, key);
-            if (!isPresent(duplicates)) {
-              duplicates = new _DuplicateItemRecordList();
-              MapWrapper.set(this.map, key, duplicates);
-            }
-            duplicates.add(record);
-          },
-          get: function(value) {
-            var afterIndex = arguments[1] !== (void 0) ? arguments[1] : null;
-            var key = getMapKey(value);
-            var recordList = MapWrapper.get(this.map, key);
-            return isBlank(recordList) ? null : recordList.get(value, afterIndex);
-          },
-          remove: function(record) {
-            var key = getMapKey(record.item);
-            var recordList = MapWrapper.get(this.map, key);
-            if (recordList.remove(record)) {
-              MapWrapper.delete(this.map, key);
-            }
-            return record;
-          },
-          get isEmpty() {
-            return MapWrapper.size(this.map) === 0;
-          },
-          clear: function() {
-            MapWrapper.clear(this.map);
-          },
-          toString: function() {
-            return '_DuplicateMap(' + stringify(this.map) + ')';
-          }
-        }, {});
-      }());
-      Object.defineProperty(_DuplicateMap.prototype.put, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-      Object.defineProperty(_DuplicateMap.prototype.remove, "parameters", {get: function() {
-          return [[CollectionChangeRecord]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/change_detection/pipes/keyvalue_changes", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./pipe"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/change_detection/pipes/keyvalue_changes";
-  var ListWrapper,
-      MapWrapper,
-      StringMapWrapper,
-      stringify,
-      looseIdentical,
-      isJsObject,
-      NO_CHANGE,
-      Pipe,
-      KeyValueChangesFactory,
-      KeyValueChanges,
-      KVChangeRecord;
-  return {
-    setters: [function($__m) {
-      ListWrapper = $__m.ListWrapper;
-      MapWrapper = $__m.MapWrapper;
-      StringMapWrapper = $__m.StringMapWrapper;
-    }, function($__m) {
-      stringify = $__m.stringify;
-      looseIdentical = $__m.looseIdentical;
-      isJsObject = $__m.isJsObject;
-    }, function($__m) {
-      NO_CHANGE = $__m.NO_CHANGE;
-      Pipe = $__m.Pipe;
-    }],
-    execute: function() {
-      KeyValueChangesFactory = $__export("KeyValueChangesFactory", (function() {
-        var KeyValueChangesFactory = function KeyValueChangesFactory() {};
-        return ($traceurRuntime.createClass)(KeyValueChangesFactory, {
-          supports: function(obj) {
-            return KeyValueChanges.supportsObj(obj);
-          },
-          create: function(bpc) {
-            return new KeyValueChanges();
-          }
-        }, {});
-      }()));
-      KeyValueChanges = $__export("KeyValueChanges", (function($__super) {
-        var KeyValueChanges = function KeyValueChanges() {
-          $traceurRuntime.superConstructor(KeyValueChanges).call(this);
-          this._records = MapWrapper.create();
-          this._mapHead = null;
-          this._previousMapHead = null;
-          this._changesHead = null;
-          this._changesTail = null;
-          this._additionsHead = null;
-          this._additionsTail = null;
-          this._removalsHead = null;
-          this._removalsTail = null;
-        };
-        return ($traceurRuntime.createClass)(KeyValueChanges, {
-          supports: function(obj) {
-            return KeyValueChanges.supportsObj(obj);
-          },
-          transform: function(map) {
-            if (this.check(map)) {
-              return this;
-            } else {
-              return NO_CHANGE;
-            }
-          },
-          get isDirty() {
-            return this._additionsHead !== null || this._changesHead !== null || this._removalsHead !== null;
-          },
-          forEachItem: function(fn) {
-            var record;
-            for (record = this._mapHead; record !== null; record = record._next) {
-              fn(record);
-            }
-          },
-          forEachPreviousItem: function(fn) {
-            var record;
-            for (record = this._previousMapHead; record !== null; record = record._nextPrevious) {
-              fn(record);
-            }
-          },
-          forEachChangedItem: function(fn) {
-            var record;
-            for (record = this._changesHead; record !== null; record = record._nextChanged) {
-              fn(record);
-            }
-          },
-          forEachAddedItem: function(fn) {
-            var record;
-            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
-              fn(record);
-            }
-          },
-          forEachRemovedItem: function(fn) {
-            var record;
-            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
-              fn(record);
-            }
-          },
-          check: function(map) {
-            var $__0 = this;
-            this._reset();
-            var records = this._records;
-            var oldSeqRecord = this._mapHead;
-            var lastOldSeqRecord = null;
-            var lastNewSeqRecord = null;
-            var seqChanged = false;
-            this._forEach(map, (function(value, key) {
-              var newSeqRecord;
-              if (oldSeqRecord !== null && key === oldSeqRecord.key) {
-                newSeqRecord = oldSeqRecord;
-                if (!looseIdentical(value, oldSeqRecord.currentValue)) {
-                  oldSeqRecord.previousValue = oldSeqRecord.currentValue;
-                  oldSeqRecord.currentValue = value;
-                  $__0._addToChanges(oldSeqRecord);
-                }
-              } else {
-                seqChanged = true;
-                if (oldSeqRecord !== null) {
-                  oldSeqRecord._next = null;
-                  $__0._removeFromSeq(lastOldSeqRecord, oldSeqRecord);
-                  $__0._addToRemovals(oldSeqRecord);
-                }
-                if (MapWrapper.contains(records, key)) {
-                  newSeqRecord = MapWrapper.get(records, key);
-                } else {
-                  newSeqRecord = new KVChangeRecord(key);
-                  MapWrapper.set(records, key, newSeqRecord);
-                  newSeqRecord.currentValue = value;
-                  $__0._addToAdditions(newSeqRecord);
-                }
-              }
-              if (seqChanged) {
-                if ($__0._isInRemovals(newSeqRecord)) {
-                  $__0._removeFromRemovals(newSeqRecord);
-                }
-                if (lastNewSeqRecord == null) {
-                  $__0._mapHead = newSeqRecord;
-                } else {
-                  lastNewSeqRecord._next = newSeqRecord;
-                }
-              }
-              lastOldSeqRecord = oldSeqRecord;
-              lastNewSeqRecord = newSeqRecord;
-              oldSeqRecord = oldSeqRecord === null ? null : oldSeqRecord._next;
-            }));
-            this._truncate(lastOldSeqRecord, oldSeqRecord);
-            return this.isDirty;
-          },
-          _reset: function() {
-            if (this.isDirty) {
-              var record;
-              for (record = this._previousMapHead = this._mapHead; record !== null; record = record._next) {
-                record._nextPrevious = record._next;
-              }
-              for (record = this._changesHead; record !== null; record = record._nextChanged) {
-                record.previousValue = record.currentValue;
-              }
-              for (record = this._additionsHead; record != null; record = record._nextAdded) {
-                record.previousValue = record.currentValue;
-              }
-              this._changesHead = this._changesTail = null;
-              this._additionsHead = this._additionsTail = null;
-              this._removalsHead = this._removalsTail = null;
-            }
-          },
-          _truncate: function(lastRecord, record) {
-            while (record !== null) {
-              if (lastRecord === null) {
-                this._mapHead = null;
-              } else {
-                lastRecord._next = null;
-              }
-              var nextRecord = record._next;
-              this._addToRemovals(record);
-              lastRecord = record;
-              record = nextRecord;
-            }
-            for (var rec = this._removalsHead; rec !== null; rec = rec._nextRemoved) {
-              rec.previousValue = rec.currentValue;
-              rec.currentValue = null;
-              MapWrapper.delete(this._records, rec.key);
-            }
-          },
-          _isInRemovals: function(record) {
-            return record === this._removalsHead || record._nextRemoved !== null || record._prevRemoved !== null;
-          },
-          _addToRemovals: function(record) {
-            if (this._removalsHead === null) {
-              this._removalsHead = this._removalsTail = record;
-            } else {
-              this._removalsTail._nextRemoved = record;
-              record._prevRemoved = this._removalsTail;
-              this._removalsTail = record;
-            }
-          },
-          _removeFromSeq: function(prev, record) {
-            var next = record._next;
-            if (prev === null) {
-              this._mapHead = next;
-            } else {
-              prev._next = next;
-            }
-          },
-          _removeFromRemovals: function(record) {
-            var prev = record._prevRemoved;
-            var next = record._nextRemoved;
-            if (prev === null) {
-              this._removalsHead = next;
-            } else {
-              prev._nextRemoved = next;
-            }
-            if (next === null) {
-              this._removalsTail = prev;
-            } else {
-              next._prevRemoved = prev;
-            }
-            record._prevRemoved = record._nextRemoved = null;
-          },
-          _addToAdditions: function(record) {
-            if (this._additionsHead === null) {
-              this._additionsHead = this._additionsTail = record;
-            } else {
-              this._additionsTail._nextAdded = record;
-              this._additionsTail = record;
-            }
-          },
-          _addToChanges: function(record) {
-            if (this._changesHead === null) {
-              this._changesHead = this._changesTail = record;
-            } else {
-              this._changesTail._nextChanged = record;
-              this._changesTail = record;
-            }
-          },
-          toString: function() {
-            var items = [];
-            var previous = [];
-            var changes = [];
-            var additions = [];
-            var removals = [];
-            var record;
-            for (record = this._mapHead; record !== null; record = record._next) {
-              ListWrapper.push(items, stringify(record));
-            }
-            for (record = this._previousMapHead; record !== null; record = record._nextPrevious) {
-              ListWrapper.push(previous, stringify(record));
-            }
-            for (record = this._changesHead; record !== null; record = record._nextChanged) {
-              ListWrapper.push(changes, stringify(record));
-            }
-            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
-              ListWrapper.push(additions, stringify(record));
-            }
-            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
-              ListWrapper.push(removals, stringify(record));
-            }
-            return "map: " + items.join(', ') + "\n" + "previous: " + previous.join(', ') + "\n" + "additions: " + additions.join(', ') + "\n" + "changes: " + changes.join(', ') + "\n" + "removals: " + removals.join(', ') + "\n";
-          },
-          _forEach: function(obj, fn) {
-            if (obj instanceof Map) {
-              MapWrapper.forEach(obj, fn);
-            } else {
-              StringMapWrapper.forEach(obj, fn);
-            }
-          }
-        }, {supportsObj: function(obj) {
-            return obj instanceof Map || isJsObject(obj);
-          }}, $__super);
-      }(Pipe)));
-      Object.defineProperty(KeyValueChanges.prototype.forEachItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype.forEachPreviousItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype.forEachChangedItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype.forEachAddedItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype.forEachRemovedItem, "parameters", {get: function() {
-          return [[Function]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._truncate, "parameters", {get: function() {
-          return [[KVChangeRecord], [KVChangeRecord]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._isInRemovals, "parameters", {get: function() {
-          return [[KVChangeRecord]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._addToRemovals, "parameters", {get: function() {
-          return [[KVChangeRecord]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._removeFromSeq, "parameters", {get: function() {
-          return [[KVChangeRecord], [KVChangeRecord]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._removeFromRemovals, "parameters", {get: function() {
-          return [[KVChangeRecord]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._addToAdditions, "parameters", {get: function() {
-          return [[KVChangeRecord]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._addToChanges, "parameters", {get: function() {
-          return [[KVChangeRecord]];
-        }});
-      Object.defineProperty(KeyValueChanges.prototype._forEach, "parameters", {get: function() {
-          return [[], [Function]];
-        }});
-      KVChangeRecord = $__export("KVChangeRecord", (function() {
-        var KVChangeRecord = function KVChangeRecord(key) {
-          this.key = key;
-          this.previousValue = null;
-          this.currentValue = null;
-          this._nextPrevious = null;
-          this._next = null;
-          this._nextAdded = null;
-          this._nextRemoved = null;
-          this._prevRemoved = null;
-          this._nextChanged = null;
-        };
-        return ($traceurRuntime.createClass)(KVChangeRecord, {toString: function() {
-            return looseIdentical(this.previousValue, this.currentValue) ? stringify(this.key) : (stringify(this.key) + '[' + stringify(this.previousValue) + '->' + stringify(this.currentValue) + ']');
-          }}, {});
-      }()));
-    }
-  };
-});
-
-System.register("angular2/src/change_detection/pipes/null_pipe", ["angular2/src/facade/lang", "./pipe"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/change_detection/pipes/null_pipe";
-  var isBlank,
-      Pipe,
-      NO_CHANGE,
-      NullPipeFactory,
-      NullPipe;
-  return {
-    setters: [function($__m) {
-      isBlank = $__m.isBlank;
-    }, function($__m) {
-      Pipe = $__m.Pipe;
-      NO_CHANGE = $__m.NO_CHANGE;
-    }],
-    execute: function() {
-      NullPipeFactory = $__export("NullPipeFactory", (function() {
-        var NullPipeFactory = function NullPipeFactory() {};
-        return ($traceurRuntime.createClass)(NullPipeFactory, {
-          supports: function(obj) {
-            return NullPipe.supportsObj(obj);
-          },
-          create: function(bpc) {
-            return new NullPipe();
-          }
-        }, {});
-      }()));
-      NullPipe = $__export("NullPipe", (function($__super) {
-        var NullPipe = function NullPipe() {
-          $traceurRuntime.superConstructor(NullPipe).call(this);
-          this.called = false;
-        };
-        return ($traceurRuntime.createClass)(NullPipe, {
-          supports: function(obj) {
-            return NullPipe.supportsObj(obj);
-          },
-          transform: function(value) {
-            if (!this.called) {
-              this.called = true;
-              return null;
-            } else {
-              return NO_CHANGE;
-            }
-          }
-        }, {supportsObj: function(obj) {
-            return isBlank(obj);
-          }}, $__super);
-      }(Pipe)));
-    }
-  };
-});
-
-System.register("angular2/src/change_detection/pipes/pipe", [], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/change_detection/pipes/pipe";
-  var NO_CHANGE,
-      Pipe;
-  return {
-    setters: [],
-    execute: function() {
-      NO_CHANGE = $__export("NO_CHANGE", new Object());
-      Pipe = $__export("Pipe", (function() {
-        var Pipe = function Pipe() {};
-        return ($traceurRuntime.createClass)(Pipe, {
-          supports: function(obj) {
-            return false;
-          },
-          onDestroy: function() {},
-          transform: function(value) {
-            return null;
-          }
-        }, {});
-      }()));
-      Object.defineProperty(Pipe.prototype.transform, "parameters", {get: function() {
-          return [[assert.type.any]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/change_detection/pipes/pipe_registry", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./pipe", "../binding_propagation_config"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/change_detection/pipes/pipe_registry";
-  var List,
-      ListWrapper,
-      isBlank,
-      isPresent,
-      BaseException,
-      CONST,
-      Pipe,
-      BindingPropagationConfig,
-      PipeRegistry;
-  return {
-    setters: [function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      isBlank = $__m.isBlank;
-      isPresent = $__m.isPresent;
-      BaseException = $__m.BaseException;
-      CONST = $__m.CONST;
-    }, function($__m) {
-      Pipe = $__m.Pipe;
-    }, function($__m) {
-      BindingPropagationConfig = $__m.BindingPropagationConfig;
-    }],
-    execute: function() {
-      PipeRegistry = $__export("PipeRegistry", (function() {
-        var PipeRegistry = function PipeRegistry(config) {
-          this.config = config;
-        };
-        return ($traceurRuntime.createClass)(PipeRegistry, {get: function(type, obj, bpc) {
-            var listOfConfigs = this.config[type];
-            if (isBlank(listOfConfigs)) {
-              throw new BaseException(("Cannot find a pipe for type '" + type + "' object '" + obj + "'"));
-            }
-            var matchingConfig = ListWrapper.find(listOfConfigs, (function(pipeConfig) {
-              return pipeConfig.supports(obj);
-            }));
-            if (isBlank(matchingConfig)) {
-              throw new BaseException(("Cannot find a pipe for type '" + type + "' object '" + obj + "'"));
-            }
-            return matchingConfig.create(bpc);
-          }}, {});
-      }()));
-      Object.defineProperty(PipeRegistry.prototype.get, "parameters", {get: function() {
-          return [[assert.type.string], [], [BindingPropagationConfig]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/events/event_manager", ["angular2/src/facade/lang", "angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/core/zone/vm_turn_zone"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/events/event_manager";
-  var isBlank,
-      BaseException,
-      isPresent,
-      StringWrapper,
-      DOM,
-      List,
-      ListWrapper,
-      MapWrapper,
-      VmTurnZone,
-      BUBBLE_SYMBOL,
-      EventManager,
-      EventManagerPlugin,
-      DomEventsPlugin;
-  return {
-    setters: [function($__m) {
-      isBlank = $__m.isBlank;
-      BaseException = $__m.BaseException;
-      isPresent = $__m.isPresent;
-      StringWrapper = $__m.StringWrapper;
-    }, function($__m) {
-      DOM = $__m.DOM;
-    }, function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-      MapWrapper = $__m.MapWrapper;
-    }, function($__m) {
-      VmTurnZone = $__m.VmTurnZone;
-    }],
-    execute: function() {
-      BUBBLE_SYMBOL = '^';
-      EventManager = $__export("EventManager", (function() {
-        var EventManager = function EventManager(plugins, zone) {
-          this._zone = zone;
-          this._plugins = plugins;
-          for (var i = 0; i < plugins.length; i++) {
-            plugins[i].manager = this;
-          }
-        };
-        return ($traceurRuntime.createClass)(EventManager, {
-          addEventListener: function(element, eventName, handler) {
-            var shouldSupportBubble = eventName[0] == BUBBLE_SYMBOL;
-            if (shouldSupportBubble) {
-              eventName = StringWrapper.substring(eventName, 1);
-            }
-            var plugin = this._findPluginFor(eventName);
-            plugin.addEventListener(element, eventName, handler, shouldSupportBubble);
-          },
-          getZone: function() {
-            return this._zone;
-          },
-          _findPluginFor: function(eventName) {
-            var plugins = this._plugins;
-            for (var i = 0; i < plugins.length; i++) {
-              var plugin = plugins[i];
-              if (plugin.supports(eventName)) {
-                return plugin;
-              }
-            }
-            throw new BaseException(("No event manager plugin found for event " + eventName));
-          }
-        }, {});
-      }()));
-      Object.defineProperty(EventManager, "parameters", {get: function() {
-          return [[assert.genericType(List, EventManagerPlugin)], [VmTurnZone]];
-        }});
-      Object.defineProperty(EventManager.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function]];
-        }});
-      Object.defineProperty(EventManager.prototype._findPluginFor, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      EventManagerPlugin = $__export("EventManagerPlugin", (function() {
-        var EventManagerPlugin = function EventManagerPlugin() {};
-        return ($traceurRuntime.createClass)(EventManagerPlugin, {
-          supports: function(eventName) {
-            return false;
-          },
-          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
-            throw "not implemented";
-          }
-        }, {});
-      }()));
-      Object.defineProperty(EventManagerPlugin.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(EventManagerPlugin.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function], [assert.type.boolean]];
-        }});
-      DomEventsPlugin = $__export("DomEventsPlugin", (function($__super) {
-        var DomEventsPlugin = function DomEventsPlugin() {
-          $traceurRuntime.superConstructor(DomEventsPlugin).apply(this, arguments);
-        };
-        return ($traceurRuntime.createClass)(DomEventsPlugin, {
-          supports: function(eventName) {
-            return true;
-          },
-          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
-            var outsideHandler = shouldSupportBubble ? DomEventsPlugin.bubbleCallback(element, handler, this.manager._zone) : DomEventsPlugin.sameElementCallback(element, handler, this.manager._zone);
-            this.manager._zone.runOutsideAngular((function() {
-              DOM.on(element, eventName, outsideHandler);
-            }));
-          }
-        }, {
-          sameElementCallback: function(element, handler, zone) {
-            return (function(event) {
-              if (event.target === element) {
-                zone.run((function() {
-                  return handler(event);
-                }));
-              }
-            });
-          },
-          bubbleCallback: function(element, handler, zone) {
-            return (function(event) {
-              return zone.run((function() {
-                return handler(event);
-              }));
-            });
-          }
-        }, $__super);
-      }(EventManagerPlugin)));
-      Object.defineProperty(DomEventsPlugin.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(DomEventsPlugin.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function], [assert.type.boolean]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/events/hammer_common", ["./event_manager", "angular2/src/facade/collection"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/events/hammer_common";
-  var EventManagerPlugin,
-      StringMapWrapper,
-      _eventNames,
-      HammerGesturesPluginCommon;
-  return {
-    setters: [function($__m) {
-      EventManagerPlugin = $__m.EventManagerPlugin;
-    }, function($__m) {
-      StringMapWrapper = $__m.StringMapWrapper;
-    }],
-    execute: function() {
-      _eventNames = {
-        'pan': true,
-        'panstart': true,
-        'panmove': true,
-        'panend': true,
-        'pancancel': true,
-        'panleft': true,
-        'panright': true,
-        'panup': true,
-        'pandown': true,
-        'pinch': true,
-        'pinchstart': true,
-        'pinchmove': true,
-        'pinchend': true,
-        'pinchcancel': true,
-        'pinchin': true,
-        'pinchout': true,
-        'press': true,
-        'pressup': true,
-        'rotate': true,
-        'rotatestart': true,
-        'rotatemove': true,
-        'rotateend': true,
-        'rotatecancel': true,
-        'swipe': true,
-        'swipeleft': true,
-        'swiperight': true,
-        'swipeup': true,
-        'swipedown': true,
-        'tap': true
-      };
-      HammerGesturesPluginCommon = $__export("HammerGesturesPluginCommon", (function($__super) {
-        var HammerGesturesPluginCommon = function HammerGesturesPluginCommon() {
-          $traceurRuntime.superConstructor(HammerGesturesPluginCommon).call(this);
-        };
-        return ($traceurRuntime.createClass)(HammerGesturesPluginCommon, {supports: function(eventName) {
-            eventName = eventName.toLowerCase();
-            return StringMapWrapper.contains(_eventNames, eventName);
-          }}, {}, $__super);
-      }(EventManagerPlugin)));
-      Object.defineProperty(HammerGesturesPluginCommon.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/events/hammer_gestures", ["./hammer_common", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/events/hammer_gestures";
-  var HammerGesturesPluginCommon,
-      isPresent,
-      BaseException,
-      HammerGesturesPlugin;
-  return {
-    setters: [function($__m) {
-      HammerGesturesPluginCommon = $__m.HammerGesturesPluginCommon;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-      BaseException = $__m.BaseException;
-    }],
-    execute: function() {
-      HammerGesturesPlugin = $__export("HammerGesturesPlugin", (function($__super) {
-        var HammerGesturesPlugin = function HammerGesturesPlugin() {
-          $traceurRuntime.superConstructor(HammerGesturesPlugin).call(this);
-        };
-        return ($traceurRuntime.createClass)(HammerGesturesPlugin, {
-          supports: function(eventName) {
-            if (!$traceurRuntime.superGet(this, HammerGesturesPlugin.prototype, "supports").call(this, eventName))
-              return false;
-            if (!isPresent(window.Hammer)) {
-              throw new BaseException(("Hammer.js is not loaded, can not bind " + eventName + " event"));
-            }
-            return true;
-          },
-          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
-            if (shouldSupportBubble)
-              throw new BaseException('Hammer.js plugin does not support bubbling gestures.');
-            var zone = this.manager.getZone();
-            eventName = eventName.toLowerCase();
-            zone.runOutsideAngular(function() {
-              var mc = new Hammer(element);
-              mc.get('pinch').set({enable: true});
-              mc.get('rotate').set({enable: true});
-              mc.on(eventName, function(eventObj) {
-                zone.run(function() {
-                  handler(eventObj);
-                });
-              });
-            });
-          }
-        }, {}, $__super);
-      }(HammerGesturesPluginCommon)));
-      Object.defineProperty(HammerGesturesPlugin.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(HammerGesturesPlugin.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function], [assert.type.boolean]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/life_cycle/life_cycle", ["angular2/di", "angular2/change_detection", "angular2/src/core/zone/vm_turn_zone", "angular2/src/core/exception_handler", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/life_cycle/life_cycle";
-  var Injectable,
-      ChangeDetector,
-      VmTurnZone,
-      ExceptionHandler,
-      isPresent,
-      LifeCycle;
-  return {
-    setters: [function($__m) {
-      Injectable = $__m.Injectable;
-    }, function($__m) {
-      ChangeDetector = $__m.ChangeDetector;
-    }, function($__m) {
-      VmTurnZone = $__m.VmTurnZone;
-    }, function($__m) {
-      ExceptionHandler = $__m.ExceptionHandler;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-    }],
-    execute: function() {
-      LifeCycle = $__export("LifeCycle", (function() {
-        var LifeCycle = function LifeCycle(exceptionHandler) {
-          var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
-          var enforceNoNewChanges = arguments[2] !== (void 0) ? arguments[2] : false;
-          this._errorHandler = (function(exception, stackTrace) {
-            exceptionHandler.call(exception, stackTrace);
-            throw exception;
-          });
-          this._changeDetector = changeDetector;
-          this._enforceNoNewChanges = enforceNoNewChanges;
-        };
-        return ($traceurRuntime.createClass)(LifeCycle, {
-          registerWith: function(zone) {
-            var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
-            var $__0 = this;
-            if (isPresent(changeDetector)) {
-              this._changeDetector = changeDetector;
-            }
-            zone.initCallbacks({
-              onErrorHandler: this._errorHandler,
-              onTurnDone: (function() {
-                return $__0.tick();
-              })
-            });
-          },
-          tick: function() {
-            this._changeDetector.detectChanges();
-            if (this._enforceNoNewChanges) {
-              this._changeDetector.checkNoChanges();
-            }
-          }
-        }, {});
-      }()));
-      Object.defineProperty(LifeCycle, "annotations", {get: function() {
-          return [new Injectable()];
-        }});
-      Object.defineProperty(LifeCycle, "parameters", {get: function() {
-          return [[ExceptionHandler], [ChangeDetector], [assert.type.boolean]];
-        }});
-      Object.defineProperty(LifeCycle.prototype.registerWith, "parameters", {get: function() {
-          return [[VmTurnZone], [ChangeDetector]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/zone/vm_turn_zone", ["angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/zone/vm_turn_zone";
-  var List,
-      ListWrapper,
-      StringMapWrapper,
-      normalizeBlank,
-      isPresent,
-      global,
-      VmTurnZone;
-  return {
-    setters: [function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-      StringMapWrapper = $__m.StringMapWrapper;
-    }, function($__m) {
-      normalizeBlank = $__m.normalizeBlank;
-      isPresent = $__m.isPresent;
-      global = $__m.global;
-    }],
-    execute: function() {
-      VmTurnZone = $__export("VmTurnZone", (function() {
-        var VmTurnZone = function VmTurnZone($__2) {
-          var enableLongStackTrace = $__2.enableLongStackTrace;
-          this._nestedRunCounter = 0;
-          this._onTurnStart = null;
-          this._onTurnDone = null;
-          this._onErrorHandler = null;
-          this._outerZone = global.zone;
-          this._innerZone = this._createInnerZone(this._outerZone, enableLongStackTrace);
-        };
-        return ($traceurRuntime.createClass)(VmTurnZone, {
-          initCallbacks: function() {
-            var $__2 = arguments[0] !== (void 0) ? arguments[0] : {},
-                onTurnStart = $__2.onTurnStart,
-                onTurnDone = $__2.onTurnDone,
-                onScheduleMicrotask = $__2.onScheduleMicrotask,
-                onErrorHandler = $__2.onErrorHandler;
-            this._onTurnStart = normalizeBlank(onTurnStart);
-            this._onTurnDone = normalizeBlank(onTurnDone);
-            this._onErrorHandler = normalizeBlank(onErrorHandler);
-          },
-          run: function(fn) {
-            return this._innerZone.run(fn);
-          },
-          runOutsideAngular: function(fn) {
-            return this._outerZone.run(fn);
-          },
-          _createInnerZone: function(zone, enableLongStackTrace) {
-            var $__0 = this;
-            var vmTurnZone = this;
-            var errorHandling;
-            if (enableLongStackTrace) {
-              errorHandling = StringMapWrapper.merge(Zone.longStackTraceZone, {onError: function(e) {
-                  vmTurnZone._onError(this, e);
-                }});
-            } else {
-              errorHandling = {onError: function(e) {
-                  vmTurnZone._onError(this, e);
-                }};
-            }
-            return zone.fork(errorHandling).fork({
-              beforeTask: (function() {
-                $__0._beforeTask();
-              }),
-              afterTask: (function() {
-                $__0._afterTask();
-              })
-            });
-          },
-          _beforeTask: function() {
-            this._nestedRunCounter++;
-            if (this._nestedRunCounter === 1 && this._onTurnStart) {
-              this._onTurnStart();
-            }
-          },
-          _afterTask: function() {
-            this._nestedRunCounter--;
-            if (this._nestedRunCounter === 0 && this._onTurnDone) {
-              this._onTurnDone();
-            }
-          },
-          _onError: function(zone, e) {
-            if (isPresent(this._onErrorHandler)) {
-              var trace = [normalizeBlank(e.stack)];
-              while (zone && zone.constructedAtException) {
-                trace.push(zone.constructedAtException.get());
-                zone = zone.parent;
-              }
-              this._onErrorHandler(e, trace);
-            } else {
-              throw e;
-            }
-          }
-        }, {});
-      }()));
-    }
-  };
-});
-
-System.register("angular2/src/core/dom/element", ["angular2/src/dom/dom_adapter", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/dom/element";
-  var DOM,
-      normalizeBlank,
-      NgElement;
-  return {
-    setters: [function($__m) {
-      DOM = $__m.DOM;
-    }, function($__m) {
-      normalizeBlank = $__m.normalizeBlank;
-    }],
-    execute: function() {
-      NgElement = $__export("NgElement", (function() {
-        var NgElement = function NgElement(domElement) {
-          this.domElement = domElement;
-        };
-        return ($traceurRuntime.createClass)(NgElement, {getAttribute: function(name) {
-            return normalizeBlank(DOM.getAttribute(this.domElement, name));
-          }}, {});
-      }()));
-      Object.defineProperty(NgElement.prototype.getAttribute, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
     }
   };
 });
@@ -10784,6 +9082,1708 @@ System.register("angular2/src/change_detection/parser/parser", ["angular2/di", "
         }});
       Object.defineProperty(_ParseAST.prototype.error, "parameters", {get: function() {
           return [[assert.type.string], [int]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/annotations", ["angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/di"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/annotations";
+  var ABSTRACT,
+      CONST,
+      normalizeBlank,
+      isPresent,
+      ListWrapper,
+      List,
+      Injectable,
+      Directive,
+      Component,
+      DynamicComponent,
+      Decorator,
+      Viewport,
+      onDestroy,
+      onChange,
+      onAllChangesDone;
+  return {
+    setters: [function($__m) {
+      ABSTRACT = $__m.ABSTRACT;
+      CONST = $__m.CONST;
+      normalizeBlank = $__m.normalizeBlank;
+      isPresent = $__m.isPresent;
+    }, function($__m) {
+      ListWrapper = $__m.ListWrapper;
+      List = $__m.List;
+    }, function($__m) {
+      Injectable = $__m.Injectable;
+    }],
+    execute: function() {
+      Directive = $__export("Directive", (function($__super) {
+        var Directive = function Directive() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(Directive).call(this);
+          this.selector = selector;
+          this.bind = bind;
+          this.events = events;
+          this.lifecycle = lifecycle;
+        };
+        return ($traceurRuntime.createClass)(Directive, {hasLifecycleHook: function(hook) {
+            return isPresent(this.lifecycle) ? ListWrapper.contains(this.lifecycle, hook) : false;
+          }}, {}, $__super);
+      }(Injectable)));
+      Object.defineProperty(Directive, "annotations", {get: function() {
+          return [new ABSTRACT(), new CONST()];
+        }});
+      Object.defineProperty(Directive.prototype.hasLifecycleHook, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Component = $__export("Component", (function($__super) {
+        var Component = function Component() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              services = $__1.services,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(Component).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+          this.services = services;
+        };
+        return ($traceurRuntime.createClass)(Component, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(Component, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      DynamicComponent = $__export("DynamicComponent", (function($__super) {
+        var DynamicComponent = function DynamicComponent() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              services = $__1.services,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(DynamicComponent).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+          this.services = services;
+        };
+        return ($traceurRuntime.createClass)(DynamicComponent, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(DynamicComponent, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Decorator = $__export("Decorator", (function($__super) {
+        var Decorator = function Decorator() {
+          var $__2;
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              lifecycle = $__1.lifecycle,
+              compileChildren = ($__2 = $__1.compileChildren) === void 0 ? true : $__2;
+          $traceurRuntime.superConstructor(Decorator).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+          this.compileChildren = compileChildren;
+        };
+        return ($traceurRuntime.createClass)(Decorator, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(Decorator, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Viewport = $__export("Viewport", (function($__super) {
+        var Viewport = function Viewport() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(Viewport).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+        };
+        return ($traceurRuntime.createClass)(Viewport, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(Viewport, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      onDestroy = $__export("onDestroy", "onDestroy");
+      onChange = $__export("onChange", "onChange");
+      onAllChangesDone = $__export("onAllChangesDone", "onAllChangesDone");
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/di", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/di";
+  var CONST,
+      DependencyAnnotation,
+      EventEmitter,
+      PropertySetter,
+      Attribute;
+  return {
+    setters: [function($__m) {
+      CONST = $__m.CONST;
+    }, function($__m) {
+      DependencyAnnotation = $__m.DependencyAnnotation;
+    }],
+    execute: function() {
+      EventEmitter = $__export("EventEmitter", (function($__super) {
+        var EventEmitter = function EventEmitter(eventName) {
+          $traceurRuntime.superConstructor(EventEmitter).call(this);
+          this.eventName = eventName;
+        };
+        return ($traceurRuntime.createClass)(EventEmitter, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(EventEmitter, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      PropertySetter = $__export("PropertySetter", (function($__super) {
+        var PropertySetter = function PropertySetter(propName) {
+          $traceurRuntime.superConstructor(PropertySetter).call(this);
+          this.propName = propName;
+        };
+        return ($traceurRuntime.createClass)(PropertySetter, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(PropertySetter, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Attribute = $__export("Attribute", (function($__super) {
+        var Attribute = function Attribute(attributeName) {
+          $traceurRuntime.superConstructor(Attribute).call(this);
+          this.attributeName = attributeName;
+        };
+        return ($traceurRuntime.createClass)(Attribute, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(Attribute, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/template", ["angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/template";
+  var ABSTRACT,
+      CONST,
+      Type,
+      Template;
+  return {
+    setters: [function($__m) {
+      ABSTRACT = $__m.ABSTRACT;
+      CONST = $__m.CONST;
+      Type = $__m.Type;
+    }],
+    execute: function() {
+      Template = $__export("Template", (function() {
+        var Template = function Template($__1) {
+          var $__2 = $__1,
+              url = $__2.url,
+              inline = $__2.inline,
+              directives = $__2.directives,
+              formatters = $__2.formatters,
+              source = $__2.source,
+              locale = $__2.locale,
+              device = $__2.device;
+          this.url = url;
+          this.inline = inline;
+          this.directives = directives;
+          this.formatters = formatters;
+          this.source = source;
+          this.locale = locale;
+          this.device = device;
+        };
+        return ($traceurRuntime.createClass)(Template, {}, {});
+      }()));
+      Object.defineProperty(Template, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/visibility", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/visibility";
+  var CONST,
+      DependencyAnnotation,
+      Parent,
+      Ancestor;
+  return {
+    setters: [function($__m) {
+      CONST = $__m.CONST;
+    }, function($__m) {
+      DependencyAnnotation = $__m.DependencyAnnotation;
+    }],
+    execute: function() {
+      Parent = $__export("Parent", (function($__super) {
+        var Parent = function Parent() {
+          $traceurRuntime.superConstructor(Parent).call(this);
+        };
+        return ($traceurRuntime.createClass)(Parent, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(Parent, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Ancestor = $__export("Ancestor", (function($__super) {
+        var Ancestor = function Ancestor() {
+          $traceurRuntime.superConstructor(Ancestor).call(this);
+        };
+        return ($traceurRuntime.createClass)(Ancestor, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(Ancestor, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/events/event_manager", ["angular2/src/facade/lang", "angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/core/zone/vm_turn_zone"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/events/event_manager";
+  var isBlank,
+      BaseException,
+      isPresent,
+      StringWrapper,
+      DOM,
+      List,
+      ListWrapper,
+      MapWrapper,
+      VmTurnZone,
+      BUBBLE_SYMBOL,
+      EventManager,
+      EventManagerPlugin,
+      DomEventsPlugin;
+  return {
+    setters: [function($__m) {
+      isBlank = $__m.isBlank;
+      BaseException = $__m.BaseException;
+      isPresent = $__m.isPresent;
+      StringWrapper = $__m.StringWrapper;
+    }, function($__m) {
+      DOM = $__m.DOM;
+    }, function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+      MapWrapper = $__m.MapWrapper;
+    }, function($__m) {
+      VmTurnZone = $__m.VmTurnZone;
+    }],
+    execute: function() {
+      BUBBLE_SYMBOL = '^';
+      EventManager = $__export("EventManager", (function() {
+        var EventManager = function EventManager(plugins, zone) {
+          this._zone = zone;
+          this._plugins = plugins;
+          for (var i = 0; i < plugins.length; i++) {
+            plugins[i].manager = this;
+          }
+        };
+        return ($traceurRuntime.createClass)(EventManager, {
+          addEventListener: function(element, eventName, handler) {
+            var shouldSupportBubble = eventName[0] == BUBBLE_SYMBOL;
+            if (shouldSupportBubble) {
+              eventName = StringWrapper.substring(eventName, 1);
+            }
+            var plugin = this._findPluginFor(eventName);
+            plugin.addEventListener(element, eventName, handler, shouldSupportBubble);
+          },
+          getZone: function() {
+            return this._zone;
+          },
+          _findPluginFor: function(eventName) {
+            var plugins = this._plugins;
+            for (var i = 0; i < plugins.length; i++) {
+              var plugin = plugins[i];
+              if (plugin.supports(eventName)) {
+                return plugin;
+              }
+            }
+            throw new BaseException(("No event manager plugin found for event " + eventName));
+          }
+        }, {});
+      }()));
+      Object.defineProperty(EventManager, "parameters", {get: function() {
+          return [[assert.genericType(List, EventManagerPlugin)], [VmTurnZone]];
+        }});
+      Object.defineProperty(EventManager.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function]];
+        }});
+      Object.defineProperty(EventManager.prototype._findPluginFor, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      EventManagerPlugin = $__export("EventManagerPlugin", (function() {
+        var EventManagerPlugin = function EventManagerPlugin() {};
+        return ($traceurRuntime.createClass)(EventManagerPlugin, {
+          supports: function(eventName) {
+            return false;
+          },
+          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
+            throw "not implemented";
+          }
+        }, {});
+      }()));
+      Object.defineProperty(EventManagerPlugin.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(EventManagerPlugin.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function], [assert.type.boolean]];
+        }});
+      DomEventsPlugin = $__export("DomEventsPlugin", (function($__super) {
+        var DomEventsPlugin = function DomEventsPlugin() {
+          $traceurRuntime.superConstructor(DomEventsPlugin).apply(this, arguments);
+        };
+        return ($traceurRuntime.createClass)(DomEventsPlugin, {
+          supports: function(eventName) {
+            return true;
+          },
+          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
+            var outsideHandler = shouldSupportBubble ? DomEventsPlugin.bubbleCallback(element, handler, this.manager._zone) : DomEventsPlugin.sameElementCallback(element, handler, this.manager._zone);
+            this.manager._zone.runOutsideAngular((function() {
+              DOM.on(element, eventName, outsideHandler);
+            }));
+          }
+        }, {
+          sameElementCallback: function(element, handler, zone) {
+            return (function(event) {
+              if (event.target === element) {
+                zone.run((function() {
+                  return handler(event);
+                }));
+              }
+            });
+          },
+          bubbleCallback: function(element, handler, zone) {
+            return (function(event) {
+              return zone.run((function() {
+                return handler(event);
+              }));
+            });
+          }
+        }, $__super);
+      }(EventManagerPlugin)));
+      Object.defineProperty(DomEventsPlugin.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(DomEventsPlugin.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function], [assert.type.boolean]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/events/hammer_common", ["./event_manager", "angular2/src/facade/collection"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/events/hammer_common";
+  var EventManagerPlugin,
+      StringMapWrapper,
+      _eventNames,
+      HammerGesturesPluginCommon;
+  return {
+    setters: [function($__m) {
+      EventManagerPlugin = $__m.EventManagerPlugin;
+    }, function($__m) {
+      StringMapWrapper = $__m.StringMapWrapper;
+    }],
+    execute: function() {
+      _eventNames = {
+        'pan': true,
+        'panstart': true,
+        'panmove': true,
+        'panend': true,
+        'pancancel': true,
+        'panleft': true,
+        'panright': true,
+        'panup': true,
+        'pandown': true,
+        'pinch': true,
+        'pinchstart': true,
+        'pinchmove': true,
+        'pinchend': true,
+        'pinchcancel': true,
+        'pinchin': true,
+        'pinchout': true,
+        'press': true,
+        'pressup': true,
+        'rotate': true,
+        'rotatestart': true,
+        'rotatemove': true,
+        'rotateend': true,
+        'rotatecancel': true,
+        'swipe': true,
+        'swipeleft': true,
+        'swiperight': true,
+        'swipeup': true,
+        'swipedown': true,
+        'tap': true
+      };
+      HammerGesturesPluginCommon = $__export("HammerGesturesPluginCommon", (function($__super) {
+        var HammerGesturesPluginCommon = function HammerGesturesPluginCommon() {
+          $traceurRuntime.superConstructor(HammerGesturesPluginCommon).call(this);
+        };
+        return ($traceurRuntime.createClass)(HammerGesturesPluginCommon, {supports: function(eventName) {
+            eventName = eventName.toLowerCase();
+            return StringMapWrapper.contains(_eventNames, eventName);
+          }}, {}, $__super);
+      }(EventManagerPlugin)));
+      Object.defineProperty(HammerGesturesPluginCommon.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/events/hammer_gestures", ["./hammer_common", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/events/hammer_gestures";
+  var HammerGesturesPluginCommon,
+      isPresent,
+      BaseException,
+      HammerGesturesPlugin;
+  return {
+    setters: [function($__m) {
+      HammerGesturesPluginCommon = $__m.HammerGesturesPluginCommon;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+      BaseException = $__m.BaseException;
+    }],
+    execute: function() {
+      HammerGesturesPlugin = $__export("HammerGesturesPlugin", (function($__super) {
+        var HammerGesturesPlugin = function HammerGesturesPlugin() {
+          $traceurRuntime.superConstructor(HammerGesturesPlugin).call(this);
+        };
+        return ($traceurRuntime.createClass)(HammerGesturesPlugin, {
+          supports: function(eventName) {
+            if (!$traceurRuntime.superGet(this, HammerGesturesPlugin.prototype, "supports").call(this, eventName))
+              return false;
+            if (!isPresent(window.Hammer)) {
+              throw new BaseException(("Hammer.js is not loaded, can not bind " + eventName + " event"));
+            }
+            return true;
+          },
+          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
+            if (shouldSupportBubble)
+              throw new BaseException('Hammer.js plugin does not support bubbling gestures.');
+            var zone = this.manager.getZone();
+            eventName = eventName.toLowerCase();
+            zone.runOutsideAngular(function() {
+              var mc = new Hammer(element);
+              mc.get('pinch').set({enable: true});
+              mc.get('rotate').set({enable: true});
+              mc.on(eventName, function(eventObj) {
+                zone.run(function() {
+                  handler(eventObj);
+                });
+              });
+            });
+          }
+        }, {}, $__super);
+      }(HammerGesturesPluginCommon)));
+      Object.defineProperty(HammerGesturesPlugin.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(HammerGesturesPlugin.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function], [assert.type.boolean]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/life_cycle/life_cycle", ["angular2/di", "angular2/change_detection", "angular2/src/core/zone/vm_turn_zone", "angular2/src/core/exception_handler", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/life_cycle/life_cycle";
+  var Injectable,
+      ChangeDetector,
+      VmTurnZone,
+      ExceptionHandler,
+      isPresent,
+      LifeCycle;
+  return {
+    setters: [function($__m) {
+      Injectable = $__m.Injectable;
+    }, function($__m) {
+      ChangeDetector = $__m.ChangeDetector;
+    }, function($__m) {
+      VmTurnZone = $__m.VmTurnZone;
+    }, function($__m) {
+      ExceptionHandler = $__m.ExceptionHandler;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+    }],
+    execute: function() {
+      LifeCycle = $__export("LifeCycle", (function() {
+        var LifeCycle = function LifeCycle(exceptionHandler) {
+          var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
+          var enforceNoNewChanges = arguments[2] !== (void 0) ? arguments[2] : false;
+          this._errorHandler = (function(exception, stackTrace) {
+            exceptionHandler.call(exception, stackTrace);
+            throw exception;
+          });
+          this._changeDetector = changeDetector;
+          this._enforceNoNewChanges = enforceNoNewChanges;
+        };
+        return ($traceurRuntime.createClass)(LifeCycle, {
+          registerWith: function(zone) {
+            var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
+            var $__0 = this;
+            if (isPresent(changeDetector)) {
+              this._changeDetector = changeDetector;
+            }
+            zone.initCallbacks({
+              onErrorHandler: this._errorHandler,
+              onTurnDone: (function() {
+                return $__0.tick();
+              })
+            });
+          },
+          tick: function() {
+            this._changeDetector.detectChanges();
+            if (this._enforceNoNewChanges) {
+              this._changeDetector.checkNoChanges();
+            }
+          }
+        }, {});
+      }()));
+      Object.defineProperty(LifeCycle, "annotations", {get: function() {
+          return [new Injectable()];
+        }});
+      Object.defineProperty(LifeCycle, "parameters", {get: function() {
+          return [[ExceptionHandler], [ChangeDetector], [assert.type.boolean]];
+        }});
+      Object.defineProperty(LifeCycle.prototype.registerWith, "parameters", {get: function() {
+          return [[VmTurnZone], [ChangeDetector]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/zone/vm_turn_zone", ["angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/zone/vm_turn_zone";
+  var List,
+      ListWrapper,
+      StringMapWrapper,
+      normalizeBlank,
+      isPresent,
+      global,
+      VmTurnZone;
+  return {
+    setters: [function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+      StringMapWrapper = $__m.StringMapWrapper;
+    }, function($__m) {
+      normalizeBlank = $__m.normalizeBlank;
+      isPresent = $__m.isPresent;
+      global = $__m.global;
+    }],
+    execute: function() {
+      VmTurnZone = $__export("VmTurnZone", (function() {
+        var VmTurnZone = function VmTurnZone($__2) {
+          var enableLongStackTrace = $__2.enableLongStackTrace;
+          this._nestedRunCounter = 0;
+          this._onTurnStart = null;
+          this._onTurnDone = null;
+          this._onErrorHandler = null;
+          this._outerZone = global.zone;
+          this._innerZone = this._createInnerZone(this._outerZone, enableLongStackTrace);
+        };
+        return ($traceurRuntime.createClass)(VmTurnZone, {
+          initCallbacks: function() {
+            var $__2 = arguments[0] !== (void 0) ? arguments[0] : {},
+                onTurnStart = $__2.onTurnStart,
+                onTurnDone = $__2.onTurnDone,
+                onScheduleMicrotask = $__2.onScheduleMicrotask,
+                onErrorHandler = $__2.onErrorHandler;
+            this._onTurnStart = normalizeBlank(onTurnStart);
+            this._onTurnDone = normalizeBlank(onTurnDone);
+            this._onErrorHandler = normalizeBlank(onErrorHandler);
+          },
+          run: function(fn) {
+            return this._innerZone.run(fn);
+          },
+          runOutsideAngular: function(fn) {
+            return this._outerZone.run(fn);
+          },
+          _createInnerZone: function(zone, enableLongStackTrace) {
+            var $__0 = this;
+            var vmTurnZone = this;
+            var errorHandling;
+            if (enableLongStackTrace) {
+              errorHandling = StringMapWrapper.merge(Zone.longStackTraceZone, {onError: function(e) {
+                  vmTurnZone._onError(this, e);
+                }});
+            } else {
+              errorHandling = {onError: function(e) {
+                  vmTurnZone._onError(this, e);
+                }};
+            }
+            return zone.fork(errorHandling).fork({
+              beforeTask: (function() {
+                $__0._beforeTask();
+              }),
+              afterTask: (function() {
+                $__0._afterTask();
+              })
+            });
+          },
+          _beforeTask: function() {
+            this._nestedRunCounter++;
+            if (this._nestedRunCounter === 1 && this._onTurnStart) {
+              this._onTurnStart();
+            }
+          },
+          _afterTask: function() {
+            this._nestedRunCounter--;
+            if (this._nestedRunCounter === 0 && this._onTurnDone) {
+              this._onTurnDone();
+            }
+          },
+          _onError: function(zone, e) {
+            if (isPresent(this._onErrorHandler)) {
+              var trace = [normalizeBlank(e.stack)];
+              while (zone && zone.constructedAtException) {
+                trace.push(zone.constructedAtException.get());
+                zone = zone.parent;
+              }
+              this._onErrorHandler(e, trace);
+            } else {
+              throw e;
+            }
+          }
+        }, {});
+      }()));
+    }
+  };
+});
+
+System.register("angular2/src/core/dom/element", ["angular2/src/dom/dom_adapter", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/dom/element";
+  var DOM,
+      normalizeBlank,
+      NgElement;
+  return {
+    setters: [function($__m) {
+      DOM = $__m.DOM;
+    }, function($__m) {
+      normalizeBlank = $__m.normalizeBlank;
+    }],
+    execute: function() {
+      NgElement = $__export("NgElement", (function() {
+        var NgElement = function NgElement(domElement) {
+          this.domElement = domElement;
+        };
+        return ($traceurRuntime.createClass)(NgElement, {getAttribute: function(name) {
+            return normalizeBlank(DOM.getAttribute(this.domElement, name));
+          }}, {});
+      }()));
+      Object.defineProperty(NgElement.prototype.getAttribute, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/change_detection/pipes/iterable_changes", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./pipe"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/change_detection/pipes/iterable_changes";
+  var isListLikeIterable,
+      iterateListLike,
+      ListWrapper,
+      MapWrapper,
+      int,
+      isBlank,
+      isPresent,
+      stringify,
+      getMapKey,
+      looseIdentical,
+      NO_CHANGE,
+      Pipe,
+      IterableChangesFactory,
+      IterableChanges,
+      CollectionChangeRecord,
+      _DuplicateItemRecordList,
+      _DuplicateMap;
+  return {
+    setters: [function($__m) {
+      isListLikeIterable = $__m.isListLikeIterable;
+      iterateListLike = $__m.iterateListLike;
+      ListWrapper = $__m.ListWrapper;
+      MapWrapper = $__m.MapWrapper;
+    }, function($__m) {
+      int = $__m.int;
+      isBlank = $__m.isBlank;
+      isPresent = $__m.isPresent;
+      stringify = $__m.stringify;
+      getMapKey = $__m.getMapKey;
+      looseIdentical = $__m.looseIdentical;
+    }, function($__m) {
+      NO_CHANGE = $__m.NO_CHANGE;
+      Pipe = $__m.Pipe;
+    }],
+    execute: function() {
+      IterableChangesFactory = $__export("IterableChangesFactory", (function() {
+        var IterableChangesFactory = function IterableChangesFactory() {};
+        return ($traceurRuntime.createClass)(IterableChangesFactory, {
+          supports: function(obj) {
+            return IterableChanges.supportsObj(obj);
+          },
+          create: function(bpc) {
+            return new IterableChanges();
+          }
+        }, {});
+      }()));
+      IterableChanges = $__export("IterableChanges", (function($__super) {
+        var IterableChanges = function IterableChanges() {
+          $traceurRuntime.superConstructor(IterableChanges).call(this);
+          this._collection = null;
+          this._length = null;
+          this._linkedRecords = null;
+          this._unlinkedRecords = null;
+          this._previousItHead = null;
+          this._itHead = null;
+          this._itTail = null;
+          this._additionsHead = null;
+          this._additionsTail = null;
+          this._movesHead = null;
+          this._movesTail = null;
+          this._removalsHead = null;
+          this._removalsTail = null;
+        };
+        return ($traceurRuntime.createClass)(IterableChanges, {
+          supports: function(obj) {
+            return IterableChanges.supportsObj(obj);
+          },
+          get collection() {
+            return this._collection;
+          },
+          get length() {
+            return this._length;
+          },
+          forEachItem: function(fn) {
+            var record;
+            for (record = this._itHead; record !== null; record = record._next) {
+              fn(record);
+            }
+          },
+          forEachPreviousItem: function(fn) {
+            var record;
+            for (record = this._previousItHead; record !== null; record = record._nextPrevious) {
+              fn(record);
+            }
+          },
+          forEachAddedItem: function(fn) {
+            var record;
+            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
+              fn(record);
+            }
+          },
+          forEachMovedItem: function(fn) {
+            var record;
+            for (record = this._movesHead; record !== null; record = record._nextMoved) {
+              fn(record);
+            }
+          },
+          forEachRemovedItem: function(fn) {
+            var record;
+            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
+              fn(record);
+            }
+          },
+          transform: function(collection) {
+            if (this.check(collection)) {
+              return this;
+            } else {
+              return NO_CHANGE;
+            }
+          },
+          check: function(collection) {
+            var $__0 = this;
+            this._reset();
+            var record = this._itHead;
+            var mayBeDirty = false;
+            var index;
+            var item;
+            if (ListWrapper.isList(collection)) {
+              var list = collection;
+              this._length = collection.length;
+              for (index = 0; index < this._length; index++) {
+                item = list[index];
+                if (record === null || !looseIdentical(record.item, item)) {
+                  record = this._mismatch(record, item, index);
+                  mayBeDirty = true;
+                } else if (mayBeDirty) {
+                  record = this._verifyReinsertion(record, item, index);
+                }
+                record = record._next;
+              }
+            } else {
+              index = 0;
+              iterateListLike(collection, (function(item) {
+                if (record === null || !looseIdentical(record.item, item)) {
+                  record = $__0._mismatch(record, item, index);
+                  mayBeDirty = true;
+                } else if (mayBeDirty) {
+                  record = $__0._verifyReinsertion(record, item, index);
+                }
+                record = record._next;
+                index++;
+              }));
+              this._length = index;
+            }
+            this._truncate(record);
+            this._collection = collection;
+            return this.isDirty;
+          },
+          get isDirty() {
+            return this._additionsHead !== null || this._movesHead !== null || this._removalsHead !== null;
+          },
+          _reset: function() {
+            if (this.isDirty) {
+              var record;
+              var nextRecord;
+              for (record = this._previousItHead = this._itHead; record !== null; record = record._next) {
+                record._nextPrevious = record._next;
+              }
+              for (record = this._additionsHead; record !== null; record = record._nextAdded) {
+                record.previousIndex = record.currentIndex;
+              }
+              this._additionsHead = this._additionsTail = null;
+              for (record = this._movesHead; record !== null; record = nextRecord) {
+                record.previousIndex = record.currentIndex;
+                nextRecord = record._nextMoved;
+              }
+              this._movesHead = this._movesTail = null;
+              this._removalsHead = this._removalsTail = null;
+            }
+          },
+          _mismatch: function(record, item, index) {
+            var previousRecord;
+            if (record === null) {
+              previousRecord = this._itTail;
+            } else {
+              previousRecord = record._prev;
+              this._remove(record);
+            }
+            record = this._linkedRecords === null ? null : this._linkedRecords.get(item, index);
+            if (record !== null) {
+              this._moveAfter(record, previousRecord, index);
+            } else {
+              record = this._unlinkedRecords === null ? null : this._unlinkedRecords.get(item);
+              if (record !== null) {
+                this._reinsertAfter(record, previousRecord, index);
+              } else {
+                record = this._addAfter(new CollectionChangeRecord(item), previousRecord, index);
+              }
+            }
+            return record;
+          },
+          _verifyReinsertion: function(record, item, index) {
+            var reinsertRecord = this._unlinkedRecords === null ? null : this._unlinkedRecords.get(item);
+            if (reinsertRecord !== null) {
+              record = this._reinsertAfter(reinsertRecord, record._prev, index);
+            } else if (record.currentIndex != index) {
+              record.currentIndex = index;
+              this._addToMoves(record, index);
+            }
+            return record;
+          },
+          _truncate: function(record) {
+            while (record !== null) {
+              var nextRecord = record._next;
+              this._addToRemovals(this._unlink(record));
+              record = nextRecord;
+            }
+            if (this._unlinkedRecords !== null) {
+              this._unlinkedRecords.clear();
+            }
+            if (this._additionsTail !== null) {
+              this._additionsTail._nextAdded = null;
+            }
+            if (this._movesTail !== null) {
+              this._movesTail._nextMoved = null;
+            }
+            if (this._itTail !== null) {
+              this._itTail._next = null;
+            }
+            if (this._removalsTail !== null) {
+              this._removalsTail._nextRemoved = null;
+            }
+          },
+          _reinsertAfter: function(record, prevRecord, index) {
+            if (this._unlinkedRecords !== null) {
+              this._unlinkedRecords.remove(record);
+            }
+            var prev = record._prevRemoved;
+            var next = record._nextRemoved;
+            if (prev === null) {
+              this._removalsHead = next;
+            } else {
+              prev._nextRemoved = next;
+            }
+            if (next === null) {
+              this._removalsTail = prev;
+            } else {
+              next._prevRemoved = prev;
+            }
+            this._insertAfter(record, prevRecord, index);
+            this._addToMoves(record, index);
+            return record;
+          },
+          _moveAfter: function(record, prevRecord, index) {
+            this._unlink(record);
+            this._insertAfter(record, prevRecord, index);
+            this._addToMoves(record, index);
+            return record;
+          },
+          _addAfter: function(record, prevRecord, index) {
+            this._insertAfter(record, prevRecord, index);
+            if (this._additionsTail === null) {
+              this._additionsTail = this._additionsHead = record;
+            } else {
+              this._additionsTail = this._additionsTail._nextAdded = record;
+            }
+            return record;
+          },
+          _insertAfter: function(record, prevRecord, index) {
+            var next = prevRecord === null ? this._itHead : prevRecord._next;
+            record._next = next;
+            record._prev = prevRecord;
+            if (next === null) {
+              this._itTail = record;
+            } else {
+              next._prev = record;
+            }
+            if (prevRecord === null) {
+              this._itHead = record;
+            } else {
+              prevRecord._next = record;
+            }
+            if (this._linkedRecords === null) {
+              this._linkedRecords = new _DuplicateMap();
+            }
+            this._linkedRecords.put(record);
+            record.currentIndex = index;
+            return record;
+          },
+          _remove: function(record) {
+            return this._addToRemovals(this._unlink(record));
+          },
+          _unlink: function(record) {
+            if (this._linkedRecords !== null) {
+              this._linkedRecords.remove(record);
+            }
+            var prev = record._prev;
+            var next = record._next;
+            if (prev === null) {
+              this._itHead = next;
+            } else {
+              prev._next = next;
+            }
+            if (next === null) {
+              this._itTail = prev;
+            } else {
+              next._prev = prev;
+            }
+            return record;
+          },
+          _addToMoves: function(record, toIndex) {
+            if (record.previousIndex === toIndex) {
+              return record;
+            }
+            if (this._movesTail === null) {
+              this._movesTail = this._movesHead = record;
+            } else {
+              this._movesTail = this._movesTail._nextMoved = record;
+            }
+            return record;
+          },
+          _addToRemovals: function(record) {
+            if (this._unlinkedRecords === null) {
+              this._unlinkedRecords = new _DuplicateMap();
+            }
+            this._unlinkedRecords.put(record);
+            record.currentIndex = null;
+            record._nextRemoved = null;
+            if (this._removalsTail === null) {
+              this._removalsTail = this._removalsHead = record;
+              record._prevRemoved = null;
+            } else {
+              record._prevRemoved = this._removalsTail;
+              this._removalsTail = this._removalsTail._nextRemoved = record;
+            }
+            return record;
+          },
+          toString: function() {
+            var record;
+            var list = [];
+            for (record = this._itHead; record !== null; record = record._next) {
+              ListWrapper.push(list, record);
+            }
+            var previous = [];
+            for (record = this._previousItHead; record !== null; record = record._nextPrevious) {
+              ListWrapper.push(previous, record);
+            }
+            var additions = [];
+            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
+              ListWrapper.push(additions, record);
+            }
+            var moves = [];
+            for (record = this._movesHead; record !== null; record = record._nextMoved) {
+              ListWrapper.push(moves, record);
+            }
+            var removals = [];
+            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
+              ListWrapper.push(removals, record);
+            }
+            return "collection: " + list.join(', ') + "\n" + "previous: " + previous.join(', ') + "\n" + "additions: " + additions.join(', ') + "\n" + "moves: " + moves.join(', ') + "\n" + "removals: " + removals.join(', ') + "\n";
+          }
+        }, {supportsObj: function(obj) {
+            return isListLikeIterable(obj);
+          }}, $__super);
+      }(Pipe)));
+      Object.defineProperty(IterableChanges.prototype.forEachItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(IterableChanges.prototype.forEachPreviousItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(IterableChanges.prototype.forEachAddedItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(IterableChanges.prototype.forEachMovedItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(IterableChanges.prototype.forEachRemovedItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._mismatch, "parameters", {get: function() {
+          return [[CollectionChangeRecord], [], [int]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._verifyReinsertion, "parameters", {get: function() {
+          return [[CollectionChangeRecord], [], [int]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._truncate, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._reinsertAfter, "parameters", {get: function() {
+          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._moveAfter, "parameters", {get: function() {
+          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._addAfter, "parameters", {get: function() {
+          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._insertAfter, "parameters", {get: function() {
+          return [[CollectionChangeRecord], [CollectionChangeRecord], [int]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._remove, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._unlink, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._addToMoves, "parameters", {get: function() {
+          return [[CollectionChangeRecord], [int]];
+        }});
+      Object.defineProperty(IterableChanges.prototype._addToRemovals, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+      CollectionChangeRecord = $__export("CollectionChangeRecord", (function() {
+        var CollectionChangeRecord = function CollectionChangeRecord(item) {
+          this.currentIndex = null;
+          this.previousIndex = null;
+          this.item = item;
+          this._nextPrevious = null;
+          this._prev = null;
+          this._next = null;
+          this._prevDup = null;
+          this._nextDup = null;
+          this._prevRemoved = null;
+          this._nextRemoved = null;
+          this._nextAdded = null;
+          this._nextMoved = null;
+        };
+        return ($traceurRuntime.createClass)(CollectionChangeRecord, {toString: function() {
+            return this.previousIndex === this.currentIndex ? stringify(this.item) : stringify(this.item) + '[' + stringify(this.previousIndex) + '->' + stringify(this.currentIndex) + ']';
+          }}, {});
+      }()));
+      _DuplicateItemRecordList = (function() {
+        var _DuplicateItemRecordList = function _DuplicateItemRecordList() {
+          this._head = null;
+          this._tail = null;
+        };
+        return ($traceurRuntime.createClass)(_DuplicateItemRecordList, {
+          add: function(record) {
+            if (this._head === null) {
+              this._head = this._tail = record;
+              record._nextDup = null;
+              record._prevDup = null;
+            } else {
+              this._tail._nextDup = record;
+              record._prevDup = this._tail;
+              record._nextDup = null;
+              this._tail = record;
+            }
+          },
+          get: function(item, afterIndex) {
+            var record;
+            for (record = this._head; record !== null; record = record._nextDup) {
+              if ((afterIndex === null || afterIndex < record.currentIndex) && looseIdentical(record.item, item)) {
+                return record;
+              }
+            }
+            return null;
+          },
+          remove: function(record) {
+            var prev = record._prevDup;
+            var next = record._nextDup;
+            if (prev === null) {
+              this._head = next;
+            } else {
+              prev._nextDup = next;
+            }
+            if (next === null) {
+              this._tail = prev;
+            } else {
+              next._prevDup = prev;
+            }
+            return this._head === null;
+          }
+        }, {});
+      }());
+      Object.defineProperty(_DuplicateItemRecordList.prototype.add, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+      Object.defineProperty(_DuplicateItemRecordList.prototype.get, "parameters", {get: function() {
+          return [[], [int]];
+        }});
+      Object.defineProperty(_DuplicateItemRecordList.prototype.remove, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+      _DuplicateMap = (function() {
+        var _DuplicateMap = function _DuplicateMap() {
+          this.map = MapWrapper.create();
+        };
+        return ($traceurRuntime.createClass)(_DuplicateMap, {
+          put: function(record) {
+            var key = getMapKey(record.item);
+            var duplicates = MapWrapper.get(this.map, key);
+            if (!isPresent(duplicates)) {
+              duplicates = new _DuplicateItemRecordList();
+              MapWrapper.set(this.map, key, duplicates);
+            }
+            duplicates.add(record);
+          },
+          get: function(value) {
+            var afterIndex = arguments[1] !== (void 0) ? arguments[1] : null;
+            var key = getMapKey(value);
+            var recordList = MapWrapper.get(this.map, key);
+            return isBlank(recordList) ? null : recordList.get(value, afterIndex);
+          },
+          remove: function(record) {
+            var key = getMapKey(record.item);
+            var recordList = MapWrapper.get(this.map, key);
+            if (recordList.remove(record)) {
+              MapWrapper.delete(this.map, key);
+            }
+            return record;
+          },
+          get isEmpty() {
+            return MapWrapper.size(this.map) === 0;
+          },
+          clear: function() {
+            MapWrapper.clear(this.map);
+          },
+          toString: function() {
+            return '_DuplicateMap(' + stringify(this.map) + ')';
+          }
+        }, {});
+      }());
+      Object.defineProperty(_DuplicateMap.prototype.put, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+      Object.defineProperty(_DuplicateMap.prototype.remove, "parameters", {get: function() {
+          return [[CollectionChangeRecord]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/change_detection/pipes/keyvalue_changes", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./pipe"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/change_detection/pipes/keyvalue_changes";
+  var ListWrapper,
+      MapWrapper,
+      StringMapWrapper,
+      stringify,
+      looseIdentical,
+      isJsObject,
+      NO_CHANGE,
+      Pipe,
+      KeyValueChangesFactory,
+      KeyValueChanges,
+      KVChangeRecord;
+  return {
+    setters: [function($__m) {
+      ListWrapper = $__m.ListWrapper;
+      MapWrapper = $__m.MapWrapper;
+      StringMapWrapper = $__m.StringMapWrapper;
+    }, function($__m) {
+      stringify = $__m.stringify;
+      looseIdentical = $__m.looseIdentical;
+      isJsObject = $__m.isJsObject;
+    }, function($__m) {
+      NO_CHANGE = $__m.NO_CHANGE;
+      Pipe = $__m.Pipe;
+    }],
+    execute: function() {
+      KeyValueChangesFactory = $__export("KeyValueChangesFactory", (function() {
+        var KeyValueChangesFactory = function KeyValueChangesFactory() {};
+        return ($traceurRuntime.createClass)(KeyValueChangesFactory, {
+          supports: function(obj) {
+            return KeyValueChanges.supportsObj(obj);
+          },
+          create: function(bpc) {
+            return new KeyValueChanges();
+          }
+        }, {});
+      }()));
+      KeyValueChanges = $__export("KeyValueChanges", (function($__super) {
+        var KeyValueChanges = function KeyValueChanges() {
+          $traceurRuntime.superConstructor(KeyValueChanges).call(this);
+          this._records = MapWrapper.create();
+          this._mapHead = null;
+          this._previousMapHead = null;
+          this._changesHead = null;
+          this._changesTail = null;
+          this._additionsHead = null;
+          this._additionsTail = null;
+          this._removalsHead = null;
+          this._removalsTail = null;
+        };
+        return ($traceurRuntime.createClass)(KeyValueChanges, {
+          supports: function(obj) {
+            return KeyValueChanges.supportsObj(obj);
+          },
+          transform: function(map) {
+            if (this.check(map)) {
+              return this;
+            } else {
+              return NO_CHANGE;
+            }
+          },
+          get isDirty() {
+            return this._additionsHead !== null || this._changesHead !== null || this._removalsHead !== null;
+          },
+          forEachItem: function(fn) {
+            var record;
+            for (record = this._mapHead; record !== null; record = record._next) {
+              fn(record);
+            }
+          },
+          forEachPreviousItem: function(fn) {
+            var record;
+            for (record = this._previousMapHead; record !== null; record = record._nextPrevious) {
+              fn(record);
+            }
+          },
+          forEachChangedItem: function(fn) {
+            var record;
+            for (record = this._changesHead; record !== null; record = record._nextChanged) {
+              fn(record);
+            }
+          },
+          forEachAddedItem: function(fn) {
+            var record;
+            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
+              fn(record);
+            }
+          },
+          forEachRemovedItem: function(fn) {
+            var record;
+            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
+              fn(record);
+            }
+          },
+          check: function(map) {
+            var $__0 = this;
+            this._reset();
+            var records = this._records;
+            var oldSeqRecord = this._mapHead;
+            var lastOldSeqRecord = null;
+            var lastNewSeqRecord = null;
+            var seqChanged = false;
+            this._forEach(map, (function(value, key) {
+              var newSeqRecord;
+              if (oldSeqRecord !== null && key === oldSeqRecord.key) {
+                newSeqRecord = oldSeqRecord;
+                if (!looseIdentical(value, oldSeqRecord.currentValue)) {
+                  oldSeqRecord.previousValue = oldSeqRecord.currentValue;
+                  oldSeqRecord.currentValue = value;
+                  $__0._addToChanges(oldSeqRecord);
+                }
+              } else {
+                seqChanged = true;
+                if (oldSeqRecord !== null) {
+                  oldSeqRecord._next = null;
+                  $__0._removeFromSeq(lastOldSeqRecord, oldSeqRecord);
+                  $__0._addToRemovals(oldSeqRecord);
+                }
+                if (MapWrapper.contains(records, key)) {
+                  newSeqRecord = MapWrapper.get(records, key);
+                } else {
+                  newSeqRecord = new KVChangeRecord(key);
+                  MapWrapper.set(records, key, newSeqRecord);
+                  newSeqRecord.currentValue = value;
+                  $__0._addToAdditions(newSeqRecord);
+                }
+              }
+              if (seqChanged) {
+                if ($__0._isInRemovals(newSeqRecord)) {
+                  $__0._removeFromRemovals(newSeqRecord);
+                }
+                if (lastNewSeqRecord == null) {
+                  $__0._mapHead = newSeqRecord;
+                } else {
+                  lastNewSeqRecord._next = newSeqRecord;
+                }
+              }
+              lastOldSeqRecord = oldSeqRecord;
+              lastNewSeqRecord = newSeqRecord;
+              oldSeqRecord = oldSeqRecord === null ? null : oldSeqRecord._next;
+            }));
+            this._truncate(lastOldSeqRecord, oldSeqRecord);
+            return this.isDirty;
+          },
+          _reset: function() {
+            if (this.isDirty) {
+              var record;
+              for (record = this._previousMapHead = this._mapHead; record !== null; record = record._next) {
+                record._nextPrevious = record._next;
+              }
+              for (record = this._changesHead; record !== null; record = record._nextChanged) {
+                record.previousValue = record.currentValue;
+              }
+              for (record = this._additionsHead; record != null; record = record._nextAdded) {
+                record.previousValue = record.currentValue;
+              }
+              this._changesHead = this._changesTail = null;
+              this._additionsHead = this._additionsTail = null;
+              this._removalsHead = this._removalsTail = null;
+            }
+          },
+          _truncate: function(lastRecord, record) {
+            while (record !== null) {
+              if (lastRecord === null) {
+                this._mapHead = null;
+              } else {
+                lastRecord._next = null;
+              }
+              var nextRecord = record._next;
+              this._addToRemovals(record);
+              lastRecord = record;
+              record = nextRecord;
+            }
+            for (var rec = this._removalsHead; rec !== null; rec = rec._nextRemoved) {
+              rec.previousValue = rec.currentValue;
+              rec.currentValue = null;
+              MapWrapper.delete(this._records, rec.key);
+            }
+          },
+          _isInRemovals: function(record) {
+            return record === this._removalsHead || record._nextRemoved !== null || record._prevRemoved !== null;
+          },
+          _addToRemovals: function(record) {
+            if (this._removalsHead === null) {
+              this._removalsHead = this._removalsTail = record;
+            } else {
+              this._removalsTail._nextRemoved = record;
+              record._prevRemoved = this._removalsTail;
+              this._removalsTail = record;
+            }
+          },
+          _removeFromSeq: function(prev, record) {
+            var next = record._next;
+            if (prev === null) {
+              this._mapHead = next;
+            } else {
+              prev._next = next;
+            }
+          },
+          _removeFromRemovals: function(record) {
+            var prev = record._prevRemoved;
+            var next = record._nextRemoved;
+            if (prev === null) {
+              this._removalsHead = next;
+            } else {
+              prev._nextRemoved = next;
+            }
+            if (next === null) {
+              this._removalsTail = prev;
+            } else {
+              next._prevRemoved = prev;
+            }
+            record._prevRemoved = record._nextRemoved = null;
+          },
+          _addToAdditions: function(record) {
+            if (this._additionsHead === null) {
+              this._additionsHead = this._additionsTail = record;
+            } else {
+              this._additionsTail._nextAdded = record;
+              this._additionsTail = record;
+            }
+          },
+          _addToChanges: function(record) {
+            if (this._changesHead === null) {
+              this._changesHead = this._changesTail = record;
+            } else {
+              this._changesTail._nextChanged = record;
+              this._changesTail = record;
+            }
+          },
+          toString: function() {
+            var items = [];
+            var previous = [];
+            var changes = [];
+            var additions = [];
+            var removals = [];
+            var record;
+            for (record = this._mapHead; record !== null; record = record._next) {
+              ListWrapper.push(items, stringify(record));
+            }
+            for (record = this._previousMapHead; record !== null; record = record._nextPrevious) {
+              ListWrapper.push(previous, stringify(record));
+            }
+            for (record = this._changesHead; record !== null; record = record._nextChanged) {
+              ListWrapper.push(changes, stringify(record));
+            }
+            for (record = this._additionsHead; record !== null; record = record._nextAdded) {
+              ListWrapper.push(additions, stringify(record));
+            }
+            for (record = this._removalsHead; record !== null; record = record._nextRemoved) {
+              ListWrapper.push(removals, stringify(record));
+            }
+            return "map: " + items.join(', ') + "\n" + "previous: " + previous.join(', ') + "\n" + "additions: " + additions.join(', ') + "\n" + "changes: " + changes.join(', ') + "\n" + "removals: " + removals.join(', ') + "\n";
+          },
+          _forEach: function(obj, fn) {
+            if (obj instanceof Map) {
+              MapWrapper.forEach(obj, fn);
+            } else {
+              StringMapWrapper.forEach(obj, fn);
+            }
+          }
+        }, {supportsObj: function(obj) {
+            return obj instanceof Map || isJsObject(obj);
+          }}, $__super);
+      }(Pipe)));
+      Object.defineProperty(KeyValueChanges.prototype.forEachItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype.forEachPreviousItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype.forEachChangedItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype.forEachAddedItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype.forEachRemovedItem, "parameters", {get: function() {
+          return [[Function]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._truncate, "parameters", {get: function() {
+          return [[KVChangeRecord], [KVChangeRecord]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._isInRemovals, "parameters", {get: function() {
+          return [[KVChangeRecord]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._addToRemovals, "parameters", {get: function() {
+          return [[KVChangeRecord]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._removeFromSeq, "parameters", {get: function() {
+          return [[KVChangeRecord], [KVChangeRecord]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._removeFromRemovals, "parameters", {get: function() {
+          return [[KVChangeRecord]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._addToAdditions, "parameters", {get: function() {
+          return [[KVChangeRecord]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._addToChanges, "parameters", {get: function() {
+          return [[KVChangeRecord]];
+        }});
+      Object.defineProperty(KeyValueChanges.prototype._forEach, "parameters", {get: function() {
+          return [[], [Function]];
+        }});
+      KVChangeRecord = $__export("KVChangeRecord", (function() {
+        var KVChangeRecord = function KVChangeRecord(key) {
+          this.key = key;
+          this.previousValue = null;
+          this.currentValue = null;
+          this._nextPrevious = null;
+          this._next = null;
+          this._nextAdded = null;
+          this._nextRemoved = null;
+          this._prevRemoved = null;
+          this._nextChanged = null;
+        };
+        return ($traceurRuntime.createClass)(KVChangeRecord, {toString: function() {
+            return looseIdentical(this.previousValue, this.currentValue) ? stringify(this.key) : (stringify(this.key) + '[' + stringify(this.previousValue) + '->' + stringify(this.currentValue) + ']');
+          }}, {});
+      }()));
+    }
+  };
+});
+
+System.register("angular2/src/change_detection/pipes/null_pipe", ["angular2/src/facade/lang", "./pipe"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/change_detection/pipes/null_pipe";
+  var isBlank,
+      Pipe,
+      NO_CHANGE,
+      NullPipeFactory,
+      NullPipe;
+  return {
+    setters: [function($__m) {
+      isBlank = $__m.isBlank;
+    }, function($__m) {
+      Pipe = $__m.Pipe;
+      NO_CHANGE = $__m.NO_CHANGE;
+    }],
+    execute: function() {
+      NullPipeFactory = $__export("NullPipeFactory", (function() {
+        var NullPipeFactory = function NullPipeFactory() {};
+        return ($traceurRuntime.createClass)(NullPipeFactory, {
+          supports: function(obj) {
+            return NullPipe.supportsObj(obj);
+          },
+          create: function(bpc) {
+            return new NullPipe();
+          }
+        }, {});
+      }()));
+      NullPipe = $__export("NullPipe", (function($__super) {
+        var NullPipe = function NullPipe() {
+          $traceurRuntime.superConstructor(NullPipe).call(this);
+          this.called = false;
+        };
+        return ($traceurRuntime.createClass)(NullPipe, {
+          supports: function(obj) {
+            return NullPipe.supportsObj(obj);
+          },
+          transform: function(value) {
+            if (!this.called) {
+              this.called = true;
+              return null;
+            } else {
+              return NO_CHANGE;
+            }
+          }
+        }, {supportsObj: function(obj) {
+            return isBlank(obj);
+          }}, $__super);
+      }(Pipe)));
+    }
+  };
+});
+
+System.register("angular2/src/change_detection/pipes/pipe", [], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/change_detection/pipes/pipe";
+  var NO_CHANGE,
+      Pipe;
+  return {
+    setters: [],
+    execute: function() {
+      NO_CHANGE = $__export("NO_CHANGE", new Object());
+      Pipe = $__export("Pipe", (function() {
+        var Pipe = function Pipe() {};
+        return ($traceurRuntime.createClass)(Pipe, {
+          supports: function(obj) {
+            return false;
+          },
+          onDestroy: function() {},
+          transform: function(value) {
+            return null;
+          }
+        }, {});
+      }()));
+      Object.defineProperty(Pipe.prototype.transform, "parameters", {get: function() {
+          return [[assert.type.any]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/change_detection/pipes/pipe_registry", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./pipe", "../binding_propagation_config"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/change_detection/pipes/pipe_registry";
+  var List,
+      ListWrapper,
+      isBlank,
+      isPresent,
+      BaseException,
+      CONST,
+      Pipe,
+      BindingPropagationConfig,
+      PipeRegistry;
+  return {
+    setters: [function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      isBlank = $__m.isBlank;
+      isPresent = $__m.isPresent;
+      BaseException = $__m.BaseException;
+      CONST = $__m.CONST;
+    }, function($__m) {
+      Pipe = $__m.Pipe;
+    }, function($__m) {
+      BindingPropagationConfig = $__m.BindingPropagationConfig;
+    }],
+    execute: function() {
+      PipeRegistry = $__export("PipeRegistry", (function() {
+        var PipeRegistry = function PipeRegistry(config) {
+          this.config = config;
+        };
+        return ($traceurRuntime.createClass)(PipeRegistry, {get: function(type, obj, bpc) {
+            var listOfConfigs = this.config[type];
+            if (isBlank(listOfConfigs)) {
+              throw new BaseException(("Cannot find a pipe for type '" + type + "' object '" + obj + "'"));
+            }
+            var matchingConfig = ListWrapper.find(listOfConfigs, (function(pipeConfig) {
+              return pipeConfig.supports(obj);
+            }));
+            if (isBlank(matchingConfig)) {
+              throw new BaseException(("Cannot find a pipe for type '" + type + "' object '" + obj + "'"));
+            }
+            return matchingConfig.create(bpc);
+          }}, {});
+      }()));
+      Object.defineProperty(PipeRegistry.prototype.get, "parameters", {get: function() {
+          return [[assert.type.string], [], [BindingPropagationConfig]];
         }});
     }
   };

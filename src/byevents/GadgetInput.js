@@ -10,8 +10,8 @@ import {EventEmitter} from 'angular2/src/core/annotations/di';
 })
 export class GadgetInput {
 
-  //name:string;
-  //addHandler:Function;
+  name:string;
+  addHandler:Function;
 
   constructor(@EventEmitter('add') addHandler:Function) {
     this.name = '';
