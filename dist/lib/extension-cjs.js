@@ -2,6 +2,7 @@
   SystemJS CommonJS Format
 */
 function cjs(loader) {
+  loader._extensions.push(cjs);
 
   // CJS Module Format
   // require('...') || exports[''] = ... || exports.asd = ... || module.exports = ...
@@ -38,7 +39,7 @@ function cjs(loader) {
     }
 
     if (load.metadata.format == 'cjs') {
-      load.metadata.deps = load.metadata.deps ? load.metadata.deps.concat(getCJSDeps(load.source)) : load.metadata.deps;
+      load.metadata.deps = load.metadata.deps ? load.metadata.deps.concat(getCJSDeps(load.source)) : getCJSDeps(load.source);
 
       load.metadata.executingRequire = true;
 

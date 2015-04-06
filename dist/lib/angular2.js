@@ -3431,6 +3431,1182 @@ System.register("angular2/src/di/opaque_token", [], function($__export) {
   };
 });
 
+System.register("angular2/src/directives/for", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/compiler/view", "angular2/src/facade/lang", "angular2/src/facade/collection"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/for";
+  var Viewport,
+      ViewContainer,
+      View,
+      isPresent,
+      isBlank,
+      ListWrapper,
+      For,
+      RecordViewTuple;
+  return {
+    setters: [function($__m) {
+      Viewport = $__m.Viewport;
+    }, function($__m) {
+      ViewContainer = $__m.ViewContainer;
+    }, function($__m) {
+      View = $__m.View;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+      isBlank = $__m.isBlank;
+    }, function($__m) {
+      ListWrapper = $__m.ListWrapper;
+    }],
+    execute: function() {
+      For = $__export("For", (function() {
+        var For = function For(viewContainer) {
+          this.viewContainer = viewContainer;
+        };
+        return ($traceurRuntime.createClass)(For, {
+          set iterableChanges(changes) {
+            if (isBlank(changes)) {
+              this.viewContainer.clear();
+              return ;
+            }
+            var recordViewTuples = [];
+            changes.forEachRemovedItem((function(removedRecord) {
+              return ListWrapper.push(recordViewTuples, new RecordViewTuple(removedRecord, null));
+            }));
+            changes.forEachMovedItem((function(movedRecord) {
+              return ListWrapper.push(recordViewTuples, new RecordViewTuple(movedRecord, null));
+            }));
+            var insertTuples = For.bulkRemove(recordViewTuples, this.viewContainer);
+            changes.forEachAddedItem((function(addedRecord) {
+              return ListWrapper.push(insertTuples, new RecordViewTuple(addedRecord, null));
+            }));
+            For.bulkInsert(insertTuples, this.viewContainer);
+            for (var i = 0; i < insertTuples.length; i++) {
+              this.perViewChange(insertTuples[i].view, insertTuples[i].record);
+            }
+          },
+          perViewChange: function(view, record) {
+            view.setLocal('\$implicit', record.item);
+            view.setLocal('index', record.currentIndex);
+          }
+        }, {
+          bulkRemove: function(tuples, viewContainer) {
+            tuples.sort((function(a, b) {
+              return a.record.previousIndex - b.record.previousIndex;
+            }));
+            var movedTuples = [];
+            for (var i = tuples.length - 1; i >= 0; i--) {
+              var tuple = tuples[i];
+              if (isPresent(tuple.record.currentIndex)) {
+                tuple.view = viewContainer.detach(tuple.record.previousIndex);
+                ListWrapper.push(movedTuples, tuple);
+              } else {
+                viewContainer.remove(tuple.record.previousIndex);
+              }
+            }
+            return movedTuples;
+          },
+          bulkInsert: function(tuples, viewContainer) {
+            tuples.sort((function(a, b) {
+              return a.record.currentIndex - b.record.currentIndex;
+            }));
+            for (var i = 0; i < tuples.length; i++) {
+              var tuple = tuples[i];
+              if (isPresent(tuple.view)) {
+                viewContainer.insert(tuple.view, tuple.record.currentIndex);
+              } else {
+                tuple.view = viewContainer.create(tuple.record.currentIndex);
+              }
+            }
+            return tuples;
+          }
+        });
+      }()));
+      Object.defineProperty(For, "annotations", {get: function() {
+          return [new Viewport({
+            selector: '[for][of]',
+            bind: {'iterableChanges': 'of | iterableDiff'}
+          })];
+        }});
+      Object.defineProperty(For, "parameters", {get: function() {
+          return [[ViewContainer]];
+        }});
+      RecordViewTuple = (function() {
+        var RecordViewTuple = function RecordViewTuple(record, view) {
+          this.record = record;
+          this.view = view;
+        };
+        return ($traceurRuntime.createClass)(RecordViewTuple, {}, {});
+      }());
+    }
+  };
+});
+
+System.register("angular2/src/directives/if", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/if";
+  var Viewport,
+      ViewContainer,
+      isBlank,
+      If;
+  return {
+    setters: [function($__m) {
+      Viewport = $__m.Viewport;
+    }, function($__m) {
+      ViewContainer = $__m.ViewContainer;
+    }, function($__m) {
+      isBlank = $__m.isBlank;
+    }],
+    execute: function() {
+      If = $__export("If", (function() {
+        var If = function If(viewContainer) {
+          this.viewContainer = viewContainer;
+          this.prevCondition = null;
+        };
+        return ($traceurRuntime.createClass)(If, {set condition(newCondition) {
+            if (newCondition && (isBlank(this.prevCondition) || !this.prevCondition)) {
+              this.prevCondition = true;
+              this.viewContainer.create();
+            } else if (!newCondition && (isBlank(this.prevCondition) || this.prevCondition)) {
+              this.prevCondition = false;
+              this.viewContainer.clear();
+            }
+          }}, {});
+      }()));
+      Object.defineProperty(If, "annotations", {get: function() {
+          return [new Viewport({
+            selector: '[if]',
+            bind: {'condition': 'if'}
+          })];
+        }});
+      Object.defineProperty(If, "parameters", {get: function() {
+          return [[ViewContainer]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/directives/non_bindable", ["angular2/src/core/annotations/annotations"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/non_bindable";
+  var Decorator,
+      NonBindable;
+  return {
+    setters: [function($__m) {
+      Decorator = $__m.Decorator;
+    }],
+    execute: function() {
+      NonBindable = $__export("NonBindable", (function() {
+        var NonBindable = function NonBindable() {};
+        return ($traceurRuntime.createClass)(NonBindable, {}, {});
+      }()));
+      Object.defineProperty(NonBindable, "annotations", {get: function() {
+          return [new Decorator({
+            selector: '[non-bindable]',
+            compileChildren: false
+          })];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/directives/switch", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/dom/element", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/core/annotations/visibility"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/directives/switch";
+  var Decorator,
+      Viewport,
+      ViewContainer,
+      NgElement,
+      isPresent,
+      isBlank,
+      normalizeBlank,
+      ListWrapper,
+      List,
+      MapWrapper,
+      Map,
+      Parent,
+      Switch,
+      SwitchWhen,
+      SwitchDefault,
+      _whenDefault;
+  return {
+    setters: [function($__m) {
+      Decorator = $__m.Decorator;
+      Viewport = $__m.Viewport;
+    }, function($__m) {
+      ViewContainer = $__m.ViewContainer;
+    }, function($__m) {
+      NgElement = $__m.NgElement;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+      isBlank = $__m.isBlank;
+      normalizeBlank = $__m.normalizeBlank;
+    }, function($__m) {
+      ListWrapper = $__m.ListWrapper;
+      List = $__m.List;
+      MapWrapper = $__m.MapWrapper;
+      Map = $__m.Map;
+    }, function($__m) {
+      Parent = $__m.Parent;
+    }],
+    execute: function() {
+      Switch = $__export("Switch", (function() {
+        var Switch = function Switch() {
+          this._valueViewContainers = MapWrapper.create();
+          this._activeViewContainers = ListWrapper.create();
+          this._useDefault = false;
+        };
+        return ($traceurRuntime.createClass)(Switch, {
+          set value(value) {
+            this._emptyAllActiveViewContainers();
+            this._useDefault = false;
+            var containers = MapWrapper.get(this._valueViewContainers, value);
+            if (isBlank(containers)) {
+              this._useDefault = true;
+              containers = normalizeBlank(MapWrapper.get(this._valueViewContainers, _whenDefault));
+            }
+            this._activateViewContainers(containers);
+            this._switchValue = value;
+          },
+          _onWhenValueChanged: function(oldWhen, newWhen, viewContainer) {
+            this._deregisterViewContainer(oldWhen, viewContainer);
+            this._registerViewContainer(newWhen, viewContainer);
+            if (oldWhen === this._switchValue) {
+              viewContainer.remove();
+              ListWrapper.remove(this._activeViewContainers, viewContainer);
+            } else if (newWhen === this._switchValue) {
+              if (this._useDefault) {
+                this._useDefault = false;
+                this._emptyAllActiveViewContainers();
+              }
+              viewContainer.create();
+              ListWrapper.push(this._activeViewContainers, viewContainer);
+            }
+            if (this._activeViewContainers.length === 0 && !this._useDefault) {
+              this._useDefault = true;
+              this._activateViewContainers(MapWrapper.get(this._valueViewContainers, _whenDefault));
+            }
+          },
+          _emptyAllActiveViewContainers: function() {
+            var activeContainers = this._activeViewContainers;
+            for (var i = 0; i < activeContainers.length; i++) {
+              activeContainers[i].remove();
+            }
+            this._activeViewContainers = ListWrapper.create();
+          },
+          _activateViewContainers: function(containers) {
+            if (isPresent(containers)) {
+              for (var i = 0; i < containers.length; i++) {
+                containers[i].create();
+              }
+              this._activeViewContainers = containers;
+            }
+          },
+          _registerViewContainer: function(value, container) {
+            var containers = MapWrapper.get(this._valueViewContainers, value);
+            if (isBlank(containers)) {
+              containers = ListWrapper.create();
+              MapWrapper.set(this._valueViewContainers, value, containers);
+            }
+            ListWrapper.push(containers, container);
+          },
+          _deregisterViewContainer: function(value, container) {
+            if (value == _whenDefault)
+              return ;
+            var containers = MapWrapper.get(this._valueViewContainers, value);
+            if (containers.length == 1) {
+              MapWrapper.delete(this._valueViewContainers, value);
+            } else {
+              ListWrapper.remove(containers, container);
+            }
+          }
+        }, {});
+      }()));
+      Object.defineProperty(Switch, "annotations", {get: function() {
+          return [new Decorator({
+            selector: '[switch]',
+            bind: {'value': 'switch'}
+          })];
+        }});
+      Object.defineProperty(Switch.prototype._onWhenValueChanged, "parameters", {get: function() {
+          return [[], [], [ViewContainer]];
+        }});
+      Object.defineProperty(Switch.prototype._activateViewContainers, "parameters", {get: function() {
+          return [[assert.genericType(List, ViewContainer)]];
+        }});
+      Object.defineProperty(Switch.prototype._registerViewContainer, "parameters", {get: function() {
+          return [[], [ViewContainer]];
+        }});
+      Object.defineProperty(Switch.prototype._deregisterViewContainer, "parameters", {get: function() {
+          return [[], [ViewContainer]];
+        }});
+      SwitchWhen = $__export("SwitchWhen", (function() {
+        var SwitchWhen = function SwitchWhen(el, viewContainer, sswitch) {
+          this._value = _whenDefault;
+          this._switch = sswitch;
+          this._viewContainer = viewContainer;
+        };
+        return ($traceurRuntime.createClass)(SwitchWhen, {set when(value) {
+            this._switch._onWhenValueChanged(this._value, value, this._viewContainer);
+            this._value = value;
+          }}, {});
+      }()));
+      Object.defineProperty(SwitchWhen, "annotations", {get: function() {
+          return [new Viewport({
+            selector: '[switch-when]',
+            bind: {'when': 'switch-when'}
+          })];
+        }});
+      Object.defineProperty(SwitchWhen, "parameters", {get: function() {
+          return [[NgElement], [ViewContainer], [Switch, new Parent()]];
+        }});
+      SwitchDefault = $__export("SwitchDefault", (function() {
+        var SwitchDefault = function SwitchDefault(viewContainer, sswitch) {
+          sswitch._registerViewContainer(_whenDefault, viewContainer);
+        };
+        return ($traceurRuntime.createClass)(SwitchDefault, {}, {});
+      }()));
+      Object.defineProperty(SwitchDefault, "annotations", {get: function() {
+          return [new Viewport({selector: '[switch-default]'})];
+        }});
+      Object.defineProperty(SwitchDefault, "parameters", {get: function() {
+          return [[ViewContainer], [Switch, new Parent()]];
+        }});
+      _whenDefault = new Object();
+    }
+  };
+});
+
+System.register("angular2/src/dom/browser_adapter", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./dom_adapter", "./generic_browser_adapter"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/dom/browser_adapter";
+  var List,
+      MapWrapper,
+      ListWrapper,
+      isPresent,
+      setRootDomAdapter,
+      GenericBrowserDomAdapter,
+      _attrToPropMap,
+      BrowserDomAdapter;
+  return {
+    setters: [function($__m) {
+      List = $__m.List;
+      MapWrapper = $__m.MapWrapper;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+    }, function($__m) {
+      setRootDomAdapter = $__m.setRootDomAdapter;
+    }, function($__m) {
+      GenericBrowserDomAdapter = $__m.GenericBrowserDomAdapter;
+    }],
+    execute: function() {
+      _attrToPropMap = {
+        'innerHtml': 'innerHTML',
+        'readonly': 'readOnly',
+        'tabindex': 'tabIndex'
+      };
+      BrowserDomAdapter = $__export("BrowserDomAdapter", (function($__super) {
+        var BrowserDomAdapter = function BrowserDomAdapter() {
+          $traceurRuntime.superConstructor(BrowserDomAdapter).apply(this, arguments);
+        };
+        return ($traceurRuntime.createClass)(BrowserDomAdapter, {
+          get attrToPropMap() {
+            return _attrToPropMap;
+          },
+          query: function(selector) {
+            return document.querySelector(selector);
+          },
+          querySelector: function(el, selector) {
+            return el.querySelector(selector);
+          },
+          querySelectorAll: function(el, selector) {
+            return el.querySelectorAll(selector);
+          },
+          on: function(el, evt, listener) {
+            el.addEventListener(evt, listener, false);
+          },
+          dispatchEvent: function(el, evt) {
+            el.dispatchEvent(evt);
+          },
+          createMouseEvent: function(eventType) {
+            var evt = new MouseEvent(eventType);
+            evt.initEvent(eventType, true, true);
+            return evt;
+          },
+          createEvent: function(eventType) {
+            return new Event(eventType, true);
+          },
+          getInnerHTML: function(el) {
+            return el.innerHTML;
+          },
+          getOuterHTML: function(el) {
+            return el.outerHTML;
+          },
+          nodeName: function(node) {
+            return node.nodeName;
+          },
+          nodeValue: function(node) {
+            return node.nodeValue;
+          },
+          type: function(node) {
+            return node.type;
+          },
+          content: function(node) {
+            return node.content;
+          },
+          firstChild: function(el) {
+            return el.firstChild;
+          },
+          nextSibling: function(el) {
+            return el.nextSibling;
+          },
+          parentElement: function(el) {
+            return el.parentElement;
+          },
+          childNodes: function(el) {
+            return el.childNodes;
+          },
+          childNodesAsList: function(el) {
+            var childNodes = el.childNodes;
+            var res = ListWrapper.createFixedSize(childNodes.length);
+            for (var i = 0; i < childNodes.length; i++) {
+              res[i] = childNodes[i];
+            }
+            return res;
+          },
+          clearNodes: function(el) {
+            for (var i = 0; i < el.childNodes.length; i++) {
+              this.remove(el.childNodes[i]);
+            }
+          },
+          appendChild: function(el, node) {
+            el.appendChild(node);
+          },
+          removeChild: function(el, node) {
+            el.removeChild(node);
+          },
+          remove: function(el) {
+            var parent = el.parentNode;
+            parent.removeChild(el);
+            return el;
+          },
+          insertBefore: function(el, node) {
+            el.parentNode.insertBefore(node, el);
+          },
+          insertAllBefore: function(el, nodes) {
+            ListWrapper.forEach(nodes, (function(n) {
+              el.parentNode.insertBefore(n, el);
+            }));
+          },
+          insertAfter: function(el, node) {
+            el.parentNode.insertBefore(node, el.nextSibling);
+          },
+          setInnerHTML: function(el, value) {
+            el.innerHTML = value;
+          },
+          getText: function(el) {
+            return el.textContent;
+          },
+          setText: function(el, value) {
+            el.textContent = value;
+          },
+          getValue: function(el) {
+            return el.value;
+          },
+          setValue: function(el, value) {
+            el.value = value;
+          },
+          getChecked: function(el) {
+            return el.checked;
+          },
+          setChecked: function(el, value) {
+            el.checked = value;
+          },
+          createTemplate: function(html) {
+            var t = document.createElement('template');
+            t.innerHTML = html;
+            return t;
+          },
+          createElement: function(tagName) {
+            var doc = arguments[1] !== (void 0) ? arguments[1] : document;
+            return doc.createElement(tagName);
+          },
+          createTextNode: function(text) {
+            var doc = arguments[1] !== (void 0) ? arguments[1] : document;
+            return doc.createTextNode(text);
+          },
+          createScriptTag: function(attrName, attrValue) {
+            var doc = arguments[2] !== (void 0) ? arguments[2] : document;
+            var el = doc.createElement('SCRIPT');
+            el.setAttribute(attrName, attrValue);
+            return el;
+          },
+          createStyleElement: function(css) {
+            var doc = arguments[1] !== (void 0) ? arguments[1] : document;
+            var style = doc.createElement('STYLE');
+            style.innerText = css;
+            return style;
+          },
+          createShadowRoot: function(el) {
+            return el.createShadowRoot();
+          },
+          getShadowRoot: function(el) {
+            return el.shadowRoot;
+          },
+          clone: function(node) {
+            return node.cloneNode(true);
+          },
+          hasProperty: function(element, name) {
+            return name in element;
+          },
+          getElementsByClassName: function(element, name) {
+            return element.getElementsByClassName(name);
+          },
+          getElementsByTagName: function(element, name) {
+            return element.getElementsByTagName(name);
+          },
+          classList: function(element) {
+            return Array.prototype.slice.call(element.classList, 0);
+          },
+          addClass: function(element, classname) {
+            element.classList.add(classname);
+          },
+          removeClass: function(element, classname) {
+            element.classList.remove(classname);
+          },
+          hasClass: function(element, classname) {
+            return element.classList.contains(classname);
+          },
+          setStyle: function(element, stylename, stylevalue) {
+            element.style[stylename] = stylevalue;
+          },
+          removeStyle: function(element, stylename) {
+            element.style[stylename] = null;
+          },
+          getStyle: function(element, stylename) {
+            return element.style[stylename];
+          },
+          tagName: function(element) {
+            return element.tagName;
+          },
+          attributeMap: function(element) {
+            var res = MapWrapper.create();
+            var elAttrs = element.attributes;
+            for (var i = 0; i < elAttrs.length; i++) {
+              var attrib = elAttrs[i];
+              MapWrapper.set(res, attrib.name, attrib.value);
+            }
+            return res;
+          },
+          getAttribute: function(element, attribute) {
+            return element.getAttribute(attribute);
+          },
+          setAttribute: function(element, name, value) {
+            element.setAttribute(name, value);
+          },
+          removeAttribute: function(element, attribute) {
+            return element.removeAttribute(attribute);
+          },
+          templateAwareRoot: function(el) {
+            return el instanceof HTMLTemplateElement ? el.content : el;
+          },
+          createHtmlDocument: function() {
+            return document.implementation.createHTMLDocument();
+          },
+          defaultDoc: function() {
+            return document;
+          },
+          getTitle: function() {
+            return document.title;
+          },
+          setTitle: function(newTitle) {
+            document.title = newTitle;
+          },
+          elementMatches: function(n, selector) {
+            return n instanceof HTMLElement && n.matches(selector);
+          },
+          isTemplateElement: function(el) {
+            return el instanceof HTMLTemplateElement;
+          },
+          isTextNode: function(node) {
+            return node.nodeType === Node.TEXT_NODE;
+          },
+          isCommentNode: function(node) {
+            return node.nodeType === Node.COMMENT_NODE;
+          },
+          isElementNode: function(node) {
+            return node.nodeType === Node.ELEMENT_NODE;
+          },
+          hasShadowRoot: function(node) {
+            return node instanceof HTMLElement && isPresent(node.shadowRoot);
+          },
+          importIntoDoc: function(node) {
+            var result = document.importNode(node, true);
+            if (this.isTemplateElement(result) && !result.content.childNodes.length && node.content.childNodes.length) {
+              var childNodes = node.content.childNodes;
+              for (var i = 0; i < childNodes.length; ++i) {
+                result.content.appendChild(this.importIntoDoc(childNodes[i]));
+              }
+            }
+            return result;
+          },
+          isPageRule: function(rule) {
+            return rule.type === CSSRule.PAGE_RULE;
+          },
+          isStyleRule: function(rule) {
+            return rule.type === CSSRule.STYLE_RULE;
+          },
+          isMediaRule: function(rule) {
+            return rule.type === CSSRule.MEDIA_RULE;
+          },
+          isKeyframesRule: function(rule) {
+            return rule.type === CSSRule.KEYFRAMES_RULE;
+          },
+          getHref: function(el) {
+            return el.href;
+          }
+        }, {makeCurrent: function() {
+            setRootDomAdapter(new BrowserDomAdapter());
+          }}, $__super);
+      }(GenericBrowserDomAdapter)));
+      Object.defineProperty(BrowserDomAdapter.prototype.query, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.querySelector, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.querySelectorAll, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.nodeName, "parameters", {get: function() {
+          return [[Node]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.nodeValue, "parameters", {get: function() {
+          return [[Node]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.type, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.content, "parameters", {get: function() {
+          return [[HTMLTemplateElement]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.setText, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.setValue, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.setChecked, "parameters", {get: function() {
+          return [[], [assert.type.boolean]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.createTextNode, "parameters", {get: function() {
+          return [[assert.type.string], []];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.createScriptTag, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], []];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.createStyleElement, "parameters", {get: function() {
+          return [[assert.type.string], []];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.createShadowRoot, "parameters", {get: function() {
+          return [[HTMLElement]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.getShadowRoot, "parameters", {get: function() {
+          return [[HTMLElement]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.clone, "parameters", {get: function() {
+          return [[Node]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.hasProperty, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.getElementsByClassName, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.getElementsByTagName, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.addClass, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.removeClass, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.hasClass, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.setStyle, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.removeStyle, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.getStyle, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.getAttribute, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.setAttribute, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.removeAttribute, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.setTitle, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.elementMatches, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.isTemplateElement, "parameters", {get: function() {
+          return [[assert.type.any]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.isTextNode, "parameters", {get: function() {
+          return [[Node]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.isCommentNode, "parameters", {get: function() {
+          return [[Node]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.isElementNode, "parameters", {get: function() {
+          return [[Node]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.importIntoDoc, "parameters", {get: function() {
+          return [[Node]];
+        }});
+      Object.defineProperty(BrowserDomAdapter.prototype.getHref, "parameters", {get: function() {
+          return [[Element]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/dom/dom_adapter", ["angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/dom/dom_adapter";
+  var ABSTRACT,
+      BaseException,
+      DOM,
+      DomAdapter;
+  function setRootDomAdapter(adapter) {
+    $__export("DOM", DOM = adapter);
+  }
+  function _abstract() {
+    return new BaseException('This method is abstract');
+  }
+  $__export("setRootDomAdapter", setRootDomAdapter);
+  return {
+    setters: [function($__m) {
+      ABSTRACT = $__m.ABSTRACT;
+      BaseException = $__m.BaseException;
+    }],
+    execute: function() {
+      DOM = $__export("DOM", DOM);
+      Object.defineProperty(setRootDomAdapter, "parameters", {get: function() {
+          return [[DomAdapter]];
+        }});
+      DomAdapter = $__export("DomAdapter", (function() {
+        var DomAdapter = function DomAdapter() {};
+        return ($traceurRuntime.createClass)(DomAdapter, {
+          get attrToPropMap() {
+            throw _abstract();
+          },
+          parse: function(templateHtml) {
+            throw _abstract();
+          },
+          query: function(selector) {
+            throw _abstract();
+          },
+          querySelector: function(el, selector) {
+            throw _abstract();
+          },
+          querySelectorAll: function(el, selector) {
+            throw _abstract();
+          },
+          on: function(el, evt, listener) {
+            throw _abstract();
+          },
+          dispatchEvent: function(el, evt) {
+            throw _abstract();
+          },
+          createMouseEvent: function(eventType) {
+            throw _abstract();
+          },
+          createEvent: function(eventType) {
+            throw _abstract();
+          },
+          getInnerHTML: function(el) {
+            throw _abstract();
+          },
+          getOuterHTML: function(el) {
+            throw _abstract();
+          },
+          nodeName: function(node) {
+            throw _abstract();
+          },
+          nodeValue: function(node) {
+            throw _abstract();
+          },
+          type: function(node) {
+            throw _abstract();
+          },
+          content: function(node) {
+            throw _abstract();
+          },
+          firstChild: function(el) {
+            throw _abstract();
+          },
+          nextSibling: function(el) {
+            throw _abstract();
+          },
+          parentElement: function(el) {
+            throw _abstract();
+          },
+          childNodes: function(el) {
+            throw _abstract();
+          },
+          childNodesAsList: function(el) {
+            throw _abstract();
+          },
+          clearNodes: function(el) {
+            throw _abstract();
+          },
+          appendChild: function(el, node) {
+            throw _abstract();
+          },
+          removeChild: function(el, node) {
+            throw _abstract();
+          },
+          remove: function(el) {
+            throw _abstract();
+          },
+          insertBefore: function(el, node) {
+            throw _abstract();
+          },
+          insertAllBefore: function(el, nodes) {
+            throw _abstract();
+          },
+          insertAfter: function(el, node) {
+            throw _abstract();
+          },
+          setInnerHTML: function(el, value) {
+            throw _abstract();
+          },
+          getText: function(el) {
+            throw _abstract();
+          },
+          setText: function(el, value) {
+            throw _abstract();
+          },
+          getValue: function(el) {
+            throw _abstract();
+          },
+          setValue: function(el, value) {
+            throw _abstract();
+          },
+          getChecked: function(el) {
+            throw _abstract();
+          },
+          setChecked: function(el, value) {
+            throw _abstract();
+          },
+          createTemplate: function(html) {
+            throw _abstract();
+          },
+          createElement: function(tagName) {
+            var doc = arguments[1] !== (void 0) ? arguments[1] : null;
+            throw _abstract();
+          },
+          createTextNode: function(text) {
+            var doc = arguments[1] !== (void 0) ? arguments[1] : null;
+            throw _abstract();
+          },
+          createScriptTag: function(attrName, attrValue) {
+            var doc = arguments[2] !== (void 0) ? arguments[2] : null;
+            throw _abstract();
+          },
+          createStyleElement: function(css) {
+            var doc = arguments[1] !== (void 0) ? arguments[1] : null;
+            throw _abstract();
+          },
+          createShadowRoot: function(el) {
+            throw _abstract();
+          },
+          getShadowRoot: function(el) {
+            throw _abstract();
+          },
+          getDistributedNodes: function(el) {
+            throw _abstract();
+          },
+          clone: function(node) {
+            throw _abstract();
+          },
+          hasProperty: function(element, name) {
+            throw _abstract();
+          },
+          getElementsByClassName: function(element, name) {
+            throw _abstract();
+          },
+          getElementsByTagName: function(element, name) {
+            throw _abstract();
+          },
+          classList: function(element) {
+            throw _abstract();
+          },
+          addClass: function(element, classname) {
+            throw _abstract();
+          },
+          removeClass: function(element, classname) {
+            throw _abstract();
+          },
+          hasClass: function(element, classname) {
+            throw _abstract();
+          },
+          setStyle: function(element, stylename, stylevalue) {
+            throw _abstract();
+          },
+          removeStyle: function(element, stylename) {
+            throw _abstract();
+          },
+          getStyle: function(element, stylename) {
+            throw _abstract();
+          },
+          tagName: function(element) {
+            throw _abstract();
+          },
+          attributeMap: function(element) {
+            throw _abstract();
+          },
+          getAttribute: function(element, attribute) {
+            throw _abstract();
+          },
+          setAttribute: function(element, name, value) {
+            throw _abstract();
+          },
+          removeAttribute: function(element, attribute) {
+            throw _abstract();
+          },
+          templateAwareRoot: function(el) {
+            throw _abstract();
+          },
+          createHtmlDocument: function() {
+            throw _abstract();
+          },
+          defaultDoc: function() {
+            throw _abstract();
+          },
+          getTitle: function() {
+            throw _abstract();
+          },
+          setTitle: function(newTitle) {
+            throw _abstract();
+          },
+          elementMatches: function(n, selector) {
+            throw _abstract();
+          },
+          isTemplateElement: function(el) {
+            throw _abstract();
+          },
+          isTextNode: function(node) {
+            throw _abstract();
+          },
+          isCommentNode: function(node) {
+            throw _abstract();
+          },
+          isElementNode: function(node) {
+            throw _abstract();
+          },
+          hasShadowRoot: function(node) {
+            throw _abstract();
+          },
+          importIntoDoc: function(node) {
+            throw _abstract();
+          },
+          isPageRule: function(rule) {
+            throw _abstract();
+          },
+          isStyleRule: function(rule) {
+            throw _abstract();
+          },
+          isMediaRule: function(rule) {
+            throw _abstract();
+          },
+          isKeyframesRule: function(rule) {
+            throw _abstract();
+          },
+          getHref: function(element) {
+            throw _abstract();
+          },
+          resolveAndSetHref: function(element, baseUrl, href) {
+            throw _abstract();
+          },
+          cssToRules: function(css) {
+            throw _abstract();
+          },
+          supportsDOMEvents: function() {
+            throw _abstract();
+          },
+          supportsNativeShadowDOM: function() {
+            throw _abstract();
+          }
+        }, {});
+      }()));
+      Object.defineProperty(DomAdapter, "annotations", {get: function() {
+          return [new ABSTRACT()];
+        }});
+      Object.defineProperty(DomAdapter.prototype.parse, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.query, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.querySelector, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.querySelectorAll, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.setText, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.setValue, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.setChecked, "parameters", {get: function() {
+          return [[], [assert.type.boolean]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.createTextNode, "parameters", {get: function() {
+          return [[assert.type.string], []];
+        }});
+      Object.defineProperty(DomAdapter.prototype.createScriptTag, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], []];
+        }});
+      Object.defineProperty(DomAdapter.prototype.createStyleElement, "parameters", {get: function() {
+          return [[assert.type.string], []];
+        }});
+      Object.defineProperty(DomAdapter.prototype.hasProperty, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.getElementsByClassName, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.getElementsByTagName, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.addClass, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.removeClass, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.hasClass, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.setStyle, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.removeStyle, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.getStyle, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.getAttribute, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.setAttribute, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.removeAttribute, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.setTitle, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.elementMatches, "parameters", {get: function() {
+          return [[], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.isTemplateElement, "parameters", {get: function() {
+          return [[assert.type.any]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.resolveAndSetHref, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(DomAdapter.prototype.cssToRules, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/dom/generic_browser_adapter", ["angular2/src/facade/lang", "angular2/src/facade/collection", "./dom_adapter"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/dom/generic_browser_adapter";
+  var ABSTRACT,
+      List,
+      ListWrapper,
+      isPresent,
+      isFunction,
+      DomAdapter,
+      GenericBrowserDomAdapter;
+  return {
+    setters: [function($__m) {
+      ABSTRACT = $__m.ABSTRACT;
+      isPresent = $__m.isPresent;
+      isFunction = $__m.isFunction;
+    }, function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      DomAdapter = $__m.DomAdapter;
+    }],
+    execute: function() {
+      GenericBrowserDomAdapter = $__export("GenericBrowserDomAdapter", (function($__super) {
+        var GenericBrowserDomAdapter = function GenericBrowserDomAdapter() {
+          $traceurRuntime.superConstructor(GenericBrowserDomAdapter).apply(this, arguments);
+        };
+        return ($traceurRuntime.createClass)(GenericBrowserDomAdapter, {
+          getDistributedNodes: function(el) {
+            return el.getDistributedNodes();
+          },
+          resolveAndSetHref: function(el, baseUrl, href) {
+            el.href = href == null ? baseUrl : baseUrl + '/../' + href;
+          },
+          cssToRules: function(css) {
+            var style = this.createStyleElement(css);
+            this.appendChild(this.defaultDoc().head, style);
+            var rules = ListWrapper.create();
+            if (isPresent(style.sheet)) {
+              try {
+                var rawRules = style.sheet.cssRules;
+                rules = ListWrapper.createFixedSize(rawRules.length);
+                for (var i = 0; i < rawRules.length; i++) {
+                  rules[i] = rawRules[i];
+                }
+              } catch (e) {}
+            } else {}
+            this.remove(style);
+            return rules;
+          },
+          supportsDOMEvents: function() {
+            return true;
+          },
+          supportsNativeShadowDOM: function() {
+            return isFunction(this.defaultDoc().body.createShadowRoot);
+          }
+        }, {}, $__super);
+      }(DomAdapter)));
+      Object.defineProperty(GenericBrowserDomAdapter, "annotations", {get: function() {
+          return [new ABSTRACT()];
+        }});
+      Object.defineProperty(GenericBrowserDomAdapter.prototype.resolveAndSetHref, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(GenericBrowserDomAdapter.prototype.cssToRules, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+    }
+  };
+});
+
 System.register("angular2/src/facade/async", ["angular2/src/facade/lang", "angular2/src/facade/collection", "rx/dist/rx.all"], function($__export) {
   "use strict";
   var __moduleName = "angular2/src/facade/async";
@@ -4301,1376 +5477,6 @@ System.register("angular2/src/facade/math", ["angular2/src/facade/lang"], functi
   };
 });
 
-System.register("angular2/src/dom/browser_adapter", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./dom_adapter", "./generic_browser_adapter"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/dom/browser_adapter";
-  var List,
-      MapWrapper,
-      ListWrapper,
-      isPresent,
-      setRootDomAdapter,
-      GenericBrowserDomAdapter,
-      _attrToPropMap,
-      BrowserDomAdapter;
-  return {
-    setters: [function($__m) {
-      List = $__m.List;
-      MapWrapper = $__m.MapWrapper;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-    }, function($__m) {
-      setRootDomAdapter = $__m.setRootDomAdapter;
-    }, function($__m) {
-      GenericBrowserDomAdapter = $__m.GenericBrowserDomAdapter;
-    }],
-    execute: function() {
-      _attrToPropMap = {
-        'innerHtml': 'innerHTML',
-        'readonly': 'readOnly',
-        'tabindex': 'tabIndex'
-      };
-      BrowserDomAdapter = $__export("BrowserDomAdapter", (function($__super) {
-        var BrowserDomAdapter = function BrowserDomAdapter() {
-          $traceurRuntime.superConstructor(BrowserDomAdapter).apply(this, arguments);
-        };
-        return ($traceurRuntime.createClass)(BrowserDomAdapter, {
-          get attrToPropMap() {
-            return _attrToPropMap;
-          },
-          query: function(selector) {
-            return document.querySelector(selector);
-          },
-          querySelector: function(el, selector) {
-            return el.querySelector(selector);
-          },
-          querySelectorAll: function(el, selector) {
-            return el.querySelectorAll(selector);
-          },
-          on: function(el, evt, listener) {
-            el.addEventListener(evt, listener, false);
-          },
-          dispatchEvent: function(el, evt) {
-            el.dispatchEvent(evt);
-          },
-          createMouseEvent: function(eventType) {
-            var evt = new MouseEvent(eventType);
-            evt.initEvent(eventType, true, true);
-            return evt;
-          },
-          createEvent: function(eventType) {
-            return new Event(eventType, true);
-          },
-          getInnerHTML: function(el) {
-            return el.innerHTML;
-          },
-          getOuterHTML: function(el) {
-            return el.outerHTML;
-          },
-          nodeName: function(node) {
-            return node.nodeName;
-          },
-          nodeValue: function(node) {
-            return node.nodeValue;
-          },
-          type: function(node) {
-            return node.type;
-          },
-          content: function(node) {
-            return node.content;
-          },
-          firstChild: function(el) {
-            return el.firstChild;
-          },
-          nextSibling: function(el) {
-            return el.nextSibling;
-          },
-          parentElement: function(el) {
-            return el.parentElement;
-          },
-          childNodes: function(el) {
-            return el.childNodes;
-          },
-          childNodesAsList: function(el) {
-            var childNodes = el.childNodes;
-            var res = ListWrapper.createFixedSize(childNodes.length);
-            for (var i = 0; i < childNodes.length; i++) {
-              res[i] = childNodes[i];
-            }
-            return res;
-          },
-          clearNodes: function(el) {
-            for (var i = 0; i < el.childNodes.length; i++) {
-              this.remove(el.childNodes[i]);
-            }
-          },
-          appendChild: function(el, node) {
-            el.appendChild(node);
-          },
-          removeChild: function(el, node) {
-            el.removeChild(node);
-          },
-          remove: function(el) {
-            var parent = el.parentNode;
-            parent.removeChild(el);
-            return el;
-          },
-          insertBefore: function(el, node) {
-            el.parentNode.insertBefore(node, el);
-          },
-          insertAllBefore: function(el, nodes) {
-            ListWrapper.forEach(nodes, (function(n) {
-              el.parentNode.insertBefore(n, el);
-            }));
-          },
-          insertAfter: function(el, node) {
-            el.parentNode.insertBefore(node, el.nextSibling);
-          },
-          setInnerHTML: function(el, value) {
-            el.innerHTML = value;
-          },
-          getText: function(el) {
-            return el.textContent;
-          },
-          setText: function(el, value) {
-            el.textContent = value;
-          },
-          getValue: function(el) {
-            return el.value;
-          },
-          setValue: function(el, value) {
-            el.value = value;
-          },
-          getChecked: function(el) {
-            return el.checked;
-          },
-          setChecked: function(el, value) {
-            el.checked = value;
-          },
-          createTemplate: function(html) {
-            var t = document.createElement('template');
-            t.innerHTML = html;
-            return t;
-          },
-          createElement: function(tagName) {
-            var doc = arguments[1] !== (void 0) ? arguments[1] : document;
-            return doc.createElement(tagName);
-          },
-          createTextNode: function(text) {
-            var doc = arguments[1] !== (void 0) ? arguments[1] : document;
-            return doc.createTextNode(text);
-          },
-          createScriptTag: function(attrName, attrValue) {
-            var doc = arguments[2] !== (void 0) ? arguments[2] : document;
-            var el = doc.createElement('SCRIPT');
-            el.setAttribute(attrName, attrValue);
-            return el;
-          },
-          createStyleElement: function(css) {
-            var doc = arguments[1] !== (void 0) ? arguments[1] : document;
-            var style = doc.createElement('STYLE');
-            style.innerText = css;
-            return style;
-          },
-          createShadowRoot: function(el) {
-            return el.createShadowRoot();
-          },
-          getShadowRoot: function(el) {
-            return el.shadowRoot;
-          },
-          clone: function(node) {
-            return node.cloneNode(true);
-          },
-          hasProperty: function(element, name) {
-            return name in element;
-          },
-          getElementsByClassName: function(element, name) {
-            return element.getElementsByClassName(name);
-          },
-          getElementsByTagName: function(element, name) {
-            return element.getElementsByTagName(name);
-          },
-          classList: function(element) {
-            return Array.prototype.slice.call(element.classList, 0);
-          },
-          addClass: function(element, classname) {
-            element.classList.add(classname);
-          },
-          removeClass: function(element, classname) {
-            element.classList.remove(classname);
-          },
-          hasClass: function(element, classname) {
-            return element.classList.contains(classname);
-          },
-          setStyle: function(element, stylename, stylevalue) {
-            element.style[stylename] = stylevalue;
-          },
-          removeStyle: function(element, stylename) {
-            element.style[stylename] = null;
-          },
-          getStyle: function(element, stylename) {
-            return element.style[stylename];
-          },
-          tagName: function(element) {
-            return element.tagName;
-          },
-          attributeMap: function(element) {
-            var res = MapWrapper.create();
-            var elAttrs = element.attributes;
-            for (var i = 0; i < elAttrs.length; i++) {
-              var attrib = elAttrs[i];
-              MapWrapper.set(res, attrib.name, attrib.value);
-            }
-            return res;
-          },
-          getAttribute: function(element, attribute) {
-            return element.getAttribute(attribute);
-          },
-          setAttribute: function(element, name, value) {
-            element.setAttribute(name, value);
-          },
-          removeAttribute: function(element, attribute) {
-            return element.removeAttribute(attribute);
-          },
-          templateAwareRoot: function(el) {
-            return el instanceof HTMLTemplateElement ? el.content : el;
-          },
-          createHtmlDocument: function() {
-            return document.implementation.createHTMLDocument();
-          },
-          defaultDoc: function() {
-            return document;
-          },
-          getTitle: function() {
-            return document.title;
-          },
-          setTitle: function(newTitle) {
-            document.title = newTitle;
-          },
-          elementMatches: function(n, selector) {
-            return n instanceof HTMLElement && n.matches(selector);
-          },
-          isTemplateElement: function(el) {
-            return el instanceof HTMLTemplateElement;
-          },
-          isTextNode: function(node) {
-            return node.nodeType === Node.TEXT_NODE;
-          },
-          isCommentNode: function(node) {
-            return node.nodeType === Node.COMMENT_NODE;
-          },
-          isElementNode: function(node) {
-            return node.nodeType === Node.ELEMENT_NODE;
-          },
-          hasShadowRoot: function(node) {
-            return node instanceof HTMLElement && isPresent(node.shadowRoot);
-          },
-          importIntoDoc: function(node) {
-            var result = document.importNode(node, true);
-            if (this.isTemplateElement(result) && !result.content.childNodes.length && node.content.childNodes.length) {
-              var childNodes = node.content.childNodes;
-              for (var i = 0; i < childNodes.length; ++i) {
-                result.content.appendChild(this.importIntoDoc(childNodes[i]));
-              }
-            }
-            return result;
-          },
-          isPageRule: function(rule) {
-            return rule.type === CSSRule.PAGE_RULE;
-          },
-          isStyleRule: function(rule) {
-            return rule.type === CSSRule.STYLE_RULE;
-          },
-          isMediaRule: function(rule) {
-            return rule.type === CSSRule.MEDIA_RULE;
-          },
-          isKeyframesRule: function(rule) {
-            return rule.type === CSSRule.KEYFRAMES_RULE;
-          },
-          getHref: function(el) {
-            return el.href;
-          }
-        }, {makeCurrent: function() {
-            setRootDomAdapter(new BrowserDomAdapter());
-          }}, $__super);
-      }(GenericBrowserDomAdapter)));
-      Object.defineProperty(BrowserDomAdapter.prototype.query, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.querySelector, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.querySelectorAll, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.nodeName, "parameters", {get: function() {
-          return [[Node]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.nodeValue, "parameters", {get: function() {
-          return [[Node]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.type, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.content, "parameters", {get: function() {
-          return [[HTMLTemplateElement]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.setText, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.setValue, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.setChecked, "parameters", {get: function() {
-          return [[], [assert.type.boolean]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.createTextNode, "parameters", {get: function() {
-          return [[assert.type.string], []];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.createScriptTag, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], []];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.createStyleElement, "parameters", {get: function() {
-          return [[assert.type.string], []];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.createShadowRoot, "parameters", {get: function() {
-          return [[HTMLElement]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.getShadowRoot, "parameters", {get: function() {
-          return [[HTMLElement]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.clone, "parameters", {get: function() {
-          return [[Node]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.hasProperty, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.getElementsByClassName, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.getElementsByTagName, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.addClass, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.removeClass, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.hasClass, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.setStyle, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.removeStyle, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.getStyle, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.getAttribute, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.setAttribute, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.removeAttribute, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.setTitle, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.elementMatches, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.isTemplateElement, "parameters", {get: function() {
-          return [[assert.type.any]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.isTextNode, "parameters", {get: function() {
-          return [[Node]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.isCommentNode, "parameters", {get: function() {
-          return [[Node]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.isElementNode, "parameters", {get: function() {
-          return [[Node]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.importIntoDoc, "parameters", {get: function() {
-          return [[Node]];
-        }});
-      Object.defineProperty(BrowserDomAdapter.prototype.getHref, "parameters", {get: function() {
-          return [[Element]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/dom/dom_adapter", ["angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/dom/dom_adapter";
-  var ABSTRACT,
-      BaseException,
-      DOM,
-      DomAdapter;
-  function setRootDomAdapter(adapter) {
-    $__export("DOM", DOM = adapter);
-  }
-  function _abstract() {
-    return new BaseException('This method is abstract');
-  }
-  $__export("setRootDomAdapter", setRootDomAdapter);
-  return {
-    setters: [function($__m) {
-      ABSTRACT = $__m.ABSTRACT;
-      BaseException = $__m.BaseException;
-    }],
-    execute: function() {
-      DOM = $__export("DOM", DOM);
-      Object.defineProperty(setRootDomAdapter, "parameters", {get: function() {
-          return [[DomAdapter]];
-        }});
-      DomAdapter = $__export("DomAdapter", (function() {
-        var DomAdapter = function DomAdapter() {};
-        return ($traceurRuntime.createClass)(DomAdapter, {
-          get attrToPropMap() {
-            throw _abstract();
-          },
-          parse: function(templateHtml) {
-            throw _abstract();
-          },
-          query: function(selector) {
-            throw _abstract();
-          },
-          querySelector: function(el, selector) {
-            throw _abstract();
-          },
-          querySelectorAll: function(el, selector) {
-            throw _abstract();
-          },
-          on: function(el, evt, listener) {
-            throw _abstract();
-          },
-          dispatchEvent: function(el, evt) {
-            throw _abstract();
-          },
-          createMouseEvent: function(eventType) {
-            throw _abstract();
-          },
-          createEvent: function(eventType) {
-            throw _abstract();
-          },
-          getInnerHTML: function(el) {
-            throw _abstract();
-          },
-          getOuterHTML: function(el) {
-            throw _abstract();
-          },
-          nodeName: function(node) {
-            throw _abstract();
-          },
-          nodeValue: function(node) {
-            throw _abstract();
-          },
-          type: function(node) {
-            throw _abstract();
-          },
-          content: function(node) {
-            throw _abstract();
-          },
-          firstChild: function(el) {
-            throw _abstract();
-          },
-          nextSibling: function(el) {
-            throw _abstract();
-          },
-          parentElement: function(el) {
-            throw _abstract();
-          },
-          childNodes: function(el) {
-            throw _abstract();
-          },
-          childNodesAsList: function(el) {
-            throw _abstract();
-          },
-          clearNodes: function(el) {
-            throw _abstract();
-          },
-          appendChild: function(el, node) {
-            throw _abstract();
-          },
-          removeChild: function(el, node) {
-            throw _abstract();
-          },
-          remove: function(el) {
-            throw _abstract();
-          },
-          insertBefore: function(el, node) {
-            throw _abstract();
-          },
-          insertAllBefore: function(el, nodes) {
-            throw _abstract();
-          },
-          insertAfter: function(el, node) {
-            throw _abstract();
-          },
-          setInnerHTML: function(el, value) {
-            throw _abstract();
-          },
-          getText: function(el) {
-            throw _abstract();
-          },
-          setText: function(el, value) {
-            throw _abstract();
-          },
-          getValue: function(el) {
-            throw _abstract();
-          },
-          setValue: function(el, value) {
-            throw _abstract();
-          },
-          getChecked: function(el) {
-            throw _abstract();
-          },
-          setChecked: function(el, value) {
-            throw _abstract();
-          },
-          createTemplate: function(html) {
-            throw _abstract();
-          },
-          createElement: function(tagName) {
-            var doc = arguments[1] !== (void 0) ? arguments[1] : null;
-            throw _abstract();
-          },
-          createTextNode: function(text) {
-            var doc = arguments[1] !== (void 0) ? arguments[1] : null;
-            throw _abstract();
-          },
-          createScriptTag: function(attrName, attrValue) {
-            var doc = arguments[2] !== (void 0) ? arguments[2] : null;
-            throw _abstract();
-          },
-          createStyleElement: function(css) {
-            var doc = arguments[1] !== (void 0) ? arguments[1] : null;
-            throw _abstract();
-          },
-          createShadowRoot: function(el) {
-            throw _abstract();
-          },
-          getShadowRoot: function(el) {
-            throw _abstract();
-          },
-          getDistributedNodes: function(el) {
-            throw _abstract();
-          },
-          clone: function(node) {
-            throw _abstract();
-          },
-          hasProperty: function(element, name) {
-            throw _abstract();
-          },
-          getElementsByClassName: function(element, name) {
-            throw _abstract();
-          },
-          getElementsByTagName: function(element, name) {
-            throw _abstract();
-          },
-          classList: function(element) {
-            throw _abstract();
-          },
-          addClass: function(element, classname) {
-            throw _abstract();
-          },
-          removeClass: function(element, classname) {
-            throw _abstract();
-          },
-          hasClass: function(element, classname) {
-            throw _abstract();
-          },
-          setStyle: function(element, stylename, stylevalue) {
-            throw _abstract();
-          },
-          removeStyle: function(element, stylename) {
-            throw _abstract();
-          },
-          getStyle: function(element, stylename) {
-            throw _abstract();
-          },
-          tagName: function(element) {
-            throw _abstract();
-          },
-          attributeMap: function(element) {
-            throw _abstract();
-          },
-          getAttribute: function(element, attribute) {
-            throw _abstract();
-          },
-          setAttribute: function(element, name, value) {
-            throw _abstract();
-          },
-          removeAttribute: function(element, attribute) {
-            throw _abstract();
-          },
-          templateAwareRoot: function(el) {
-            throw _abstract();
-          },
-          createHtmlDocument: function() {
-            throw _abstract();
-          },
-          defaultDoc: function() {
-            throw _abstract();
-          },
-          getTitle: function() {
-            throw _abstract();
-          },
-          setTitle: function(newTitle) {
-            throw _abstract();
-          },
-          elementMatches: function(n, selector) {
-            throw _abstract();
-          },
-          isTemplateElement: function(el) {
-            throw _abstract();
-          },
-          isTextNode: function(node) {
-            throw _abstract();
-          },
-          isCommentNode: function(node) {
-            throw _abstract();
-          },
-          isElementNode: function(node) {
-            throw _abstract();
-          },
-          hasShadowRoot: function(node) {
-            throw _abstract();
-          },
-          importIntoDoc: function(node) {
-            throw _abstract();
-          },
-          isPageRule: function(rule) {
-            throw _abstract();
-          },
-          isStyleRule: function(rule) {
-            throw _abstract();
-          },
-          isMediaRule: function(rule) {
-            throw _abstract();
-          },
-          isKeyframesRule: function(rule) {
-            throw _abstract();
-          },
-          getHref: function(element) {
-            throw _abstract();
-          },
-          resolveAndSetHref: function(element, baseUrl, href) {
-            throw _abstract();
-          },
-          cssToRules: function(css) {
-            throw _abstract();
-          },
-          supportsDOMEvents: function() {
-            throw _abstract();
-          },
-          supportsNativeShadowDOM: function() {
-            throw _abstract();
-          }
-        }, {});
-      }()));
-      Object.defineProperty(DomAdapter, "annotations", {get: function() {
-          return [new ABSTRACT()];
-        }});
-      Object.defineProperty(DomAdapter.prototype.parse, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.query, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.querySelector, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.querySelectorAll, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.setText, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.setValue, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.setChecked, "parameters", {get: function() {
-          return [[], [assert.type.boolean]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.createTextNode, "parameters", {get: function() {
-          return [[assert.type.string], []];
-        }});
-      Object.defineProperty(DomAdapter.prototype.createScriptTag, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], []];
-        }});
-      Object.defineProperty(DomAdapter.prototype.createStyleElement, "parameters", {get: function() {
-          return [[assert.type.string], []];
-        }});
-      Object.defineProperty(DomAdapter.prototype.hasProperty, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.getElementsByClassName, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.getElementsByTagName, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.addClass, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.removeClass, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.hasClass, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.setStyle, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.removeStyle, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.getStyle, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.getAttribute, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.setAttribute, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.removeAttribute, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.setTitle, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.elementMatches, "parameters", {get: function() {
-          return [[], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.isTemplateElement, "parameters", {get: function() {
-          return [[assert.type.any]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.resolveAndSetHref, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(DomAdapter.prototype.cssToRules, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/dom/generic_browser_adapter", ["angular2/src/facade/lang", "angular2/src/facade/collection", "./dom_adapter"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/dom/generic_browser_adapter";
-  var ABSTRACT,
-      List,
-      ListWrapper,
-      isPresent,
-      isFunction,
-      DomAdapter,
-      GenericBrowserDomAdapter;
-  return {
-    setters: [function($__m) {
-      ABSTRACT = $__m.ABSTRACT;
-      isPresent = $__m.isPresent;
-      isFunction = $__m.isFunction;
-    }, function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      DomAdapter = $__m.DomAdapter;
-    }],
-    execute: function() {
-      GenericBrowserDomAdapter = $__export("GenericBrowserDomAdapter", (function($__super) {
-        var GenericBrowserDomAdapter = function GenericBrowserDomAdapter() {
-          $traceurRuntime.superConstructor(GenericBrowserDomAdapter).apply(this, arguments);
-        };
-        return ($traceurRuntime.createClass)(GenericBrowserDomAdapter, {
-          getDistributedNodes: function(el) {
-            return el.getDistributedNodes();
-          },
-          resolveAndSetHref: function(el, baseUrl, href) {
-            el.href = href == null ? baseUrl : baseUrl + '/../' + href;
-          },
-          cssToRules: function(css) {
-            var style = this.createStyleElement(css);
-            this.appendChild(this.defaultDoc().head, style);
-            var rules = ListWrapper.create();
-            if (isPresent(style.sheet)) {
-              try {
-                var rawRules = style.sheet.cssRules;
-                rules = ListWrapper.createFixedSize(rawRules.length);
-                for (var i = 0; i < rawRules.length; i++) {
-                  rules[i] = rawRules[i];
-                }
-              } catch (e) {}
-            } else {}
-            this.remove(style);
-            return rules;
-          },
-          supportsDOMEvents: function() {
-            return true;
-          },
-          supportsNativeShadowDOM: function() {
-            return isFunction(this.defaultDoc().body.createShadowRoot);
-          }
-        }, {}, $__super);
-      }(DomAdapter)));
-      Object.defineProperty(GenericBrowserDomAdapter, "annotations", {get: function() {
-          return [new ABSTRACT()];
-        }});
-      Object.defineProperty(GenericBrowserDomAdapter.prototype.resolveAndSetHref, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(GenericBrowserDomAdapter.prototype.cssToRules, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/directives/for", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/compiler/view", "angular2/src/facade/lang", "angular2/src/facade/collection"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/for";
-  var Viewport,
-      ViewContainer,
-      View,
-      isPresent,
-      isBlank,
-      ListWrapper,
-      For,
-      RecordViewTuple;
-  return {
-    setters: [function($__m) {
-      Viewport = $__m.Viewport;
-    }, function($__m) {
-      ViewContainer = $__m.ViewContainer;
-    }, function($__m) {
-      View = $__m.View;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-      isBlank = $__m.isBlank;
-    }, function($__m) {
-      ListWrapper = $__m.ListWrapper;
-    }],
-    execute: function() {
-      For = $__export("For", (function() {
-        var For = function For(viewContainer) {
-          this.viewContainer = viewContainer;
-        };
-        return ($traceurRuntime.createClass)(For, {
-          set iterableChanges(changes) {
-            if (isBlank(changes)) {
-              this.viewContainer.clear();
-              return ;
-            }
-            var recordViewTuples = [];
-            changes.forEachRemovedItem((function(removedRecord) {
-              return ListWrapper.push(recordViewTuples, new RecordViewTuple(removedRecord, null));
-            }));
-            changes.forEachMovedItem((function(movedRecord) {
-              return ListWrapper.push(recordViewTuples, new RecordViewTuple(movedRecord, null));
-            }));
-            var insertTuples = For.bulkRemove(recordViewTuples, this.viewContainer);
-            changes.forEachAddedItem((function(addedRecord) {
-              return ListWrapper.push(insertTuples, new RecordViewTuple(addedRecord, null));
-            }));
-            For.bulkInsert(insertTuples, this.viewContainer);
-            for (var i = 0; i < insertTuples.length; i++) {
-              this.perViewChange(insertTuples[i].view, insertTuples[i].record);
-            }
-          },
-          perViewChange: function(view, record) {
-            view.setLocal('\$implicit', record.item);
-            view.setLocal('index', record.currentIndex);
-          }
-        }, {
-          bulkRemove: function(tuples, viewContainer) {
-            tuples.sort((function(a, b) {
-              return a.record.previousIndex - b.record.previousIndex;
-            }));
-            var movedTuples = [];
-            for (var i = tuples.length - 1; i >= 0; i--) {
-              var tuple = tuples[i];
-              if (isPresent(tuple.record.currentIndex)) {
-                tuple.view = viewContainer.detach(tuple.record.previousIndex);
-                ListWrapper.push(movedTuples, tuple);
-              } else {
-                viewContainer.remove(tuple.record.previousIndex);
-              }
-            }
-            return movedTuples;
-          },
-          bulkInsert: function(tuples, viewContainer) {
-            tuples.sort((function(a, b) {
-              return a.record.currentIndex - b.record.currentIndex;
-            }));
-            for (var i = 0; i < tuples.length; i++) {
-              var tuple = tuples[i];
-              if (isPresent(tuple.view)) {
-                viewContainer.insert(tuple.view, tuple.record.currentIndex);
-              } else {
-                tuple.view = viewContainer.create(tuple.record.currentIndex);
-              }
-            }
-            return tuples;
-          }
-        });
-      }()));
-      Object.defineProperty(For, "annotations", {get: function() {
-          return [new Viewport({
-            selector: '[for][of]',
-            bind: {'iterableChanges': 'of | iterableDiff'}
-          })];
-        }});
-      Object.defineProperty(For, "parameters", {get: function() {
-          return [[ViewContainer]];
-        }});
-      RecordViewTuple = (function() {
-        var RecordViewTuple = function RecordViewTuple(record, view) {
-          this.record = record;
-          this.view = view;
-        };
-        return ($traceurRuntime.createClass)(RecordViewTuple, {}, {});
-      }());
-    }
-  };
-});
-
-System.register("angular2/src/directives/if", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/if";
-  var Viewport,
-      ViewContainer,
-      isBlank,
-      If;
-  return {
-    setters: [function($__m) {
-      Viewport = $__m.Viewport;
-    }, function($__m) {
-      ViewContainer = $__m.ViewContainer;
-    }, function($__m) {
-      isBlank = $__m.isBlank;
-    }],
-    execute: function() {
-      If = $__export("If", (function() {
-        var If = function If(viewContainer) {
-          this.viewContainer = viewContainer;
-          this.prevCondition = null;
-        };
-        return ($traceurRuntime.createClass)(If, {set condition(newCondition) {
-            if (newCondition && (isBlank(this.prevCondition) || !this.prevCondition)) {
-              this.prevCondition = true;
-              this.viewContainer.create();
-            } else if (!newCondition && (isBlank(this.prevCondition) || this.prevCondition)) {
-              this.prevCondition = false;
-              this.viewContainer.clear();
-            }
-          }}, {});
-      }()));
-      Object.defineProperty(If, "annotations", {get: function() {
-          return [new Viewport({
-            selector: '[if]',
-            bind: {'condition': 'if'}
-          })];
-        }});
-      Object.defineProperty(If, "parameters", {get: function() {
-          return [[ViewContainer]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/directives/non_bindable", ["angular2/src/core/annotations/annotations"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/non_bindable";
-  var Decorator,
-      NonBindable;
-  return {
-    setters: [function($__m) {
-      Decorator = $__m.Decorator;
-    }],
-    execute: function() {
-      NonBindable = $__export("NonBindable", (function() {
-        var NonBindable = function NonBindable() {};
-        return ($traceurRuntime.createClass)(NonBindable, {}, {});
-      }()));
-      Object.defineProperty(NonBindable, "annotations", {get: function() {
-          return [new Decorator({
-            selector: '[non-bindable]',
-            compileChildren: false
-          })];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/directives/switch", ["angular2/src/core/annotations/annotations", "angular2/src/core/compiler/view_container", "angular2/src/core/dom/element", "angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/src/core/annotations/visibility"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/directives/switch";
-  var Decorator,
-      Viewport,
-      ViewContainer,
-      NgElement,
-      isPresent,
-      isBlank,
-      normalizeBlank,
-      ListWrapper,
-      List,
-      MapWrapper,
-      Map,
-      Parent,
-      Switch,
-      SwitchWhen,
-      SwitchDefault,
-      _whenDefault;
-  return {
-    setters: [function($__m) {
-      Decorator = $__m.Decorator;
-      Viewport = $__m.Viewport;
-    }, function($__m) {
-      ViewContainer = $__m.ViewContainer;
-    }, function($__m) {
-      NgElement = $__m.NgElement;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-      isBlank = $__m.isBlank;
-      normalizeBlank = $__m.normalizeBlank;
-    }, function($__m) {
-      ListWrapper = $__m.ListWrapper;
-      List = $__m.List;
-      MapWrapper = $__m.MapWrapper;
-      Map = $__m.Map;
-    }, function($__m) {
-      Parent = $__m.Parent;
-    }],
-    execute: function() {
-      Switch = $__export("Switch", (function() {
-        var Switch = function Switch() {
-          this._valueViewContainers = MapWrapper.create();
-          this._activeViewContainers = ListWrapper.create();
-          this._useDefault = false;
-        };
-        return ($traceurRuntime.createClass)(Switch, {
-          set value(value) {
-            this._emptyAllActiveViewContainers();
-            this._useDefault = false;
-            var containers = MapWrapper.get(this._valueViewContainers, value);
-            if (isBlank(containers)) {
-              this._useDefault = true;
-              containers = normalizeBlank(MapWrapper.get(this._valueViewContainers, _whenDefault));
-            }
-            this._activateViewContainers(containers);
-            this._switchValue = value;
-          },
-          _onWhenValueChanged: function(oldWhen, newWhen, viewContainer) {
-            this._deregisterViewContainer(oldWhen, viewContainer);
-            this._registerViewContainer(newWhen, viewContainer);
-            if (oldWhen === this._switchValue) {
-              viewContainer.remove();
-              ListWrapper.remove(this._activeViewContainers, viewContainer);
-            } else if (newWhen === this._switchValue) {
-              if (this._useDefault) {
-                this._useDefault = false;
-                this._emptyAllActiveViewContainers();
-              }
-              viewContainer.create();
-              ListWrapper.push(this._activeViewContainers, viewContainer);
-            }
-            if (this._activeViewContainers.length === 0 && !this._useDefault) {
-              this._useDefault = true;
-              this._activateViewContainers(MapWrapper.get(this._valueViewContainers, _whenDefault));
-            }
-          },
-          _emptyAllActiveViewContainers: function() {
-            var activeContainers = this._activeViewContainers;
-            for (var i = 0; i < activeContainers.length; i++) {
-              activeContainers[i].remove();
-            }
-            this._activeViewContainers = ListWrapper.create();
-          },
-          _activateViewContainers: function(containers) {
-            if (isPresent(containers)) {
-              for (var i = 0; i < containers.length; i++) {
-                containers[i].create();
-              }
-              this._activeViewContainers = containers;
-            }
-          },
-          _registerViewContainer: function(value, container) {
-            var containers = MapWrapper.get(this._valueViewContainers, value);
-            if (isBlank(containers)) {
-              containers = ListWrapper.create();
-              MapWrapper.set(this._valueViewContainers, value, containers);
-            }
-            ListWrapper.push(containers, container);
-          },
-          _deregisterViewContainer: function(value, container) {
-            if (value == _whenDefault)
-              return ;
-            var containers = MapWrapper.get(this._valueViewContainers, value);
-            if (containers.length == 1) {
-              MapWrapper.delete(this._valueViewContainers, value);
-            } else {
-              ListWrapper.remove(containers, container);
-            }
-          }
-        }, {});
-      }()));
-      Object.defineProperty(Switch, "annotations", {get: function() {
-          return [new Decorator({
-            selector: '[switch]',
-            bind: {'value': 'switch'}
-          })];
-        }});
-      Object.defineProperty(Switch.prototype._onWhenValueChanged, "parameters", {get: function() {
-          return [[], [], [ViewContainer]];
-        }});
-      Object.defineProperty(Switch.prototype._activateViewContainers, "parameters", {get: function() {
-          return [[assert.genericType(List, ViewContainer)]];
-        }});
-      Object.defineProperty(Switch.prototype._registerViewContainer, "parameters", {get: function() {
-          return [[], [ViewContainer]];
-        }});
-      Object.defineProperty(Switch.prototype._deregisterViewContainer, "parameters", {get: function() {
-          return [[], [ViewContainer]];
-        }});
-      SwitchWhen = $__export("SwitchWhen", (function() {
-        var SwitchWhen = function SwitchWhen(el, viewContainer, sswitch) {
-          this._value = _whenDefault;
-          this._switch = sswitch;
-          this._viewContainer = viewContainer;
-        };
-        return ($traceurRuntime.createClass)(SwitchWhen, {set when(value) {
-            this._switch._onWhenValueChanged(this._value, value, this._viewContainer);
-            this._value = value;
-          }}, {});
-      }()));
-      Object.defineProperty(SwitchWhen, "annotations", {get: function() {
-          return [new Viewport({
-            selector: '[switch-when]',
-            bind: {'when': 'switch-when'}
-          })];
-        }});
-      Object.defineProperty(SwitchWhen, "parameters", {get: function() {
-          return [[NgElement], [ViewContainer], [Switch, new Parent()]];
-        }});
-      SwitchDefault = $__export("SwitchDefault", (function() {
-        var SwitchDefault = function SwitchDefault(viewContainer, sswitch) {
-          sswitch._registerViewContainer(_whenDefault, viewContainer);
-        };
-        return ($traceurRuntime.createClass)(SwitchDefault, {}, {});
-      }()));
-      Object.defineProperty(SwitchDefault, "annotations", {get: function() {
-          return [new Viewport({selector: '[switch-default]'})];
-        }});
-      Object.defineProperty(SwitchDefault, "parameters", {get: function() {
-          return [[ViewContainer], [Switch, new Parent()]];
-        }});
-      _whenDefault = new Object();
-    }
-  };
-});
-
-System.register("angular2/src/mock/template_resolver_mock", ["angular2/src/facade/collection", "angular2/src/facade/lang", "angular2/src/core/annotations/template", "angular2/src/core/compiler/template_resolver"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/mock/template_resolver_mock";
-  var Map,
-      MapWrapper,
-      ListWrapper,
-      Type,
-      isPresent,
-      Template,
-      TemplateResolver,
-      MockTemplateResolver;
-  return {
-    setters: [function($__m) {
-      Map = $__m.Map;
-      MapWrapper = $__m.MapWrapper;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      Type = $__m.Type;
-      isPresent = $__m.isPresent;
-    }, function($__m) {
-      Template = $__m.Template;
-    }, function($__m) {
-      TemplateResolver = $__m.TemplateResolver;
-    }],
-    execute: function() {
-      MockTemplateResolver = $__export("MockTemplateResolver", (function($__super) {
-        var MockTemplateResolver = function MockTemplateResolver() {
-          $traceurRuntime.superConstructor(MockTemplateResolver).call(this);
-          this._cmpTemplates = MapWrapper.create();
-        };
-        return ($traceurRuntime.createClass)(MockTemplateResolver, {
-          setTemplate: function(component, template) {
-            MapWrapper.set(this._cmpTemplates, component, template);
-          },
-          resolve: function(component) {
-            var override = MapWrapper.get(this._cmpTemplates, component);
-            if (isPresent(override)) {
-              return override;
-            }
-            return $traceurRuntime.superGet(this, MockTemplateResolver.prototype, "resolve").call(this, component);
-          }
-        }, {}, $__super);
-      }(TemplateResolver)));
-      Object.defineProperty(MockTemplateResolver.prototype.setTemplate, "parameters", {get: function() {
-          return [[Type], [Template]];
-        }});
-      Object.defineProperty(MockTemplateResolver.prototype.resolve, "parameters", {get: function() {
-          return [[Type]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/mock/xhr_mock", ["angular2/src/core/compiler/xhr/xhr", "angular2/src/facade/collection", "angular2/src/facade/lang", "angular2/src/facade/async"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/mock/xhr_mock";
-  var XHR,
-      List,
-      ListWrapper,
-      Map,
-      MapWrapper,
-      isBlank,
-      isPresent,
-      normalizeBlank,
-      BaseException,
-      PromiseWrapper,
-      Promise,
-      XHRMock,
-      _PendingRequest,
-      _Expectation;
-  return {
-    setters: [function($__m) {
-      XHR = $__m.XHR;
-    }, function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-      Map = $__m.Map;
-      MapWrapper = $__m.MapWrapper;
-    }, function($__m) {
-      isBlank = $__m.isBlank;
-      isPresent = $__m.isPresent;
-      normalizeBlank = $__m.normalizeBlank;
-      BaseException = $__m.BaseException;
-    }, function($__m) {
-      PromiseWrapper = $__m.PromiseWrapper;
-      Promise = $__m.Promise;
-    }],
-    execute: function() {
-      XHRMock = $__export("XHRMock", (function($__super) {
-        var XHRMock = function XHRMock() {
-          $traceurRuntime.superConstructor(XHRMock).call(this);
-          this._expectations = [];
-          this._definitions = MapWrapper.create();
-          this._requests = [];
-        };
-        return ($traceurRuntime.createClass)(XHRMock, {
-          get: function(url) {
-            var request = new _PendingRequest(url);
-            ListWrapper.push(this._requests, request);
-            return request.getPromise();
-          },
-          expect: function(url, response) {
-            var expectation = new _Expectation(url, response);
-            ListWrapper.push(this._expectations, expectation);
-          },
-          when: function(url, response) {
-            MapWrapper.set(this._definitions, url, response);
-          },
-          flush: function() {
-            if (this._requests.length === 0) {
-              throw new BaseException('No pending requests to flush');
-            }
-            do {
-              var request = ListWrapper.removeAt(this._requests, 0);
-              this._processRequest(request);
-            } while (this._requests.length > 0);
-            this.verifyNoOustandingExpectations();
-          },
-          verifyNoOustandingExpectations: function() {
-            if (this._expectations.length === 0)
-              return ;
-            var urls = [];
-            for (var i = 0; i < this._expectations.length; i++) {
-              var expectation = this._expectations[i];
-              ListWrapper.push(urls, expectation.url);
-            }
-            throw new BaseException(("Unsatisfied requests: " + ListWrapper.join(urls, ', ')));
-          },
-          _processRequest: function(request) {
-            var url = request.url;
-            if (this._expectations.length > 0) {
-              var expectation = this._expectations[0];
-              if (expectation.url == url) {
-                ListWrapper.remove(this._expectations, expectation);
-                request.complete(expectation.response);
-                return ;
-              }
-            }
-            if (MapWrapper.contains(this._definitions, url)) {
-              var response = MapWrapper.get(this._definitions, url);
-              request.complete(normalizeBlank(response));
-              return ;
-            }
-            throw new BaseException(("Unexpected request " + url));
-          }
-        }, {}, $__super);
-      }(XHR)));
-      Object.defineProperty(XHRMock.prototype.get, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(XHRMock.prototype.expect, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(XHRMock.prototype.when, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(XHRMock.prototype._processRequest, "parameters", {get: function() {
-          return [[_PendingRequest]];
-        }});
-      _PendingRequest = (function() {
-        var _PendingRequest = function _PendingRequest(url) {
-          this.url = url;
-          this.completer = PromiseWrapper.completer();
-        };
-        return ($traceurRuntime.createClass)(_PendingRequest, {
-          complete: function(response) {
-            if (isBlank(response)) {
-              this.completer.reject(("Failed to load " + this.url));
-            } else {
-              this.completer.resolve(response);
-            }
-          },
-          getPromise: function() {
-            return this.completer.promise;
-          }
-        }, {});
-      }());
-      Object.defineProperty(_PendingRequest.prototype.complete, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      _Expectation = (function() {
-        var _Expectation = function _Expectation(url, response) {
-          this.url = url;
-          this.response = response;
-        };
-        return ($traceurRuntime.createClass)(_Expectation, {}, {});
-      }());
-      Object.defineProperty(_Expectation, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string]];
-        }});
-    }
-  };
-});
-
 System.register("angular2/src/forms/directives", ["angular2/angular2", "angular2/di", "angular2/src/facade/lang", "angular2/src/facade/collection", "./model", "./validators"], function($__export) {
   "use strict";
   var __moduleName = "angular2/src/forms/directives";
@@ -6314,6 +6120,200 @@ System.register("angular2/src/forms/validators", ["angular2/src/facade/lang", "a
         }});
       Object.defineProperty(Validators.array, "parameters", {get: function() {
           return [[modelModule.ControlArray]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/mock/template_resolver_mock", ["angular2/src/facade/collection", "angular2/src/facade/lang", "angular2/src/core/annotations/template", "angular2/src/core/compiler/template_resolver"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/mock/template_resolver_mock";
+  var Map,
+      MapWrapper,
+      ListWrapper,
+      Type,
+      isPresent,
+      Template,
+      TemplateResolver,
+      MockTemplateResolver;
+  return {
+    setters: [function($__m) {
+      Map = $__m.Map;
+      MapWrapper = $__m.MapWrapper;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      Type = $__m.Type;
+      isPresent = $__m.isPresent;
+    }, function($__m) {
+      Template = $__m.Template;
+    }, function($__m) {
+      TemplateResolver = $__m.TemplateResolver;
+    }],
+    execute: function() {
+      MockTemplateResolver = $__export("MockTemplateResolver", (function($__super) {
+        var MockTemplateResolver = function MockTemplateResolver() {
+          $traceurRuntime.superConstructor(MockTemplateResolver).call(this);
+          this._cmpTemplates = MapWrapper.create();
+        };
+        return ($traceurRuntime.createClass)(MockTemplateResolver, {
+          setTemplate: function(component, template) {
+            MapWrapper.set(this._cmpTemplates, component, template);
+          },
+          resolve: function(component) {
+            var override = MapWrapper.get(this._cmpTemplates, component);
+            if (isPresent(override)) {
+              return override;
+            }
+            return $traceurRuntime.superGet(this, MockTemplateResolver.prototype, "resolve").call(this, component);
+          }
+        }, {}, $__super);
+      }(TemplateResolver)));
+      Object.defineProperty(MockTemplateResolver.prototype.setTemplate, "parameters", {get: function() {
+          return [[Type], [Template]];
+        }});
+      Object.defineProperty(MockTemplateResolver.prototype.resolve, "parameters", {get: function() {
+          return [[Type]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/mock/xhr_mock", ["angular2/src/core/compiler/xhr/xhr", "angular2/src/facade/collection", "angular2/src/facade/lang", "angular2/src/facade/async"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/mock/xhr_mock";
+  var XHR,
+      List,
+      ListWrapper,
+      Map,
+      MapWrapper,
+      isBlank,
+      isPresent,
+      normalizeBlank,
+      BaseException,
+      PromiseWrapper,
+      Promise,
+      XHRMock,
+      _PendingRequest,
+      _Expectation;
+  return {
+    setters: [function($__m) {
+      XHR = $__m.XHR;
+    }, function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+      Map = $__m.Map;
+      MapWrapper = $__m.MapWrapper;
+    }, function($__m) {
+      isBlank = $__m.isBlank;
+      isPresent = $__m.isPresent;
+      normalizeBlank = $__m.normalizeBlank;
+      BaseException = $__m.BaseException;
+    }, function($__m) {
+      PromiseWrapper = $__m.PromiseWrapper;
+      Promise = $__m.Promise;
+    }],
+    execute: function() {
+      XHRMock = $__export("XHRMock", (function($__super) {
+        var XHRMock = function XHRMock() {
+          $traceurRuntime.superConstructor(XHRMock).call(this);
+          this._expectations = [];
+          this._definitions = MapWrapper.create();
+          this._requests = [];
+        };
+        return ($traceurRuntime.createClass)(XHRMock, {
+          get: function(url) {
+            var request = new _PendingRequest(url);
+            ListWrapper.push(this._requests, request);
+            return request.getPromise();
+          },
+          expect: function(url, response) {
+            var expectation = new _Expectation(url, response);
+            ListWrapper.push(this._expectations, expectation);
+          },
+          when: function(url, response) {
+            MapWrapper.set(this._definitions, url, response);
+          },
+          flush: function() {
+            if (this._requests.length === 0) {
+              throw new BaseException('No pending requests to flush');
+            }
+            do {
+              var request = ListWrapper.removeAt(this._requests, 0);
+              this._processRequest(request);
+            } while (this._requests.length > 0);
+            this.verifyNoOustandingExpectations();
+          },
+          verifyNoOustandingExpectations: function() {
+            if (this._expectations.length === 0)
+              return ;
+            var urls = [];
+            for (var i = 0; i < this._expectations.length; i++) {
+              var expectation = this._expectations[i];
+              ListWrapper.push(urls, expectation.url);
+            }
+            throw new BaseException(("Unsatisfied requests: " + ListWrapper.join(urls, ', ')));
+          },
+          _processRequest: function(request) {
+            var url = request.url;
+            if (this._expectations.length > 0) {
+              var expectation = this._expectations[0];
+              if (expectation.url == url) {
+                ListWrapper.remove(this._expectations, expectation);
+                request.complete(expectation.response);
+                return ;
+              }
+            }
+            if (MapWrapper.contains(this._definitions, url)) {
+              var response = MapWrapper.get(this._definitions, url);
+              request.complete(normalizeBlank(response));
+              return ;
+            }
+            throw new BaseException(("Unexpected request " + url));
+          }
+        }, {}, $__super);
+      }(XHR)));
+      Object.defineProperty(XHRMock.prototype.get, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(XHRMock.prototype.expect, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(XHRMock.prototype.when, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(XHRMock.prototype._processRequest, "parameters", {get: function() {
+          return [[_PendingRequest]];
+        }});
+      _PendingRequest = (function() {
+        var _PendingRequest = function _PendingRequest(url) {
+          this.url = url;
+          this.completer = PromiseWrapper.completer();
+        };
+        return ($traceurRuntime.createClass)(_PendingRequest, {
+          complete: function(response) {
+            if (isBlank(response)) {
+              this.completer.reject(("Failed to load " + this.url));
+            } else {
+              this.completer.resolve(response);
+            }
+          },
+          getPromise: function() {
+            return this.completer.promise;
+          }
+        }, {});
+      }());
+      Object.defineProperty(_PendingRequest.prototype.complete, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      _Expectation = (function() {
+        var _Expectation = function _Expectation(url, response) {
+          this.url = url;
+          this.response = response;
+        };
+        return ($traceurRuntime.createClass)(_Expectation, {}, {});
+      }());
+      Object.defineProperty(_Expectation, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string]];
         }});
     }
   };
@@ -9087,723 +9087,6 @@ System.register("angular2/src/change_detection/parser/parser", ["angular2/di", "
   };
 });
 
-System.register("angular2/src/core/annotations/annotations", ["angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/di"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/annotations";
-  var ABSTRACT,
-      CONST,
-      normalizeBlank,
-      isPresent,
-      ListWrapper,
-      List,
-      Injectable,
-      Directive,
-      Component,
-      DynamicComponent,
-      Decorator,
-      Viewport,
-      onDestroy,
-      onChange,
-      onAllChangesDone;
-  return {
-    setters: [function($__m) {
-      ABSTRACT = $__m.ABSTRACT;
-      CONST = $__m.CONST;
-      normalizeBlank = $__m.normalizeBlank;
-      isPresent = $__m.isPresent;
-    }, function($__m) {
-      ListWrapper = $__m.ListWrapper;
-      List = $__m.List;
-    }, function($__m) {
-      Injectable = $__m.Injectable;
-    }],
-    execute: function() {
-      Directive = $__export("Directive", (function($__super) {
-        var Directive = function Directive() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(Directive).call(this);
-          this.selector = selector;
-          this.bind = bind;
-          this.events = events;
-          this.lifecycle = lifecycle;
-        };
-        return ($traceurRuntime.createClass)(Directive, {hasLifecycleHook: function(hook) {
-            return isPresent(this.lifecycle) ? ListWrapper.contains(this.lifecycle, hook) : false;
-          }}, {}, $__super);
-      }(Injectable)));
-      Object.defineProperty(Directive, "annotations", {get: function() {
-          return [new ABSTRACT(), new CONST()];
-        }});
-      Object.defineProperty(Directive.prototype.hasLifecycleHook, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Component = $__export("Component", (function($__super) {
-        var Component = function Component() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              services = $__1.services,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(Component).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-          this.services = services;
-        };
-        return ($traceurRuntime.createClass)(Component, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(Component, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      DynamicComponent = $__export("DynamicComponent", (function($__super) {
-        var DynamicComponent = function DynamicComponent() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              services = $__1.services,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(DynamicComponent).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-          this.services = services;
-        };
-        return ($traceurRuntime.createClass)(DynamicComponent, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(DynamicComponent, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Decorator = $__export("Decorator", (function($__super) {
-        var Decorator = function Decorator() {
-          var $__2;
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              lifecycle = $__1.lifecycle,
-              compileChildren = ($__2 = $__1.compileChildren) === void 0 ? true : $__2;
-          $traceurRuntime.superConstructor(Decorator).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-          this.compileChildren = compileChildren;
-        };
-        return ($traceurRuntime.createClass)(Decorator, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(Decorator, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Viewport = $__export("Viewport", (function($__super) {
-        var Viewport = function Viewport() {
-          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
-              selector = $__1.selector,
-              bind = $__1.bind,
-              events = $__1.events,
-              lifecycle = $__1.lifecycle;
-          $traceurRuntime.superConstructor(Viewport).call(this, {
-            selector: selector,
-            bind: bind,
-            events: events,
-            lifecycle: lifecycle
-          });
-        };
-        return ($traceurRuntime.createClass)(Viewport, {}, {}, $__super);
-      }(Directive)));
-      Object.defineProperty(Viewport, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      onDestroy = $__export("onDestroy", "onDestroy");
-      onChange = $__export("onChange", "onChange");
-      onAllChangesDone = $__export("onAllChangesDone", "onAllChangesDone");
-    }
-  };
-});
-
-System.register("angular2/src/core/annotations/di", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/di";
-  var CONST,
-      DependencyAnnotation,
-      EventEmitter,
-      PropertySetter,
-      Attribute;
-  return {
-    setters: [function($__m) {
-      CONST = $__m.CONST;
-    }, function($__m) {
-      DependencyAnnotation = $__m.DependencyAnnotation;
-    }],
-    execute: function() {
-      EventEmitter = $__export("EventEmitter", (function($__super) {
-        var EventEmitter = function EventEmitter(eventName) {
-          $traceurRuntime.superConstructor(EventEmitter).call(this);
-          this.eventName = eventName;
-        };
-        return ($traceurRuntime.createClass)(EventEmitter, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(EventEmitter, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      PropertySetter = $__export("PropertySetter", (function($__super) {
-        var PropertySetter = function PropertySetter(propName) {
-          $traceurRuntime.superConstructor(PropertySetter).call(this);
-          this.propName = propName;
-        };
-        return ($traceurRuntime.createClass)(PropertySetter, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(PropertySetter, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Attribute = $__export("Attribute", (function($__super) {
-        var Attribute = function Attribute(attributeName) {
-          $traceurRuntime.superConstructor(Attribute).call(this);
-          this.attributeName = attributeName;
-        };
-        return ($traceurRuntime.createClass)(Attribute, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(Attribute, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/annotations/template", ["angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/template";
-  var ABSTRACT,
-      CONST,
-      Type,
-      Template;
-  return {
-    setters: [function($__m) {
-      ABSTRACT = $__m.ABSTRACT;
-      CONST = $__m.CONST;
-      Type = $__m.Type;
-    }],
-    execute: function() {
-      Template = $__export("Template", (function() {
-        var Template = function Template($__1) {
-          var $__2 = $__1,
-              url = $__2.url,
-              inline = $__2.inline,
-              directives = $__2.directives,
-              formatters = $__2.formatters,
-              source = $__2.source,
-              locale = $__2.locale,
-              device = $__2.device;
-          this.url = url;
-          this.inline = inline;
-          this.directives = directives;
-          this.formatters = formatters;
-          this.source = source;
-          this.locale = locale;
-          this.device = device;
-        };
-        return ($traceurRuntime.createClass)(Template, {}, {});
-      }()));
-      Object.defineProperty(Template, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/annotations/visibility", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/annotations/visibility";
-  var CONST,
-      DependencyAnnotation,
-      Parent,
-      Ancestor;
-  return {
-    setters: [function($__m) {
-      CONST = $__m.CONST;
-    }, function($__m) {
-      DependencyAnnotation = $__m.DependencyAnnotation;
-    }],
-    execute: function() {
-      Parent = $__export("Parent", (function($__super) {
-        var Parent = function Parent() {
-          $traceurRuntime.superConstructor(Parent).call(this);
-        };
-        return ($traceurRuntime.createClass)(Parent, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(Parent, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-      Ancestor = $__export("Ancestor", (function($__super) {
-        var Ancestor = function Ancestor() {
-          $traceurRuntime.superConstructor(Ancestor).call(this);
-        };
-        return ($traceurRuntime.createClass)(Ancestor, {}, {}, $__super);
-      }(DependencyAnnotation)));
-      Object.defineProperty(Ancestor, "annotations", {get: function() {
-          return [new CONST()];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/events/event_manager", ["angular2/src/facade/lang", "angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/core/zone/vm_turn_zone"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/events/event_manager";
-  var isBlank,
-      BaseException,
-      isPresent,
-      StringWrapper,
-      DOM,
-      List,
-      ListWrapper,
-      MapWrapper,
-      VmTurnZone,
-      BUBBLE_SYMBOL,
-      EventManager,
-      EventManagerPlugin,
-      DomEventsPlugin;
-  return {
-    setters: [function($__m) {
-      isBlank = $__m.isBlank;
-      BaseException = $__m.BaseException;
-      isPresent = $__m.isPresent;
-      StringWrapper = $__m.StringWrapper;
-    }, function($__m) {
-      DOM = $__m.DOM;
-    }, function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-      MapWrapper = $__m.MapWrapper;
-    }, function($__m) {
-      VmTurnZone = $__m.VmTurnZone;
-    }],
-    execute: function() {
-      BUBBLE_SYMBOL = '^';
-      EventManager = $__export("EventManager", (function() {
-        var EventManager = function EventManager(plugins, zone) {
-          this._zone = zone;
-          this._plugins = plugins;
-          for (var i = 0; i < plugins.length; i++) {
-            plugins[i].manager = this;
-          }
-        };
-        return ($traceurRuntime.createClass)(EventManager, {
-          addEventListener: function(element, eventName, handler) {
-            var shouldSupportBubble = eventName[0] == BUBBLE_SYMBOL;
-            if (shouldSupportBubble) {
-              eventName = StringWrapper.substring(eventName, 1);
-            }
-            var plugin = this._findPluginFor(eventName);
-            plugin.addEventListener(element, eventName, handler, shouldSupportBubble);
-          },
-          getZone: function() {
-            return this._zone;
-          },
-          _findPluginFor: function(eventName) {
-            var plugins = this._plugins;
-            for (var i = 0; i < plugins.length; i++) {
-              var plugin = plugins[i];
-              if (plugin.supports(eventName)) {
-                return plugin;
-              }
-            }
-            throw new BaseException(("No event manager plugin found for event " + eventName));
-          }
-        }, {});
-      }()));
-      Object.defineProperty(EventManager, "parameters", {get: function() {
-          return [[assert.genericType(List, EventManagerPlugin)], [VmTurnZone]];
-        }});
-      Object.defineProperty(EventManager.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function]];
-        }});
-      Object.defineProperty(EventManager.prototype._findPluginFor, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      EventManagerPlugin = $__export("EventManagerPlugin", (function() {
-        var EventManagerPlugin = function EventManagerPlugin() {};
-        return ($traceurRuntime.createClass)(EventManagerPlugin, {
-          supports: function(eventName) {
-            return false;
-          },
-          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
-            throw "not implemented";
-          }
-        }, {});
-      }()));
-      Object.defineProperty(EventManagerPlugin.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(EventManagerPlugin.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function], [assert.type.boolean]];
-        }});
-      DomEventsPlugin = $__export("DomEventsPlugin", (function($__super) {
-        var DomEventsPlugin = function DomEventsPlugin() {
-          $traceurRuntime.superConstructor(DomEventsPlugin).apply(this, arguments);
-        };
-        return ($traceurRuntime.createClass)(DomEventsPlugin, {
-          supports: function(eventName) {
-            return true;
-          },
-          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
-            var outsideHandler = shouldSupportBubble ? DomEventsPlugin.bubbleCallback(element, handler, this.manager._zone) : DomEventsPlugin.sameElementCallback(element, handler, this.manager._zone);
-            this.manager._zone.runOutsideAngular((function() {
-              DOM.on(element, eventName, outsideHandler);
-            }));
-          }
-        }, {
-          sameElementCallback: function(element, handler, zone) {
-            return (function(event) {
-              if (event.target === element) {
-                zone.run((function() {
-                  return handler(event);
-                }));
-              }
-            });
-          },
-          bubbleCallback: function(element, handler, zone) {
-            return (function(event) {
-              return zone.run((function() {
-                return handler(event);
-              }));
-            });
-          }
-        }, $__super);
-      }(EventManagerPlugin)));
-      Object.defineProperty(DomEventsPlugin.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(DomEventsPlugin.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function], [assert.type.boolean]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/events/hammer_common", ["./event_manager", "angular2/src/facade/collection"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/events/hammer_common";
-  var EventManagerPlugin,
-      StringMapWrapper,
-      _eventNames,
-      HammerGesturesPluginCommon;
-  return {
-    setters: [function($__m) {
-      EventManagerPlugin = $__m.EventManagerPlugin;
-    }, function($__m) {
-      StringMapWrapper = $__m.StringMapWrapper;
-    }],
-    execute: function() {
-      _eventNames = {
-        'pan': true,
-        'panstart': true,
-        'panmove': true,
-        'panend': true,
-        'pancancel': true,
-        'panleft': true,
-        'panright': true,
-        'panup': true,
-        'pandown': true,
-        'pinch': true,
-        'pinchstart': true,
-        'pinchmove': true,
-        'pinchend': true,
-        'pinchcancel': true,
-        'pinchin': true,
-        'pinchout': true,
-        'press': true,
-        'pressup': true,
-        'rotate': true,
-        'rotatestart': true,
-        'rotatemove': true,
-        'rotateend': true,
-        'rotatecancel': true,
-        'swipe': true,
-        'swipeleft': true,
-        'swiperight': true,
-        'swipeup': true,
-        'swipedown': true,
-        'tap': true
-      };
-      HammerGesturesPluginCommon = $__export("HammerGesturesPluginCommon", (function($__super) {
-        var HammerGesturesPluginCommon = function HammerGesturesPluginCommon() {
-          $traceurRuntime.superConstructor(HammerGesturesPluginCommon).call(this);
-        };
-        return ($traceurRuntime.createClass)(HammerGesturesPluginCommon, {supports: function(eventName) {
-            eventName = eventName.toLowerCase();
-            return StringMapWrapper.contains(_eventNames, eventName);
-          }}, {}, $__super);
-      }(EventManagerPlugin)));
-      Object.defineProperty(HammerGesturesPluginCommon.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/events/hammer_gestures", ["./hammer_common", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/events/hammer_gestures";
-  var HammerGesturesPluginCommon,
-      isPresent,
-      BaseException,
-      HammerGesturesPlugin;
-  return {
-    setters: [function($__m) {
-      HammerGesturesPluginCommon = $__m.HammerGesturesPluginCommon;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-      BaseException = $__m.BaseException;
-    }],
-    execute: function() {
-      HammerGesturesPlugin = $__export("HammerGesturesPlugin", (function($__super) {
-        var HammerGesturesPlugin = function HammerGesturesPlugin() {
-          $traceurRuntime.superConstructor(HammerGesturesPlugin).call(this);
-        };
-        return ($traceurRuntime.createClass)(HammerGesturesPlugin, {
-          supports: function(eventName) {
-            if (!$traceurRuntime.superGet(this, HammerGesturesPlugin.prototype, "supports").call(this, eventName))
-              return false;
-            if (!isPresent(window.Hammer)) {
-              throw new BaseException(("Hammer.js is not loaded, can not bind " + eventName + " event"));
-            }
-            return true;
-          },
-          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
-            if (shouldSupportBubble)
-              throw new BaseException('Hammer.js plugin does not support bubbling gestures.');
-            var zone = this.manager.getZone();
-            eventName = eventName.toLowerCase();
-            zone.runOutsideAngular(function() {
-              var mc = new Hammer(element);
-              mc.get('pinch').set({enable: true});
-              mc.get('rotate').set({enable: true});
-              mc.on(eventName, function(eventObj) {
-                zone.run(function() {
-                  handler(eventObj);
-                });
-              });
-            });
-          }
-        }, {}, $__super);
-      }(HammerGesturesPluginCommon)));
-      Object.defineProperty(HammerGesturesPlugin.prototype.supports, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(HammerGesturesPlugin.prototype.addEventListener, "parameters", {get: function() {
-          return [[], [assert.type.string], [Function], [assert.type.boolean]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/life_cycle/life_cycle", ["angular2/di", "angular2/change_detection", "angular2/src/core/zone/vm_turn_zone", "angular2/src/core/exception_handler", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/life_cycle/life_cycle";
-  var Injectable,
-      ChangeDetector,
-      VmTurnZone,
-      ExceptionHandler,
-      isPresent,
-      LifeCycle;
-  return {
-    setters: [function($__m) {
-      Injectable = $__m.Injectable;
-    }, function($__m) {
-      ChangeDetector = $__m.ChangeDetector;
-    }, function($__m) {
-      VmTurnZone = $__m.VmTurnZone;
-    }, function($__m) {
-      ExceptionHandler = $__m.ExceptionHandler;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-    }],
-    execute: function() {
-      LifeCycle = $__export("LifeCycle", (function() {
-        var LifeCycle = function LifeCycle(exceptionHandler) {
-          var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
-          var enforceNoNewChanges = arguments[2] !== (void 0) ? arguments[2] : false;
-          this._errorHandler = (function(exception, stackTrace) {
-            exceptionHandler.call(exception, stackTrace);
-            throw exception;
-          });
-          this._changeDetector = changeDetector;
-          this._enforceNoNewChanges = enforceNoNewChanges;
-        };
-        return ($traceurRuntime.createClass)(LifeCycle, {
-          registerWith: function(zone) {
-            var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
-            var $__0 = this;
-            if (isPresent(changeDetector)) {
-              this._changeDetector = changeDetector;
-            }
-            zone.initCallbacks({
-              onErrorHandler: this._errorHandler,
-              onTurnDone: (function() {
-                return $__0.tick();
-              })
-            });
-          },
-          tick: function() {
-            this._changeDetector.detectChanges();
-            if (this._enforceNoNewChanges) {
-              this._changeDetector.checkNoChanges();
-            }
-          }
-        }, {});
-      }()));
-      Object.defineProperty(LifeCycle, "annotations", {get: function() {
-          return [new Injectable()];
-        }});
-      Object.defineProperty(LifeCycle, "parameters", {get: function() {
-          return [[ExceptionHandler], [ChangeDetector], [assert.type.boolean]];
-        }});
-      Object.defineProperty(LifeCycle.prototype.registerWith, "parameters", {get: function() {
-          return [[VmTurnZone], [ChangeDetector]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/zone/vm_turn_zone", ["angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/zone/vm_turn_zone";
-  var List,
-      ListWrapper,
-      StringMapWrapper,
-      normalizeBlank,
-      isPresent,
-      global,
-      VmTurnZone;
-  return {
-    setters: [function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-      StringMapWrapper = $__m.StringMapWrapper;
-    }, function($__m) {
-      normalizeBlank = $__m.normalizeBlank;
-      isPresent = $__m.isPresent;
-      global = $__m.global;
-    }],
-    execute: function() {
-      VmTurnZone = $__export("VmTurnZone", (function() {
-        var VmTurnZone = function VmTurnZone($__2) {
-          var enableLongStackTrace = $__2.enableLongStackTrace;
-          this._nestedRunCounter = 0;
-          this._onTurnStart = null;
-          this._onTurnDone = null;
-          this._onErrorHandler = null;
-          this._outerZone = global.zone;
-          this._innerZone = this._createInnerZone(this._outerZone, enableLongStackTrace);
-        };
-        return ($traceurRuntime.createClass)(VmTurnZone, {
-          initCallbacks: function() {
-            var $__2 = arguments[0] !== (void 0) ? arguments[0] : {},
-                onTurnStart = $__2.onTurnStart,
-                onTurnDone = $__2.onTurnDone,
-                onScheduleMicrotask = $__2.onScheduleMicrotask,
-                onErrorHandler = $__2.onErrorHandler;
-            this._onTurnStart = normalizeBlank(onTurnStart);
-            this._onTurnDone = normalizeBlank(onTurnDone);
-            this._onErrorHandler = normalizeBlank(onErrorHandler);
-          },
-          run: function(fn) {
-            return this._innerZone.run(fn);
-          },
-          runOutsideAngular: function(fn) {
-            return this._outerZone.run(fn);
-          },
-          _createInnerZone: function(zone, enableLongStackTrace) {
-            var $__0 = this;
-            var vmTurnZone = this;
-            var errorHandling;
-            if (enableLongStackTrace) {
-              errorHandling = StringMapWrapper.merge(Zone.longStackTraceZone, {onError: function(e) {
-                  vmTurnZone._onError(this, e);
-                }});
-            } else {
-              errorHandling = {onError: function(e) {
-                  vmTurnZone._onError(this, e);
-                }};
-            }
-            return zone.fork(errorHandling).fork({
-              beforeTask: (function() {
-                $__0._beforeTask();
-              }),
-              afterTask: (function() {
-                $__0._afterTask();
-              })
-            });
-          },
-          _beforeTask: function() {
-            this._nestedRunCounter++;
-            if (this._nestedRunCounter === 1 && this._onTurnStart) {
-              this._onTurnStart();
-            }
-          },
-          _afterTask: function() {
-            this._nestedRunCounter--;
-            if (this._nestedRunCounter === 0 && this._onTurnDone) {
-              this._onTurnDone();
-            }
-          },
-          _onError: function(zone, e) {
-            if (isPresent(this._onErrorHandler)) {
-              var trace = [normalizeBlank(e.stack)];
-              while (zone && zone.constructedAtException) {
-                trace.push(zone.constructedAtException.get());
-                zone = zone.parent;
-              }
-              this._onErrorHandler(e, trace);
-            } else {
-              throw e;
-            }
-          }
-        }, {});
-      }()));
-    }
-  };
-});
-
-System.register("angular2/src/core/dom/element", ["angular2/src/dom/dom_adapter", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/dom/element";
-  var DOM,
-      normalizeBlank,
-      NgElement;
-  return {
-    setters: [function($__m) {
-      DOM = $__m.DOM;
-    }, function($__m) {
-      normalizeBlank = $__m.normalizeBlank;
-    }],
-    execute: function() {
-      NgElement = $__export("NgElement", (function() {
-        var NgElement = function NgElement(domElement) {
-          this.domElement = domElement;
-        };
-        return ($traceurRuntime.createClass)(NgElement, {getAttribute: function(name) {
-            return normalizeBlank(DOM.getAttribute(this.domElement, name));
-          }}, {});
-      }()));
-      Object.defineProperty(NgElement.prototype.getAttribute, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-    }
-  };
-});
-
 System.register("angular2/src/change_detection/pipes/iterable_changes", ["angular2/src/facade/collection", "angular2/src/facade/lang", "./pipe"], function($__export) {
   "use strict";
   var __moduleName = "angular2/src/change_detection/pipes/iterable_changes";
@@ -10784,6 +10067,276 @@ System.register("angular2/src/change_detection/pipes/pipe_registry", ["angular2/
       }()));
       Object.defineProperty(PipeRegistry.prototype.get, "parameters", {get: function() {
           return [[assert.type.string], [], [BindingPropagationConfig]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/annotations", ["angular2/src/facade/lang", "angular2/src/facade/collection", "angular2/di"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/annotations";
+  var ABSTRACT,
+      CONST,
+      normalizeBlank,
+      isPresent,
+      ListWrapper,
+      List,
+      Injectable,
+      Directive,
+      Component,
+      DynamicComponent,
+      Decorator,
+      Viewport,
+      onDestroy,
+      onChange,
+      onAllChangesDone;
+  return {
+    setters: [function($__m) {
+      ABSTRACT = $__m.ABSTRACT;
+      CONST = $__m.CONST;
+      normalizeBlank = $__m.normalizeBlank;
+      isPresent = $__m.isPresent;
+    }, function($__m) {
+      ListWrapper = $__m.ListWrapper;
+      List = $__m.List;
+    }, function($__m) {
+      Injectable = $__m.Injectable;
+    }],
+    execute: function() {
+      Directive = $__export("Directive", (function($__super) {
+        var Directive = function Directive() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(Directive).call(this);
+          this.selector = selector;
+          this.bind = bind;
+          this.events = events;
+          this.lifecycle = lifecycle;
+        };
+        return ($traceurRuntime.createClass)(Directive, {hasLifecycleHook: function(hook) {
+            return isPresent(this.lifecycle) ? ListWrapper.contains(this.lifecycle, hook) : false;
+          }}, {}, $__super);
+      }(Injectable)));
+      Object.defineProperty(Directive, "annotations", {get: function() {
+          return [new ABSTRACT(), new CONST()];
+        }});
+      Object.defineProperty(Directive.prototype.hasLifecycleHook, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Component = $__export("Component", (function($__super) {
+        var Component = function Component() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              services = $__1.services,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(Component).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+          this.services = services;
+        };
+        return ($traceurRuntime.createClass)(Component, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(Component, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      DynamicComponent = $__export("DynamicComponent", (function($__super) {
+        var DynamicComponent = function DynamicComponent() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              services = $__1.services,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(DynamicComponent).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+          this.services = services;
+        };
+        return ($traceurRuntime.createClass)(DynamicComponent, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(DynamicComponent, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Decorator = $__export("Decorator", (function($__super) {
+        var Decorator = function Decorator() {
+          var $__2;
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              lifecycle = $__1.lifecycle,
+              compileChildren = ($__2 = $__1.compileChildren) === void 0 ? true : $__2;
+          $traceurRuntime.superConstructor(Decorator).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+          this.compileChildren = compileChildren;
+        };
+        return ($traceurRuntime.createClass)(Decorator, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(Decorator, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Viewport = $__export("Viewport", (function($__super) {
+        var Viewport = function Viewport() {
+          var $__1 = arguments[0] !== (void 0) ? arguments[0] : {},
+              selector = $__1.selector,
+              bind = $__1.bind,
+              events = $__1.events,
+              lifecycle = $__1.lifecycle;
+          $traceurRuntime.superConstructor(Viewport).call(this, {
+            selector: selector,
+            bind: bind,
+            events: events,
+            lifecycle: lifecycle
+          });
+        };
+        return ($traceurRuntime.createClass)(Viewport, {}, {}, $__super);
+      }(Directive)));
+      Object.defineProperty(Viewport, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      onDestroy = $__export("onDestroy", "onDestroy");
+      onChange = $__export("onChange", "onChange");
+      onAllChangesDone = $__export("onAllChangesDone", "onAllChangesDone");
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/di", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/di";
+  var CONST,
+      DependencyAnnotation,
+      EventEmitter,
+      PropertySetter,
+      Attribute;
+  return {
+    setters: [function($__m) {
+      CONST = $__m.CONST;
+    }, function($__m) {
+      DependencyAnnotation = $__m.DependencyAnnotation;
+    }],
+    execute: function() {
+      EventEmitter = $__export("EventEmitter", (function($__super) {
+        var EventEmitter = function EventEmitter(eventName) {
+          $traceurRuntime.superConstructor(EventEmitter).call(this);
+          this.eventName = eventName;
+        };
+        return ($traceurRuntime.createClass)(EventEmitter, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(EventEmitter, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      PropertySetter = $__export("PropertySetter", (function($__super) {
+        var PropertySetter = function PropertySetter(propName) {
+          $traceurRuntime.superConstructor(PropertySetter).call(this);
+          this.propName = propName;
+        };
+        return ($traceurRuntime.createClass)(PropertySetter, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(PropertySetter, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Attribute = $__export("Attribute", (function($__super) {
+        var Attribute = function Attribute(attributeName) {
+          $traceurRuntime.superConstructor(Attribute).call(this);
+          this.attributeName = attributeName;
+        };
+        return ($traceurRuntime.createClass)(Attribute, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(Attribute, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/template", ["angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/template";
+  var ABSTRACT,
+      CONST,
+      Type,
+      Template;
+  return {
+    setters: [function($__m) {
+      ABSTRACT = $__m.ABSTRACT;
+      CONST = $__m.CONST;
+      Type = $__m.Type;
+    }],
+    execute: function() {
+      Template = $__export("Template", (function() {
+        var Template = function Template($__1) {
+          var $__2 = $__1,
+              url = $__2.url,
+              inline = $__2.inline,
+              directives = $__2.directives,
+              formatters = $__2.formatters,
+              source = $__2.source,
+              locale = $__2.locale,
+              device = $__2.device;
+          this.url = url;
+          this.inline = inline;
+          this.directives = directives;
+          this.formatters = formatters;
+          this.source = source;
+          this.locale = locale;
+          this.device = device;
+        };
+        return ($traceurRuntime.createClass)(Template, {}, {});
+      }()));
+      Object.defineProperty(Template, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/annotations/visibility", ["angular2/src/facade/lang", "angular2/di"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/annotations/visibility";
+  var CONST,
+      DependencyAnnotation,
+      Parent,
+      Ancestor;
+  return {
+    setters: [function($__m) {
+      CONST = $__m.CONST;
+    }, function($__m) {
+      DependencyAnnotation = $__m.DependencyAnnotation;
+    }],
+    execute: function() {
+      Parent = $__export("Parent", (function($__super) {
+        var Parent = function Parent() {
+          $traceurRuntime.superConstructor(Parent).call(this);
+        };
+        return ($traceurRuntime.createClass)(Parent, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(Parent, "annotations", {get: function() {
+          return [new CONST()];
+        }});
+      Ancestor = $__export("Ancestor", (function($__super) {
+        var Ancestor = function Ancestor() {
+          $traceurRuntime.superConstructor(Ancestor).call(this);
+        };
+        return ($traceurRuntime.createClass)(Ancestor, {}, {}, $__super);
+      }(DependencyAnnotation)));
+      Object.defineProperty(Ancestor, "annotations", {get: function() {
+          return [new CONST()];
         }});
     }
   };
@@ -14731,680 +14284,449 @@ System.register("angular2/src/core/compiler/view_pool", ["angular2/src/facade/co
   };
 });
 
-System.register("angular2/src/core/compiler/shadow_dom_emulation/content_tag", ["./light_dom", "angular2/di", "angular2/src/dom/dom_adapter", "angular2/src/facade/lang", "angular2/src/facade/collection"], function($__export) {
+System.register("angular2/src/core/dom/element", ["angular2/src/dom/dom_adapter", "angular2/src/facade/lang"], function($__export) {
   "use strict";
-  var __moduleName = "angular2/src/core/compiler/shadow_dom_emulation/content_tag";
-  var ldModule,
-      Inject,
-      Injectable,
-      DOM,
-      isPresent,
-      List,
-      ListWrapper,
-      ContentStrategy,
-      RenderedContent,
-      IntermediateContent,
-      Content;
-  return {
-    setters: [function($__m) {
-      ldModule = $__m;
-    }, function($__m) {
-      Inject = $__m.Inject;
-      Injectable = $__m.Injectable;
-    }, function($__m) {
-      DOM = $__m.DOM;
-    }, function($__m) {
-      isPresent = $__m.isPresent;
-    }, function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-    }],
-    execute: function() {
-      ContentStrategy = (function() {
-        var ContentStrategy = function ContentStrategy() {};
-        return ($traceurRuntime.createClass)(ContentStrategy, {insert: function(nodes) {}}, {});
-      }());
-      Object.defineProperty(ContentStrategy.prototype.insert, "parameters", {get: function() {
-          return [[List]];
-        }});
-      RenderedContent = (function($__super) {
-        var RenderedContent = function RenderedContent(contentEl) {
-          $traceurRuntime.superConstructor(RenderedContent).call(this);
-          this.beginScript = contentEl;
-          this.endScript = DOM.nextSibling(this.beginScript);
-          this.nodes = [];
-        };
-        return ($traceurRuntime.createClass)(RenderedContent, {
-          insert: function(nodes) {
-            this.nodes = nodes;
-            DOM.insertAllBefore(this.endScript, nodes);
-            this._removeNodesUntil(ListWrapper.isEmpty(nodes) ? this.endScript : nodes[0]);
-          },
-          _removeNodesUntil: function(node) {
-            var p = DOM.parentElement(this.beginScript);
-            for (var next = DOM.nextSibling(this.beginScript); next !== node; next = DOM.nextSibling(this.beginScript)) {
-              DOM.removeChild(p, next);
-            }
-          }
-        }, {}, $__super);
-      }(ContentStrategy));
-      Object.defineProperty(RenderedContent, "annotations", {get: function() {
-          return [new Injectable()];
-        }});
-      Object.defineProperty(RenderedContent.prototype.insert, "parameters", {get: function() {
-          return [[List]];
-        }});
-      IntermediateContent = (function($__super) {
-        var IntermediateContent = function IntermediateContent(destinationLightDom) {
-          $traceurRuntime.superConstructor(IntermediateContent).call(this);
-          this.destinationLightDom = destinationLightDom;
-          this.nodes = [];
-        };
-        return ($traceurRuntime.createClass)(IntermediateContent, {insert: function(nodes) {
-            this.nodes = nodes;
-            this.destinationLightDom.redistribute();
-          }}, {}, $__super);
-      }(ContentStrategy));
-      Object.defineProperty(IntermediateContent, "parameters", {get: function() {
-          return [[ldModule.LightDom]];
-        }});
-      Object.defineProperty(IntermediateContent.prototype.insert, "parameters", {get: function() {
-          return [[List]];
-        }});
-      Content = $__export("Content", (function() {
-        var Content = function Content(destinationLightDom, contentStartEl, selector) {
-          this.select = selector;
-          this.contentStartElement = contentStartEl;
-          this._strategy = isPresent(destinationLightDom) ? new IntermediateContent(destinationLightDom) : new RenderedContent(contentStartEl);
-        };
-        return ($traceurRuntime.createClass)(Content, {
-          nodes: function() {
-            return this._strategy.nodes;
-          },
-          insert: function(nodes) {
-            this._strategy.insert(nodes);
-          }
-        }, {});
-      }()));
-      Object.defineProperty(Content, "parameters", {get: function() {
-          return [[ldModule.LightDom], [], [assert.type.string]];
-        }});
-      Object.defineProperty(Content.prototype.insert, "parameters", {get: function() {
-          return [[List]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/compiler/shadow_dom_emulation/light_dom", ["angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/facade/lang", "../view", "./content_tag"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/compiler/shadow_dom_emulation/light_dom";
+  var __moduleName = "angular2/src/core/dom/element";
   var DOM,
-      List,
-      ListWrapper,
-      isBlank,
-      isPresent,
-      viewModule,
-      Content,
-      DestinationLightDom,
-      _Root,
-      LightDom;
-  function redistributeNodes(contents, nodes) {
-    for (var i = 0; i < contents.length; ++i) {
-      var content = contents[i];
-      var select = content.select;
-      var matchSelector = (function(n) {
-        return DOM.elementMatches(n, select);
-      });
-      if (select.length === 0) {
-        content.insert(nodes);
-        ListWrapper.clear(nodes);
-      } else {
-        var matchingNodes = ListWrapper.filter(nodes, matchSelector);
-        content.insert(matchingNodes);
-        ListWrapper.removeAll(nodes, matchingNodes);
-      }
-    }
-  }
+      normalizeBlank,
+      NgElement;
   return {
     setters: [function($__m) {
       DOM = $__m.DOM;
     }, function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      isBlank = $__m.isBlank;
-      isPresent = $__m.isPresent;
-    }, function($__m) {
-      viewModule = $__m;
-    }, function($__m) {
-      Content = $__m.Content;
+      normalizeBlank = $__m.normalizeBlank;
     }],
     execute: function() {
-      DestinationLightDom = $__export("DestinationLightDom", (function() {
-        var DestinationLightDom = function DestinationLightDom() {};
-        return ($traceurRuntime.createClass)(DestinationLightDom, {}, {});
-      }()));
-      _Root = (function() {
-        var _Root = function _Root(node, viewContainer, content) {
-          this.node = node;
-          this.viewContainer = viewContainer;
-          this.content = content;
+      NgElement = $__export("NgElement", (function() {
+        var NgElement = function NgElement(domElement) {
+          this.domElement = domElement;
         };
-        return ($traceurRuntime.createClass)(_Root, {}, {});
-      }());
-      LightDom = $__export("LightDom", (function() {
-        var LightDom = function LightDom(lightDomView, shadowDomView, element) {
-          this.lightDomView = lightDomView;
-          this.shadowDomView = shadowDomView;
-          this.nodes = DOM.childNodesAsList(element);
-          this.roots = null;
-        };
-        return ($traceurRuntime.createClass)(LightDom, {
-          redistribute: function() {
-            var tags = this.contentTags();
-            if (tags.length > 0) {
-              redistributeNodes(tags, this.expandedDomNodes());
-            }
-          },
-          contentTags: function() {
-            return this._collectAllContentTags(this.shadowDomView, []);
-          },
-          _collectAllContentTags: function(view, acc) {
-            var $__0 = this;
-            var contentTags = view.contentTags;
-            var vcs = view.viewContainers;
-            for (var i = 0; i < vcs.length; i++) {
-              var vc = vcs[i];
-              var contentTag = contentTags[i];
-              if (isPresent(contentTag)) {
-                ListWrapper.push(acc, contentTag);
-              }
-              if (isPresent(vc)) {
-                ListWrapper.forEach(vc.contentTagContainers(), (function(view) {
-                  $__0._collectAllContentTags(view, acc);
-                }));
-              }
-            }
-            return acc;
-          },
-          expandedDomNodes: function() {
-            var res = [];
-            var roots = this._roots();
-            for (var i = 0; i < roots.length; ++i) {
-              var root = roots[i];
-              if (isPresent(root.viewContainer)) {
-                res = ListWrapper.concat(res, root.viewContainer.nodes());
-              } else if (isPresent(root.content)) {
-                res = ListWrapper.concat(res, root.content.nodes());
-              } else {
-                ListWrapper.push(res, root.node);
-              }
-            }
-            return res;
-          },
-          _roots: function() {
-            if (isPresent(this.roots))
-              return this.roots;
-            var viewContainers = this.lightDomView.viewContainers;
-            var contentTags = this.lightDomView.contentTags;
-            this.roots = ListWrapper.map(this.nodes, (function(n) {
-              var foundVc = null;
-              var foundContentTag = null;
-              for (var i = 0; i < viewContainers.length; i++) {
-                var vc = viewContainers[i];
-                var contentTag = contentTags[i];
-                if (isPresent(vc) && vc.templateElement === n) {
-                  foundVc = vc;
-                }
-                if (isPresent(contentTag) && contentTag.contentStartElement === n) {
-                  foundContentTag = contentTag;
-                }
-              }
-              return new _Root(n, foundVc, foundContentTag);
-            }));
-            return this.roots;
-          }
-        }, {});
-      }()));
-      Object.defineProperty(LightDom, "parameters", {get: function() {
-          return [[viewModule.View], [viewModule.View], []];
-        }});
-      Object.defineProperty(LightDom.prototype._collectAllContentTags, "parameters", {get: function() {
-          return [[viewModule.View], [assert.genericType(List, Content)]];
-        }});
-      Object.defineProperty(redistributeNodes, "parameters", {get: function() {
-          return [[assert.genericType(List, Content)], [List]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/compiler/shadow_dom_emulation/shadow_css", ["angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/compiler/shadow_dom_emulation/shadow_css";
-  var DOM,
-      List,
-      ListWrapper,
-      StringWrapper,
-      RegExp,
-      RegExpWrapper,
-      RegExpMatcherWrapper,
-      isPresent,
-      isBlank,
-      BaseException,
-      int,
-      ShadowCss,
-      _cssContentNextSelectorRe,
-      _cssContentRuleRe,
-      _cssContentUnscopedRuleRe,
-      _polyfillHost,
-      _polyfillHostContext,
-      _parenSuffix,
-      _cssColonHostRe,
-      _cssColonHostContextRe,
-      _polyfillHostNoCombinator,
-      _shadowDOMSelectorsRe,
-      _selectorReSuffix,
-      _polyfillHostRe,
-      _colonHostRe,
-      _colonHostContextRe;
-  function _cssToRules(cssText) {
-    return DOM.cssToRules(cssText);
-  }
-  function _withCssRules(cssText, callback) {
-    if (isBlank(callback))
-      return ;
-    var rules = _cssToRules(cssText);
-    callback(rules);
-  }
-  return {
-    setters: [function($__m) {
-      DOM = $__m.DOM;
-    }, function($__m) {
-      List = $__m.List;
-      ListWrapper = $__m.ListWrapper;
-    }, function($__m) {
-      StringWrapper = $__m.StringWrapper;
-      RegExp = $__m.RegExp;
-      RegExpWrapper = $__m.RegExpWrapper;
-      RegExpMatcherWrapper = $__m.RegExpMatcherWrapper;
-      isPresent = $__m.isPresent;
-      isBlank = $__m.isBlank;
-      BaseException = $__m.BaseException;
-      int = $__m.int;
-    }],
-    execute: function() {
-      ShadowCss = $__export("ShadowCss", (function() {
-        var ShadowCss = function ShadowCss() {
-          this.strictStyling = true;
-        };
-        return ($traceurRuntime.createClass)(ShadowCss, {
-          shimStyle: function(style, selector) {
-            var hostSelector = arguments[2] !== (void 0) ? arguments[2] : '';
-            var cssText = DOM.getText(style);
-            return this.shimCssText(cssText, selector, hostSelector);
-          },
-          shimCssText: function(cssText, selector) {
-            var hostSelector = arguments[2] !== (void 0) ? arguments[2] : '';
-            cssText = this._insertDirectives(cssText);
-            return this._scopeCssText(cssText, selector, hostSelector);
-          },
-          _insertDirectives: function(cssText) {
-            cssText = this._insertPolyfillDirectivesInCssText(cssText);
-            return this._insertPolyfillRulesInCssText(cssText);
-          },
-          _insertPolyfillDirectivesInCssText: function(cssText) {
-            return StringWrapper.replaceAllMapped(cssText, _cssContentNextSelectorRe, function(m) {
-              return m[1] + '{';
-            });
-          },
-          _insertPolyfillRulesInCssText: function(cssText) {
-            return StringWrapper.replaceAllMapped(cssText, _cssContentRuleRe, function(m) {
-              var rule = m[0];
-              rule = StringWrapper.replace(rule, m[1], '');
-              rule = StringWrapper.replace(rule, m[2], '');
-              return m[3] + rule;
-            });
-          },
-          _scopeCssText: function(cssText, scopeSelector, hostSelector) {
-            var $__0 = this;
-            var unscoped = this._extractUnscopedRulesFromCssText(cssText);
-            cssText = this._insertPolyfillHostInCssText(cssText);
-            cssText = this._convertColonHost(cssText);
-            cssText = this._convertColonHostContext(cssText);
-            cssText = this._convertShadowDOMSelectors(cssText);
-            if (isPresent(scopeSelector)) {
-              _withCssRules(cssText, (function(rules) {
-                cssText = $__0._scopeRules(rules, scopeSelector, hostSelector);
-              }));
-            }
-            cssText = cssText + '\n' + unscoped;
-            return cssText.trim();
-          },
-          _extractUnscopedRulesFromCssText: function(cssText) {
-            var r = '',
-                m;
-            var matcher = RegExpWrapper.matcher(_cssContentUnscopedRuleRe, cssText);
-            while (isPresent(m = RegExpMatcherWrapper.next(matcher))) {
-              var rule = m[0];
-              rule = StringWrapper.replace(rule, m[2], '');
-              rule = StringWrapper.replace(rule, m[1], m[3]);
-              r = rule + '\n\n';
-            }
-            return r;
-          },
-          _convertColonHost: function(cssText) {
-            return this._convertColonRule(cssText, _cssColonHostRe, this._colonHostPartReplacer);
-          },
-          _convertColonHostContext: function(cssText) {
-            return this._convertColonRule(cssText, _cssColonHostContextRe, this._colonHostContextPartReplacer);
-          },
-          _convertColonRule: function(cssText, regExp, partReplacer) {
-            return StringWrapper.replaceAllMapped(cssText, regExp, function(m) {
-              if (isPresent(m[2])) {
-                var parts = m[2].split(','),
-                    r = [];
-                for (var i = 0; i < parts.length; i++) {
-                  var p = parts[i];
-                  if (isBlank(p))
-                    break;
-                  p = p.trim();
-                  ListWrapper.push(r, partReplacer(_polyfillHostNoCombinator, p, m[3]));
-                }
-                return r.join(',');
-              } else {
-                return _polyfillHostNoCombinator + m[3];
-              }
-            });
-          },
-          _colonHostContextPartReplacer: function(host, part, suffix) {
-            if (StringWrapper.contains(part, _polyfillHost)) {
-              return this._colonHostPartReplacer(host, part, suffix);
-            } else {
-              return host + part + suffix + ', ' + part + ' ' + host + suffix;
-            }
-          },
-          _colonHostPartReplacer: function(host, part, suffix) {
-            return host + StringWrapper.replace(part, _polyfillHost, '') + suffix;
-          },
-          _convertShadowDOMSelectors: function(cssText) {
-            for (var i = 0; i < _shadowDOMSelectorsRe.length; i++) {
-              cssText = StringWrapper.replaceAll(cssText, _shadowDOMSelectorsRe[i], ' ');
-            }
-            return cssText;
-          },
-          _scopeRules: function(cssRules, scopeSelector, hostSelector) {
-            var cssText = '';
-            if (isPresent(cssRules)) {
-              for (var i = 0; i < cssRules.length; i++) {
-                var rule = cssRules[i];
-                if (DOM.isStyleRule(rule) || DOM.isPageRule(rule)) {
-                  cssText += this._scopeSelector(rule.selectorText, scopeSelector, hostSelector, this.strictStyling) + ' {\n';
-                  cssText += this._propertiesFromRule(rule) + '\n}\n\n';
-                } else if (DOM.isMediaRule(rule)) {
-                  cssText += '@media ' + rule.media.mediaText + ' {\n';
-                  cssText += this._scopeRules(rule.cssRules, scopeSelector, hostSelector);
-                  cssText += '\n}\n\n';
-                } else {
-                  try {
-                    if (isPresent(rule.cssText)) {
-                      cssText += rule.cssText + '\n\n';
-                    }
-                  } catch (x) {
-                    if (DOM.isKeyframesRule(rule) && isPresent(rule.cssRules)) {
-                      cssText += this._ieSafeCssTextFromKeyFrameRule(rule);
-                    }
-                  }
-                }
-              }
-            }
-            return cssText;
-          },
-          _ieSafeCssTextFromKeyFrameRule: function(rule) {
-            var cssText = '@keyframes ' + rule.name + ' {';
-            for (var i = 0; i < rule.cssRules.length; i++) {
-              var r = rule.cssRules[i];
-              cssText += ' ' + r.keyText + ' {' + r.style.cssText + '}';
-            }
-            cssText += ' }';
-            return cssText;
-          },
-          _scopeSelector: function(selector, scopeSelector, hostSelector, strict) {
-            var r = [],
-                parts = selector.split(',');
-            for (var i = 0; i < parts.length; i++) {
-              var p = parts[i];
-              p = p.trim();
-              if (this._selectorNeedsScoping(p, scopeSelector)) {
-                p = strict && !StringWrapper.contains(p, _polyfillHostNoCombinator) ? this._applyStrictSelectorScope(p, scopeSelector) : this._applySelectorScope(p, scopeSelector, hostSelector);
-              }
-              ListWrapper.push(r, p);
-            }
-            return r.join(', ');
-          },
-          _selectorNeedsScoping: function(selector, scopeSelector) {
-            var re = this._makeScopeMatcher(scopeSelector);
-            return !isPresent(RegExpWrapper.firstMatch(re, selector));
-          },
-          _makeScopeMatcher: function(scopeSelector) {
-            var lre = RegExpWrapper.create('\\[');
-            var rre = RegExpWrapper.create('\\]');
-            scopeSelector = StringWrapper.replaceAll(scopeSelector, lre, '\\[');
-            scopeSelector = StringWrapper.replaceAll(scopeSelector, rre, '\\]');
-            return RegExpWrapper.create('^(' + scopeSelector + ')' + _selectorReSuffix, 'm');
-          },
-          _applySelectorScope: function(selector, scopeSelector, hostSelector) {
-            return this._applySimpleSelectorScope(selector, scopeSelector, hostSelector);
-          },
-          _applySimpleSelectorScope: function(selector, scopeSelector, hostSelector) {
-            if (isPresent(RegExpWrapper.firstMatch(_polyfillHostRe, selector))) {
-              var replaceBy = this.strictStyling ? ("[" + hostSelector + "]") : scopeSelector;
-              selector = StringWrapper.replace(selector, _polyfillHostNoCombinator, replaceBy);
-              return StringWrapper.replaceAll(selector, _polyfillHostRe, replaceBy + ' ');
-            } else {
-              return scopeSelector + ' ' + selector;
-            }
-          },
-          _applyStrictSelectorScope: function(selector, scopeSelector) {
-            var isRe = RegExpWrapper.create('\\[is=([^\\]]*)\\]');
-            scopeSelector = StringWrapper.replaceAllMapped(scopeSelector, isRe, (function(m) {
-              return m[1];
-            }));
-            var splits = [' ', '>', '+', '~'],
-                scoped = selector,
-                attrName = '[' + scopeSelector + ']';
-            for (var i = 0; i < splits.length; i++) {
-              var sep = splits[i];
-              var parts = scoped.split(sep);
-              scoped = ListWrapper.map(parts, function(p) {
-                var t = StringWrapper.replaceAll(p.trim(), _polyfillHostRe, '');
-                if (t.length > 0 && !ListWrapper.contains(splits, t) && !StringWrapper.contains(t, attrName)) {
-                  var re = RegExpWrapper.create('([^:]*)(:*)(.*)');
-                  var m = RegExpWrapper.firstMatch(re, t);
-                  if (isPresent(m)) {
-                    p = m[1] + attrName + m[2] + m[3];
-                  }
-                }
-                return p;
-              }).join(sep);
-            }
-            return scoped;
-          },
-          _insertPolyfillHostInCssText: function(selector) {
-            selector = StringWrapper.replaceAll(selector, _colonHostContextRe, _polyfillHostContext);
-            selector = StringWrapper.replaceAll(selector, _colonHostRe, _polyfillHost);
-            return selector;
-          },
-          _propertiesFromRule: function(rule) {
-            var cssText = rule.style.cssText;
-            var attrRe = RegExpWrapper.create('[\'"]+|attr');
-            if (rule.style.content.length > 0 && !isPresent(RegExpWrapper.firstMatch(attrRe, rule.style.content))) {
-              var contentRe = RegExpWrapper.create('content:[^;]*;');
-              cssText = StringWrapper.replaceAll(cssText, contentRe, 'content: \'' + rule.style.content + '\';');
-            }
-            return cssText;
-          }
-        }, {});
-      }()));
-      Object.defineProperty(ShadowCss.prototype.shimStyle, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype.shimCssText, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._insertDirectives, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._insertPolyfillDirectivesInCssText, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._insertPolyfillRulesInCssText, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._scopeCssText, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._extractUnscopedRulesFromCssText, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._convertColonHost, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._convertColonHostContext, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._convertColonRule, "parameters", {get: function() {
-          return [[assert.type.string], [RegExp], [Function]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._colonHostContextPartReplacer, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._colonHostPartReplacer, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._convertShadowDOMSelectors, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._scopeRules, "parameters", {get: function() {
-          return [[], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._scopeSelector, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], [assert.type.string], [assert.type.boolean]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._selectorNeedsScoping, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._makeScopeMatcher, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._applySelectorScope, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._applySimpleSelectorScope, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._applyStrictSelectorScope, "parameters", {get: function() {
-          return [[assert.type.string], [assert.type.string]];
-        }});
-      Object.defineProperty(ShadowCss.prototype._insertPolyfillHostInCssText, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      _cssContentNextSelectorRe = RegExpWrapper.create('polyfill-next-selector[^}]*content:[\\s]*?[\'"](.*?)[\'"][;\\s]*}([^{]*?){', 'im');
-      _cssContentRuleRe = RegExpWrapper.create('(polyfill-rule)[^}]*(content:[\\s]*[\'"](.*?)[\'"])[;\\s]*[^}]*}', 'im');
-      _cssContentUnscopedRuleRe = RegExpWrapper.create('(polyfill-unscoped-rule)[^}]*(content:[\\s]*[\'"](.*?)[\'"])[;\\s]*[^}]*}', 'im');
-      _polyfillHost = '-shadowcsshost';
-      _polyfillHostContext = '-shadowcsscontext';
-      _parenSuffix = ')(?:\\((' + '(?:\\([^)(]*\\)|[^)(]*)+?' + ')\\))?([^,{]*)';
-      _cssColonHostRe = RegExpWrapper.create('(' + _polyfillHost + _parenSuffix, 'im');
-      _cssColonHostContextRe = RegExpWrapper.create('(' + _polyfillHostContext + _parenSuffix, 'im');
-      _polyfillHostNoCombinator = _polyfillHost + '-no-combinator';
-      _shadowDOMSelectorsRe = [RegExpWrapper.create('>>>'), RegExpWrapper.create('::shadow'), RegExpWrapper.create('::content'), RegExpWrapper.create('/deep/'), RegExpWrapper.create('/shadow-deep/'), RegExpWrapper.create('/shadow/')];
-      _selectorReSuffix = '([>\\s~+\[.,{:][\\s\\S]*)?$';
-      _polyfillHostRe = RegExpWrapper.create(_polyfillHost, 'im');
-      _colonHostRe = RegExpWrapper.create(':host', 'im');
-      _colonHostContextRe = RegExpWrapper.create(':host-context', 'im');
-      Object.defineProperty(_cssToRules, "parameters", {get: function() {
-          return [[assert.type.string]];
-        }});
-      Object.defineProperty(_withCssRules, "parameters", {get: function() {
-          return [[assert.type.string], [Function]];
-        }});
-    }
-  };
-});
-
-System.register("angular2/src/core/compiler/xhr/xhr", ["angular2/src/facade/async"], function($__export) {
-  "use strict";
-  var __moduleName = "angular2/src/core/compiler/xhr/xhr";
-  var Promise,
-      XHR;
-  return {
-    setters: [function($__m) {
-      Promise = $__m.Promise;
-    }],
-    execute: function() {
-      XHR = $__export("XHR", (function() {
-        var XHR = function XHR() {};
-        return ($traceurRuntime.createClass)(XHR, {get: function(url) {
-            return null;
+        return ($traceurRuntime.createClass)(NgElement, {getAttribute: function(name) {
+            return normalizeBlank(DOM.getAttribute(this.domElement, name));
           }}, {});
       }()));
-      Object.defineProperty(XHR.prototype.get, "parameters", {get: function() {
+      Object.defineProperty(NgElement.prototype.getAttribute, "parameters", {get: function() {
           return [[assert.type.string]];
         }});
     }
   };
 });
 
-System.register("angular2/src/core/compiler/xhr/xhr_impl", ["angular2/di", "angular2/src/facade/async", "./xhr"], function($__export) {
+System.register("angular2/src/core/events/event_manager", ["angular2/src/facade/lang", "angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/core/zone/vm_turn_zone"], function($__export) {
   "use strict";
-  var __moduleName = "angular2/src/core/compiler/xhr/xhr_impl";
+  var __moduleName = "angular2/src/core/events/event_manager";
+  var isBlank,
+      BaseException,
+      isPresent,
+      StringWrapper,
+      DOM,
+      List,
+      ListWrapper,
+      MapWrapper,
+      VmTurnZone,
+      BUBBLE_SYMBOL,
+      EventManager,
+      EventManagerPlugin,
+      DomEventsPlugin;
+  return {
+    setters: [function($__m) {
+      isBlank = $__m.isBlank;
+      BaseException = $__m.BaseException;
+      isPresent = $__m.isPresent;
+      StringWrapper = $__m.StringWrapper;
+    }, function($__m) {
+      DOM = $__m.DOM;
+    }, function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+      MapWrapper = $__m.MapWrapper;
+    }, function($__m) {
+      VmTurnZone = $__m.VmTurnZone;
+    }],
+    execute: function() {
+      BUBBLE_SYMBOL = '^';
+      EventManager = $__export("EventManager", (function() {
+        var EventManager = function EventManager(plugins, zone) {
+          this._zone = zone;
+          this._plugins = plugins;
+          for (var i = 0; i < plugins.length; i++) {
+            plugins[i].manager = this;
+          }
+        };
+        return ($traceurRuntime.createClass)(EventManager, {
+          addEventListener: function(element, eventName, handler) {
+            var shouldSupportBubble = eventName[0] == BUBBLE_SYMBOL;
+            if (shouldSupportBubble) {
+              eventName = StringWrapper.substring(eventName, 1);
+            }
+            var plugin = this._findPluginFor(eventName);
+            plugin.addEventListener(element, eventName, handler, shouldSupportBubble);
+          },
+          getZone: function() {
+            return this._zone;
+          },
+          _findPluginFor: function(eventName) {
+            var plugins = this._plugins;
+            for (var i = 0; i < plugins.length; i++) {
+              var plugin = plugins[i];
+              if (plugin.supports(eventName)) {
+                return plugin;
+              }
+            }
+            throw new BaseException(("No event manager plugin found for event " + eventName));
+          }
+        }, {});
+      }()));
+      Object.defineProperty(EventManager, "parameters", {get: function() {
+          return [[assert.genericType(List, EventManagerPlugin)], [VmTurnZone]];
+        }});
+      Object.defineProperty(EventManager.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function]];
+        }});
+      Object.defineProperty(EventManager.prototype._findPluginFor, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      EventManagerPlugin = $__export("EventManagerPlugin", (function() {
+        var EventManagerPlugin = function EventManagerPlugin() {};
+        return ($traceurRuntime.createClass)(EventManagerPlugin, {
+          supports: function(eventName) {
+            return false;
+          },
+          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
+            throw "not implemented";
+          }
+        }, {});
+      }()));
+      Object.defineProperty(EventManagerPlugin.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(EventManagerPlugin.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function], [assert.type.boolean]];
+        }});
+      DomEventsPlugin = $__export("DomEventsPlugin", (function($__super) {
+        var DomEventsPlugin = function DomEventsPlugin() {
+          $traceurRuntime.superConstructor(DomEventsPlugin).apply(this, arguments);
+        };
+        return ($traceurRuntime.createClass)(DomEventsPlugin, {
+          supports: function(eventName) {
+            return true;
+          },
+          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
+            var outsideHandler = shouldSupportBubble ? DomEventsPlugin.bubbleCallback(element, handler, this.manager._zone) : DomEventsPlugin.sameElementCallback(element, handler, this.manager._zone);
+            this.manager._zone.runOutsideAngular((function() {
+              DOM.on(element, eventName, outsideHandler);
+            }));
+          }
+        }, {
+          sameElementCallback: function(element, handler, zone) {
+            return (function(event) {
+              if (event.target === element) {
+                zone.run((function() {
+                  return handler(event);
+                }));
+              }
+            });
+          },
+          bubbleCallback: function(element, handler, zone) {
+            return (function(event) {
+              return zone.run((function() {
+                return handler(event);
+              }));
+            });
+          }
+        }, $__super);
+      }(EventManagerPlugin)));
+      Object.defineProperty(DomEventsPlugin.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(DomEventsPlugin.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function], [assert.type.boolean]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/events/hammer_common", ["./event_manager", "angular2/src/facade/collection"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/events/hammer_common";
+  var EventManagerPlugin,
+      StringMapWrapper,
+      _eventNames,
+      HammerGesturesPluginCommon;
+  return {
+    setters: [function($__m) {
+      EventManagerPlugin = $__m.EventManagerPlugin;
+    }, function($__m) {
+      StringMapWrapper = $__m.StringMapWrapper;
+    }],
+    execute: function() {
+      _eventNames = {
+        'pan': true,
+        'panstart': true,
+        'panmove': true,
+        'panend': true,
+        'pancancel': true,
+        'panleft': true,
+        'panright': true,
+        'panup': true,
+        'pandown': true,
+        'pinch': true,
+        'pinchstart': true,
+        'pinchmove': true,
+        'pinchend': true,
+        'pinchcancel': true,
+        'pinchin': true,
+        'pinchout': true,
+        'press': true,
+        'pressup': true,
+        'rotate': true,
+        'rotatestart': true,
+        'rotatemove': true,
+        'rotateend': true,
+        'rotatecancel': true,
+        'swipe': true,
+        'swipeleft': true,
+        'swiperight': true,
+        'swipeup': true,
+        'swipedown': true,
+        'tap': true
+      };
+      HammerGesturesPluginCommon = $__export("HammerGesturesPluginCommon", (function($__super) {
+        var HammerGesturesPluginCommon = function HammerGesturesPluginCommon() {
+          $traceurRuntime.superConstructor(HammerGesturesPluginCommon).call(this);
+        };
+        return ($traceurRuntime.createClass)(HammerGesturesPluginCommon, {supports: function(eventName) {
+            eventName = eventName.toLowerCase();
+            return StringMapWrapper.contains(_eventNames, eventName);
+          }}, {}, $__super);
+      }(EventManagerPlugin)));
+      Object.defineProperty(HammerGesturesPluginCommon.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/events/hammer_gestures", ["./hammer_common", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/events/hammer_gestures";
+  var HammerGesturesPluginCommon,
+      isPresent,
+      BaseException,
+      HammerGesturesPlugin;
+  return {
+    setters: [function($__m) {
+      HammerGesturesPluginCommon = $__m.HammerGesturesPluginCommon;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+      BaseException = $__m.BaseException;
+    }],
+    execute: function() {
+      HammerGesturesPlugin = $__export("HammerGesturesPlugin", (function($__super) {
+        var HammerGesturesPlugin = function HammerGesturesPlugin() {
+          $traceurRuntime.superConstructor(HammerGesturesPlugin).call(this);
+        };
+        return ($traceurRuntime.createClass)(HammerGesturesPlugin, {
+          supports: function(eventName) {
+            if (!$traceurRuntime.superGet(this, HammerGesturesPlugin.prototype, "supports").call(this, eventName))
+              return false;
+            if (!isPresent(window.Hammer)) {
+              throw new BaseException(("Hammer.js is not loaded, can not bind " + eventName + " event"));
+            }
+            return true;
+          },
+          addEventListener: function(element, eventName, handler, shouldSupportBubble) {
+            if (shouldSupportBubble)
+              throw new BaseException('Hammer.js plugin does not support bubbling gestures.');
+            var zone = this.manager.getZone();
+            eventName = eventName.toLowerCase();
+            zone.runOutsideAngular(function() {
+              var mc = new Hammer(element);
+              mc.get('pinch').set({enable: true});
+              mc.get('rotate').set({enable: true});
+              mc.on(eventName, function(eventObj) {
+                zone.run(function() {
+                  handler(eventObj);
+                });
+              });
+            });
+          }
+        }, {}, $__super);
+      }(HammerGesturesPluginCommon)));
+      Object.defineProperty(HammerGesturesPlugin.prototype.supports, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(HammerGesturesPlugin.prototype.addEventListener, "parameters", {get: function() {
+          return [[], [assert.type.string], [Function], [assert.type.boolean]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/life_cycle/life_cycle", ["angular2/di", "angular2/change_detection", "angular2/src/core/zone/vm_turn_zone", "angular2/src/core/exception_handler", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/life_cycle/life_cycle";
   var Injectable,
-      Promise,
-      PromiseWrapper,
-      XHR,
-      XHRImpl;
+      ChangeDetector,
+      VmTurnZone,
+      ExceptionHandler,
+      isPresent,
+      LifeCycle;
   return {
     setters: [function($__m) {
       Injectable = $__m.Injectable;
     }, function($__m) {
-      Promise = $__m.Promise;
-      PromiseWrapper = $__m.PromiseWrapper;
+      ChangeDetector = $__m.ChangeDetector;
     }, function($__m) {
-      XHR = $__m.XHR;
+      VmTurnZone = $__m.VmTurnZone;
+    }, function($__m) {
+      ExceptionHandler = $__m.ExceptionHandler;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
     }],
     execute: function() {
-      XHRImpl = $__export("XHRImpl", (function($__super) {
-        var XHRImpl = function XHRImpl() {
-          $traceurRuntime.superConstructor(XHRImpl).apply(this, arguments);
+      LifeCycle = $__export("LifeCycle", (function() {
+        var LifeCycle = function LifeCycle(exceptionHandler) {
+          var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
+          var enforceNoNewChanges = arguments[2] !== (void 0) ? arguments[2] : false;
+          this._errorHandler = (function(exception, stackTrace) {
+            exceptionHandler.call(exception, stackTrace);
+            throw exception;
+          });
+          this._changeDetector = changeDetector;
+          this._enforceNoNewChanges = enforceNoNewChanges;
         };
-        return ($traceurRuntime.createClass)(XHRImpl, {get: function(url) {
-            var completer = PromiseWrapper.completer();
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.responseType = 'text';
-            xhr.onload = function() {
-              var status = xhr.status;
-              if (200 <= status && status <= 300) {
-                completer.resolve(xhr.responseText);
-              } else {
-                completer.reject(("Failed to load " + url));
-              }
-            };
-            xhr.onerror = function() {
-              completer.reject(("Failed to load " + url));
-            };
-            xhr.send();
-            return completer.promise;
-          }}, {}, $__super);
-      }(XHR)));
-      Object.defineProperty(XHRImpl, "annotations", {get: function() {
+        return ($traceurRuntime.createClass)(LifeCycle, {
+          registerWith: function(zone) {
+            var changeDetector = arguments[1] !== (void 0) ? arguments[1] : null;
+            var $__0 = this;
+            if (isPresent(changeDetector)) {
+              this._changeDetector = changeDetector;
+            }
+            zone.initCallbacks({
+              onErrorHandler: this._errorHandler,
+              onTurnDone: (function() {
+                return $__0.tick();
+              })
+            });
+          },
+          tick: function() {
+            this._changeDetector.detectChanges();
+            if (this._enforceNoNewChanges) {
+              this._changeDetector.checkNoChanges();
+            }
+          }
+        }, {});
+      }()));
+      Object.defineProperty(LifeCycle, "annotations", {get: function() {
           return [new Injectable()];
         }});
-      Object.defineProperty(XHRImpl.prototype.get, "parameters", {get: function() {
-          return [[assert.type.string]];
+      Object.defineProperty(LifeCycle, "parameters", {get: function() {
+          return [[ExceptionHandler], [ChangeDetector], [assert.type.boolean]];
         }});
+      Object.defineProperty(LifeCycle.prototype.registerWith, "parameters", {get: function() {
+          return [[VmTurnZone], [ChangeDetector]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/zone/vm_turn_zone", ["angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/zone/vm_turn_zone";
+  var List,
+      ListWrapper,
+      StringMapWrapper,
+      normalizeBlank,
+      isPresent,
+      global,
+      VmTurnZone;
+  return {
+    setters: [function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+      StringMapWrapper = $__m.StringMapWrapper;
+    }, function($__m) {
+      normalizeBlank = $__m.normalizeBlank;
+      isPresent = $__m.isPresent;
+      global = $__m.global;
+    }],
+    execute: function() {
+      VmTurnZone = $__export("VmTurnZone", (function() {
+        var VmTurnZone = function VmTurnZone($__2) {
+          var enableLongStackTrace = $__2.enableLongStackTrace;
+          this._nestedRunCounter = 0;
+          this._onTurnStart = null;
+          this._onTurnDone = null;
+          this._onErrorHandler = null;
+          this._outerZone = global.zone;
+          this._innerZone = this._createInnerZone(this._outerZone, enableLongStackTrace);
+        };
+        return ($traceurRuntime.createClass)(VmTurnZone, {
+          initCallbacks: function() {
+            var $__2 = arguments[0] !== (void 0) ? arguments[0] : {},
+                onTurnStart = $__2.onTurnStart,
+                onTurnDone = $__2.onTurnDone,
+                onScheduleMicrotask = $__2.onScheduleMicrotask,
+                onErrorHandler = $__2.onErrorHandler;
+            this._onTurnStart = normalizeBlank(onTurnStart);
+            this._onTurnDone = normalizeBlank(onTurnDone);
+            this._onErrorHandler = normalizeBlank(onErrorHandler);
+          },
+          run: function(fn) {
+            return this._innerZone.run(fn);
+          },
+          runOutsideAngular: function(fn) {
+            return this._outerZone.run(fn);
+          },
+          _createInnerZone: function(zone, enableLongStackTrace) {
+            var $__0 = this;
+            var vmTurnZone = this;
+            var errorHandling;
+            if (enableLongStackTrace) {
+              errorHandling = StringMapWrapper.merge(Zone.longStackTraceZone, {onError: function(e) {
+                  vmTurnZone._onError(this, e);
+                }});
+            } else {
+              errorHandling = {onError: function(e) {
+                  vmTurnZone._onError(this, e);
+                }};
+            }
+            return zone.fork(errorHandling).fork({
+              beforeTask: (function() {
+                $__0._beforeTask();
+              }),
+              afterTask: (function() {
+                $__0._afterTask();
+              })
+            });
+          },
+          _beforeTask: function() {
+            this._nestedRunCounter++;
+            if (this._nestedRunCounter === 1 && this._onTurnStart) {
+              this._onTurnStart();
+            }
+          },
+          _afterTask: function() {
+            this._nestedRunCounter--;
+            if (this._nestedRunCounter === 0 && this._onTurnDone) {
+              this._onTurnDone();
+            }
+          },
+          _onError: function(zone, e) {
+            if (isPresent(this._onErrorHandler)) {
+              var trace = [normalizeBlank(e.stack)];
+              while (zone && zone.constructedAtException) {
+                trace.push(zone.constructedAtException.get());
+                zone = zone.parent;
+              }
+              this._onErrorHandler(e, trace);
+            } else {
+              throw e;
+            }
+          }
+        }, {});
+      }()));
     }
   };
 });
@@ -16680,6 +16002,684 @@ System.register("angular2/src/core/compiler/pipeline/view_splitter", ["angular2/
         }});
       Object.defineProperty(ViewSplitter.prototype._parseTemplateBindings, "parameters", {get: function() {
           return [[assert.type.string], [CompileElement]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/compiler/shadow_dom_emulation/content_tag", ["./light_dom", "angular2/di", "angular2/src/dom/dom_adapter", "angular2/src/facade/lang", "angular2/src/facade/collection"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/compiler/shadow_dom_emulation/content_tag";
+  var ldModule,
+      Inject,
+      Injectable,
+      DOM,
+      isPresent,
+      List,
+      ListWrapper,
+      ContentStrategy,
+      RenderedContent,
+      IntermediateContent,
+      Content;
+  return {
+    setters: [function($__m) {
+      ldModule = $__m;
+    }, function($__m) {
+      Inject = $__m.Inject;
+      Injectable = $__m.Injectable;
+    }, function($__m) {
+      DOM = $__m.DOM;
+    }, function($__m) {
+      isPresent = $__m.isPresent;
+    }, function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+    }],
+    execute: function() {
+      ContentStrategy = (function() {
+        var ContentStrategy = function ContentStrategy() {};
+        return ($traceurRuntime.createClass)(ContentStrategy, {insert: function(nodes) {}}, {});
+      }());
+      Object.defineProperty(ContentStrategy.prototype.insert, "parameters", {get: function() {
+          return [[List]];
+        }});
+      RenderedContent = (function($__super) {
+        var RenderedContent = function RenderedContent(contentEl) {
+          $traceurRuntime.superConstructor(RenderedContent).call(this);
+          this.beginScript = contentEl;
+          this.endScript = DOM.nextSibling(this.beginScript);
+          this.nodes = [];
+        };
+        return ($traceurRuntime.createClass)(RenderedContent, {
+          insert: function(nodes) {
+            this.nodes = nodes;
+            DOM.insertAllBefore(this.endScript, nodes);
+            this._removeNodesUntil(ListWrapper.isEmpty(nodes) ? this.endScript : nodes[0]);
+          },
+          _removeNodesUntil: function(node) {
+            var p = DOM.parentElement(this.beginScript);
+            for (var next = DOM.nextSibling(this.beginScript); next !== node; next = DOM.nextSibling(this.beginScript)) {
+              DOM.removeChild(p, next);
+            }
+          }
+        }, {}, $__super);
+      }(ContentStrategy));
+      Object.defineProperty(RenderedContent, "annotations", {get: function() {
+          return [new Injectable()];
+        }});
+      Object.defineProperty(RenderedContent.prototype.insert, "parameters", {get: function() {
+          return [[List]];
+        }});
+      IntermediateContent = (function($__super) {
+        var IntermediateContent = function IntermediateContent(destinationLightDom) {
+          $traceurRuntime.superConstructor(IntermediateContent).call(this);
+          this.destinationLightDom = destinationLightDom;
+          this.nodes = [];
+        };
+        return ($traceurRuntime.createClass)(IntermediateContent, {insert: function(nodes) {
+            this.nodes = nodes;
+            this.destinationLightDom.redistribute();
+          }}, {}, $__super);
+      }(ContentStrategy));
+      Object.defineProperty(IntermediateContent, "parameters", {get: function() {
+          return [[ldModule.LightDom]];
+        }});
+      Object.defineProperty(IntermediateContent.prototype.insert, "parameters", {get: function() {
+          return [[List]];
+        }});
+      Content = $__export("Content", (function() {
+        var Content = function Content(destinationLightDom, contentStartEl, selector) {
+          this.select = selector;
+          this.contentStartElement = contentStartEl;
+          this._strategy = isPresent(destinationLightDom) ? new IntermediateContent(destinationLightDom) : new RenderedContent(contentStartEl);
+        };
+        return ($traceurRuntime.createClass)(Content, {
+          nodes: function() {
+            return this._strategy.nodes;
+          },
+          insert: function(nodes) {
+            this._strategy.insert(nodes);
+          }
+        }, {});
+      }()));
+      Object.defineProperty(Content, "parameters", {get: function() {
+          return [[ldModule.LightDom], [], [assert.type.string]];
+        }});
+      Object.defineProperty(Content.prototype.insert, "parameters", {get: function() {
+          return [[List]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/compiler/shadow_dom_emulation/light_dom", ["angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/facade/lang", "../view", "./content_tag"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/compiler/shadow_dom_emulation/light_dom";
+  var DOM,
+      List,
+      ListWrapper,
+      isBlank,
+      isPresent,
+      viewModule,
+      Content,
+      DestinationLightDom,
+      _Root,
+      LightDom;
+  function redistributeNodes(contents, nodes) {
+    for (var i = 0; i < contents.length; ++i) {
+      var content = contents[i];
+      var select = content.select;
+      var matchSelector = (function(n) {
+        return DOM.elementMatches(n, select);
+      });
+      if (select.length === 0) {
+        content.insert(nodes);
+        ListWrapper.clear(nodes);
+      } else {
+        var matchingNodes = ListWrapper.filter(nodes, matchSelector);
+        content.insert(matchingNodes);
+        ListWrapper.removeAll(nodes, matchingNodes);
+      }
+    }
+  }
+  return {
+    setters: [function($__m) {
+      DOM = $__m.DOM;
+    }, function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      isBlank = $__m.isBlank;
+      isPresent = $__m.isPresent;
+    }, function($__m) {
+      viewModule = $__m;
+    }, function($__m) {
+      Content = $__m.Content;
+    }],
+    execute: function() {
+      DestinationLightDom = $__export("DestinationLightDom", (function() {
+        var DestinationLightDom = function DestinationLightDom() {};
+        return ($traceurRuntime.createClass)(DestinationLightDom, {}, {});
+      }()));
+      _Root = (function() {
+        var _Root = function _Root(node, viewContainer, content) {
+          this.node = node;
+          this.viewContainer = viewContainer;
+          this.content = content;
+        };
+        return ($traceurRuntime.createClass)(_Root, {}, {});
+      }());
+      LightDom = $__export("LightDom", (function() {
+        var LightDom = function LightDom(lightDomView, shadowDomView, element) {
+          this.lightDomView = lightDomView;
+          this.shadowDomView = shadowDomView;
+          this.nodes = DOM.childNodesAsList(element);
+          this.roots = null;
+        };
+        return ($traceurRuntime.createClass)(LightDom, {
+          redistribute: function() {
+            var tags = this.contentTags();
+            if (tags.length > 0) {
+              redistributeNodes(tags, this.expandedDomNodes());
+            }
+          },
+          contentTags: function() {
+            return this._collectAllContentTags(this.shadowDomView, []);
+          },
+          _collectAllContentTags: function(view, acc) {
+            var $__0 = this;
+            var contentTags = view.contentTags;
+            var vcs = view.viewContainers;
+            for (var i = 0; i < vcs.length; i++) {
+              var vc = vcs[i];
+              var contentTag = contentTags[i];
+              if (isPresent(contentTag)) {
+                ListWrapper.push(acc, contentTag);
+              }
+              if (isPresent(vc)) {
+                ListWrapper.forEach(vc.contentTagContainers(), (function(view) {
+                  $__0._collectAllContentTags(view, acc);
+                }));
+              }
+            }
+            return acc;
+          },
+          expandedDomNodes: function() {
+            var res = [];
+            var roots = this._roots();
+            for (var i = 0; i < roots.length; ++i) {
+              var root = roots[i];
+              if (isPresent(root.viewContainer)) {
+                res = ListWrapper.concat(res, root.viewContainer.nodes());
+              } else if (isPresent(root.content)) {
+                res = ListWrapper.concat(res, root.content.nodes());
+              } else {
+                ListWrapper.push(res, root.node);
+              }
+            }
+            return res;
+          },
+          _roots: function() {
+            if (isPresent(this.roots))
+              return this.roots;
+            var viewContainers = this.lightDomView.viewContainers;
+            var contentTags = this.lightDomView.contentTags;
+            this.roots = ListWrapper.map(this.nodes, (function(n) {
+              var foundVc = null;
+              var foundContentTag = null;
+              for (var i = 0; i < viewContainers.length; i++) {
+                var vc = viewContainers[i];
+                var contentTag = contentTags[i];
+                if (isPresent(vc) && vc.templateElement === n) {
+                  foundVc = vc;
+                }
+                if (isPresent(contentTag) && contentTag.contentStartElement === n) {
+                  foundContentTag = contentTag;
+                }
+              }
+              return new _Root(n, foundVc, foundContentTag);
+            }));
+            return this.roots;
+          }
+        }, {});
+      }()));
+      Object.defineProperty(LightDom, "parameters", {get: function() {
+          return [[viewModule.View], [viewModule.View], []];
+        }});
+      Object.defineProperty(LightDom.prototype._collectAllContentTags, "parameters", {get: function() {
+          return [[viewModule.View], [assert.genericType(List, Content)]];
+        }});
+      Object.defineProperty(redistributeNodes, "parameters", {get: function() {
+          return [[assert.genericType(List, Content)], [List]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/compiler/shadow_dom_emulation/shadow_css", ["angular2/src/dom/dom_adapter", "angular2/src/facade/collection", "angular2/src/facade/lang"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/compiler/shadow_dom_emulation/shadow_css";
+  var DOM,
+      List,
+      ListWrapper,
+      StringWrapper,
+      RegExp,
+      RegExpWrapper,
+      RegExpMatcherWrapper,
+      isPresent,
+      isBlank,
+      BaseException,
+      int,
+      ShadowCss,
+      _cssContentNextSelectorRe,
+      _cssContentRuleRe,
+      _cssContentUnscopedRuleRe,
+      _polyfillHost,
+      _polyfillHostContext,
+      _parenSuffix,
+      _cssColonHostRe,
+      _cssColonHostContextRe,
+      _polyfillHostNoCombinator,
+      _shadowDOMSelectorsRe,
+      _selectorReSuffix,
+      _polyfillHostRe,
+      _colonHostRe,
+      _colonHostContextRe;
+  function _cssToRules(cssText) {
+    return DOM.cssToRules(cssText);
+  }
+  function _withCssRules(cssText, callback) {
+    if (isBlank(callback))
+      return ;
+    var rules = _cssToRules(cssText);
+    callback(rules);
+  }
+  return {
+    setters: [function($__m) {
+      DOM = $__m.DOM;
+    }, function($__m) {
+      List = $__m.List;
+      ListWrapper = $__m.ListWrapper;
+    }, function($__m) {
+      StringWrapper = $__m.StringWrapper;
+      RegExp = $__m.RegExp;
+      RegExpWrapper = $__m.RegExpWrapper;
+      RegExpMatcherWrapper = $__m.RegExpMatcherWrapper;
+      isPresent = $__m.isPresent;
+      isBlank = $__m.isBlank;
+      BaseException = $__m.BaseException;
+      int = $__m.int;
+    }],
+    execute: function() {
+      ShadowCss = $__export("ShadowCss", (function() {
+        var ShadowCss = function ShadowCss() {
+          this.strictStyling = true;
+        };
+        return ($traceurRuntime.createClass)(ShadowCss, {
+          shimStyle: function(style, selector) {
+            var hostSelector = arguments[2] !== (void 0) ? arguments[2] : '';
+            var cssText = DOM.getText(style);
+            return this.shimCssText(cssText, selector, hostSelector);
+          },
+          shimCssText: function(cssText, selector) {
+            var hostSelector = arguments[2] !== (void 0) ? arguments[2] : '';
+            cssText = this._insertDirectives(cssText);
+            return this._scopeCssText(cssText, selector, hostSelector);
+          },
+          _insertDirectives: function(cssText) {
+            cssText = this._insertPolyfillDirectivesInCssText(cssText);
+            return this._insertPolyfillRulesInCssText(cssText);
+          },
+          _insertPolyfillDirectivesInCssText: function(cssText) {
+            return StringWrapper.replaceAllMapped(cssText, _cssContentNextSelectorRe, function(m) {
+              return m[1] + '{';
+            });
+          },
+          _insertPolyfillRulesInCssText: function(cssText) {
+            return StringWrapper.replaceAllMapped(cssText, _cssContentRuleRe, function(m) {
+              var rule = m[0];
+              rule = StringWrapper.replace(rule, m[1], '');
+              rule = StringWrapper.replace(rule, m[2], '');
+              return m[3] + rule;
+            });
+          },
+          _scopeCssText: function(cssText, scopeSelector, hostSelector) {
+            var $__0 = this;
+            var unscoped = this._extractUnscopedRulesFromCssText(cssText);
+            cssText = this._insertPolyfillHostInCssText(cssText);
+            cssText = this._convertColonHost(cssText);
+            cssText = this._convertColonHostContext(cssText);
+            cssText = this._convertShadowDOMSelectors(cssText);
+            if (isPresent(scopeSelector)) {
+              _withCssRules(cssText, (function(rules) {
+                cssText = $__0._scopeRules(rules, scopeSelector, hostSelector);
+              }));
+            }
+            cssText = cssText + '\n' + unscoped;
+            return cssText.trim();
+          },
+          _extractUnscopedRulesFromCssText: function(cssText) {
+            var r = '',
+                m;
+            var matcher = RegExpWrapper.matcher(_cssContentUnscopedRuleRe, cssText);
+            while (isPresent(m = RegExpMatcherWrapper.next(matcher))) {
+              var rule = m[0];
+              rule = StringWrapper.replace(rule, m[2], '');
+              rule = StringWrapper.replace(rule, m[1], m[3]);
+              r = rule + '\n\n';
+            }
+            return r;
+          },
+          _convertColonHost: function(cssText) {
+            return this._convertColonRule(cssText, _cssColonHostRe, this._colonHostPartReplacer);
+          },
+          _convertColonHostContext: function(cssText) {
+            return this._convertColonRule(cssText, _cssColonHostContextRe, this._colonHostContextPartReplacer);
+          },
+          _convertColonRule: function(cssText, regExp, partReplacer) {
+            return StringWrapper.replaceAllMapped(cssText, regExp, function(m) {
+              if (isPresent(m[2])) {
+                var parts = m[2].split(','),
+                    r = [];
+                for (var i = 0; i < parts.length; i++) {
+                  var p = parts[i];
+                  if (isBlank(p))
+                    break;
+                  p = p.trim();
+                  ListWrapper.push(r, partReplacer(_polyfillHostNoCombinator, p, m[3]));
+                }
+                return r.join(',');
+              } else {
+                return _polyfillHostNoCombinator + m[3];
+              }
+            });
+          },
+          _colonHostContextPartReplacer: function(host, part, suffix) {
+            if (StringWrapper.contains(part, _polyfillHost)) {
+              return this._colonHostPartReplacer(host, part, suffix);
+            } else {
+              return host + part + suffix + ', ' + part + ' ' + host + suffix;
+            }
+          },
+          _colonHostPartReplacer: function(host, part, suffix) {
+            return host + StringWrapper.replace(part, _polyfillHost, '') + suffix;
+          },
+          _convertShadowDOMSelectors: function(cssText) {
+            for (var i = 0; i < _shadowDOMSelectorsRe.length; i++) {
+              cssText = StringWrapper.replaceAll(cssText, _shadowDOMSelectorsRe[i], ' ');
+            }
+            return cssText;
+          },
+          _scopeRules: function(cssRules, scopeSelector, hostSelector) {
+            var cssText = '';
+            if (isPresent(cssRules)) {
+              for (var i = 0; i < cssRules.length; i++) {
+                var rule = cssRules[i];
+                if (DOM.isStyleRule(rule) || DOM.isPageRule(rule)) {
+                  cssText += this._scopeSelector(rule.selectorText, scopeSelector, hostSelector, this.strictStyling) + ' {\n';
+                  cssText += this._propertiesFromRule(rule) + '\n}\n\n';
+                } else if (DOM.isMediaRule(rule)) {
+                  cssText += '@media ' + rule.media.mediaText + ' {\n';
+                  cssText += this._scopeRules(rule.cssRules, scopeSelector, hostSelector);
+                  cssText += '\n}\n\n';
+                } else {
+                  try {
+                    if (isPresent(rule.cssText)) {
+                      cssText += rule.cssText + '\n\n';
+                    }
+                  } catch (x) {
+                    if (DOM.isKeyframesRule(rule) && isPresent(rule.cssRules)) {
+                      cssText += this._ieSafeCssTextFromKeyFrameRule(rule);
+                    }
+                  }
+                }
+              }
+            }
+            return cssText;
+          },
+          _ieSafeCssTextFromKeyFrameRule: function(rule) {
+            var cssText = '@keyframes ' + rule.name + ' {';
+            for (var i = 0; i < rule.cssRules.length; i++) {
+              var r = rule.cssRules[i];
+              cssText += ' ' + r.keyText + ' {' + r.style.cssText + '}';
+            }
+            cssText += ' }';
+            return cssText;
+          },
+          _scopeSelector: function(selector, scopeSelector, hostSelector, strict) {
+            var r = [],
+                parts = selector.split(',');
+            for (var i = 0; i < parts.length; i++) {
+              var p = parts[i];
+              p = p.trim();
+              if (this._selectorNeedsScoping(p, scopeSelector)) {
+                p = strict && !StringWrapper.contains(p, _polyfillHostNoCombinator) ? this._applyStrictSelectorScope(p, scopeSelector) : this._applySelectorScope(p, scopeSelector, hostSelector);
+              }
+              ListWrapper.push(r, p);
+            }
+            return r.join(', ');
+          },
+          _selectorNeedsScoping: function(selector, scopeSelector) {
+            var re = this._makeScopeMatcher(scopeSelector);
+            return !isPresent(RegExpWrapper.firstMatch(re, selector));
+          },
+          _makeScopeMatcher: function(scopeSelector) {
+            var lre = RegExpWrapper.create('\\[');
+            var rre = RegExpWrapper.create('\\]');
+            scopeSelector = StringWrapper.replaceAll(scopeSelector, lre, '\\[');
+            scopeSelector = StringWrapper.replaceAll(scopeSelector, rre, '\\]');
+            return RegExpWrapper.create('^(' + scopeSelector + ')' + _selectorReSuffix, 'm');
+          },
+          _applySelectorScope: function(selector, scopeSelector, hostSelector) {
+            return this._applySimpleSelectorScope(selector, scopeSelector, hostSelector);
+          },
+          _applySimpleSelectorScope: function(selector, scopeSelector, hostSelector) {
+            if (isPresent(RegExpWrapper.firstMatch(_polyfillHostRe, selector))) {
+              var replaceBy = this.strictStyling ? ("[" + hostSelector + "]") : scopeSelector;
+              selector = StringWrapper.replace(selector, _polyfillHostNoCombinator, replaceBy);
+              return StringWrapper.replaceAll(selector, _polyfillHostRe, replaceBy + ' ');
+            } else {
+              return scopeSelector + ' ' + selector;
+            }
+          },
+          _applyStrictSelectorScope: function(selector, scopeSelector) {
+            var isRe = RegExpWrapper.create('\\[is=([^\\]]*)\\]');
+            scopeSelector = StringWrapper.replaceAllMapped(scopeSelector, isRe, (function(m) {
+              return m[1];
+            }));
+            var splits = [' ', '>', '+', '~'],
+                scoped = selector,
+                attrName = '[' + scopeSelector + ']';
+            for (var i = 0; i < splits.length; i++) {
+              var sep = splits[i];
+              var parts = scoped.split(sep);
+              scoped = ListWrapper.map(parts, function(p) {
+                var t = StringWrapper.replaceAll(p.trim(), _polyfillHostRe, '');
+                if (t.length > 0 && !ListWrapper.contains(splits, t) && !StringWrapper.contains(t, attrName)) {
+                  var re = RegExpWrapper.create('([^:]*)(:*)(.*)');
+                  var m = RegExpWrapper.firstMatch(re, t);
+                  if (isPresent(m)) {
+                    p = m[1] + attrName + m[2] + m[3];
+                  }
+                }
+                return p;
+              }).join(sep);
+            }
+            return scoped;
+          },
+          _insertPolyfillHostInCssText: function(selector) {
+            selector = StringWrapper.replaceAll(selector, _colonHostContextRe, _polyfillHostContext);
+            selector = StringWrapper.replaceAll(selector, _colonHostRe, _polyfillHost);
+            return selector;
+          },
+          _propertiesFromRule: function(rule) {
+            var cssText = rule.style.cssText;
+            var attrRe = RegExpWrapper.create('[\'"]+|attr');
+            if (rule.style.content.length > 0 && !isPresent(RegExpWrapper.firstMatch(attrRe, rule.style.content))) {
+              var contentRe = RegExpWrapper.create('content:[^;]*;');
+              cssText = StringWrapper.replaceAll(cssText, contentRe, 'content: \'' + rule.style.content + '\';');
+            }
+            return cssText;
+          }
+        }, {});
+      }()));
+      Object.defineProperty(ShadowCss.prototype.shimStyle, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype.shimCssText, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._insertDirectives, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._insertPolyfillDirectivesInCssText, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._insertPolyfillRulesInCssText, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._scopeCssText, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._extractUnscopedRulesFromCssText, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._convertColonHost, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._convertColonHostContext, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._convertColonRule, "parameters", {get: function() {
+          return [[assert.type.string], [RegExp], [Function]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._colonHostContextPartReplacer, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._colonHostPartReplacer, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._convertShadowDOMSelectors, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._scopeRules, "parameters", {get: function() {
+          return [[], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._scopeSelector, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], [assert.type.string], [assert.type.boolean]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._selectorNeedsScoping, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._makeScopeMatcher, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._applySelectorScope, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._applySimpleSelectorScope, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._applyStrictSelectorScope, "parameters", {get: function() {
+          return [[assert.type.string], [assert.type.string]];
+        }});
+      Object.defineProperty(ShadowCss.prototype._insertPolyfillHostInCssText, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      _cssContentNextSelectorRe = RegExpWrapper.create('polyfill-next-selector[^}]*content:[\\s]*?[\'"](.*?)[\'"][;\\s]*}([^{]*?){', 'im');
+      _cssContentRuleRe = RegExpWrapper.create('(polyfill-rule)[^}]*(content:[\\s]*[\'"](.*?)[\'"])[;\\s]*[^}]*}', 'im');
+      _cssContentUnscopedRuleRe = RegExpWrapper.create('(polyfill-unscoped-rule)[^}]*(content:[\\s]*[\'"](.*?)[\'"])[;\\s]*[^}]*}', 'im');
+      _polyfillHost = '-shadowcsshost';
+      _polyfillHostContext = '-shadowcsscontext';
+      _parenSuffix = ')(?:\\((' + '(?:\\([^)(]*\\)|[^)(]*)+?' + ')\\))?([^,{]*)';
+      _cssColonHostRe = RegExpWrapper.create('(' + _polyfillHost + _parenSuffix, 'im');
+      _cssColonHostContextRe = RegExpWrapper.create('(' + _polyfillHostContext + _parenSuffix, 'im');
+      _polyfillHostNoCombinator = _polyfillHost + '-no-combinator';
+      _shadowDOMSelectorsRe = [RegExpWrapper.create('>>>'), RegExpWrapper.create('::shadow'), RegExpWrapper.create('::content'), RegExpWrapper.create('/deep/'), RegExpWrapper.create('/shadow-deep/'), RegExpWrapper.create('/shadow/')];
+      _selectorReSuffix = '([>\\s~+\[.,{:][\\s\\S]*)?$';
+      _polyfillHostRe = RegExpWrapper.create(_polyfillHost, 'im');
+      _colonHostRe = RegExpWrapper.create(':host', 'im');
+      _colonHostContextRe = RegExpWrapper.create(':host-context', 'im');
+      Object.defineProperty(_cssToRules, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+      Object.defineProperty(_withCssRules, "parameters", {get: function() {
+          return [[assert.type.string], [Function]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/compiler/xhr/xhr", ["angular2/src/facade/async"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/compiler/xhr/xhr";
+  var Promise,
+      XHR;
+  return {
+    setters: [function($__m) {
+      Promise = $__m.Promise;
+    }],
+    execute: function() {
+      XHR = $__export("XHR", (function() {
+        var XHR = function XHR() {};
+        return ($traceurRuntime.createClass)(XHR, {get: function(url) {
+            return null;
+          }}, {});
+      }()));
+      Object.defineProperty(XHR.prototype.get, "parameters", {get: function() {
+          return [[assert.type.string]];
+        }});
+    }
+  };
+});
+
+System.register("angular2/src/core/compiler/xhr/xhr_impl", ["angular2/di", "angular2/src/facade/async", "./xhr"], function($__export) {
+  "use strict";
+  var __moduleName = "angular2/src/core/compiler/xhr/xhr_impl";
+  var Injectable,
+      Promise,
+      PromiseWrapper,
+      XHR,
+      XHRImpl;
+  return {
+    setters: [function($__m) {
+      Injectable = $__m.Injectable;
+    }, function($__m) {
+      Promise = $__m.Promise;
+      PromiseWrapper = $__m.PromiseWrapper;
+    }, function($__m) {
+      XHR = $__m.XHR;
+    }],
+    execute: function() {
+      XHRImpl = $__export("XHRImpl", (function($__super) {
+        var XHRImpl = function XHRImpl() {
+          $traceurRuntime.superConstructor(XHRImpl).apply(this, arguments);
+        };
+        return ($traceurRuntime.createClass)(XHRImpl, {get: function(url) {
+            var completer = PromiseWrapper.completer();
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'text';
+            xhr.onload = function() {
+              var status = xhr.status;
+              if (200 <= status && status <= 300) {
+                completer.resolve(xhr.responseText);
+              } else {
+                completer.reject(("Failed to load " + url));
+              }
+            };
+            xhr.onerror = function() {
+              completer.reject(("Failed to load " + url));
+            };
+            xhr.send();
+            return completer.promise;
+          }}, {}, $__super);
+      }(XHR)));
+      Object.defineProperty(XHRImpl, "annotations", {get: function() {
+          return [new Injectable()];
+        }});
+      Object.defineProperty(XHRImpl.prototype.get, "parameters", {get: function() {
+          return [[assert.type.string]];
         }});
     }
   };
