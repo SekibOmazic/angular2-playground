@@ -38,10 +38,7 @@ System.register("byinjection/PetInput", ["angular2/angular2", "angular2/di", "an
         }, {});
       }()));
       Object.defineProperty(PetInput, "annotations", {get: function() {
-          return [new Component({
-            selector: 'pet-input',
-            directives: [PetList]
-          }), new Template({
+          return [new Component({selector: 'pet-input'}), new Template({
             url: "byinjection/pet_input.html",
             directives: [If]
           })];

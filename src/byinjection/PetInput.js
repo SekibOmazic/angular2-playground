@@ -5,8 +5,7 @@ import {Parent} from 'angular2/src/core/annotations/visibility';
 import {PetList} from 'byinjection/PetList';
 
 @Component({
-  selector: 'pet-input',
-  directives: [PetList]
+  selector: 'pet-input'
 })
 @Template({
   url: `byinjection/pet_input.html`,
