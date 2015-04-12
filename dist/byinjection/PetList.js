@@ -17,10 +17,10 @@ System.register("byinjection/PetList", ["angular2/angular2", "angular2/src/facad
       ListWrapper = $__m.ListWrapper;
     }],
     execute: function() {
-      PetList = $__export("PetList", (function() {
-        var PetList = function PetList() {
+      PetList = (function() {
+        function PetList() {
           this.pets = [];
-        };
+        }
         return ($traceurRuntime.createClass)(PetList, {
           addItem: function(name) {
             ListWrapper.push(this.pets, {name: name});
@@ -31,7 +31,8 @@ System.register("byinjection/PetList", ["angular2/angular2", "angular2/src/facad
             }
           }
         }, {});
-      }()));
+      }());
+      $__export("PetList", PetList);
       Object.defineProperty(PetList, "annotations", {get: function() {
           return [new Component({selector: 'pet-list'}), new Template({
             url: "byinjection/pet_list.html",

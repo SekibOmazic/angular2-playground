@@ -17,23 +17,23 @@
   var $preventExtensions = Object.preventExtensions;
   var $seal = Object.seal;
   var $isExtensible = Object.isExtensible;
-  function nonEnum(value) {
-    return {
-      configurable: true,
-      enumerable: false,
-      value: value,
-      writable: true
-    };
+  var $apply = Function.prototype.call.bind(Function.prototype.apply);
+  function $bind(operand, thisArg, args) {
+    var argArray = [thisArg];
+    for (var i = 0; i < args.length; i++) {
+      argArray[i + 1] = args[i];
+    }
+    var func = $apply(Function.prototype.bind, operand, argArray);
+    return func;
   }
-  var method = nonEnum;
+  function $construct(func, argArray) {
+    var object = new ($bind(func, null, argArray));
+    return object;
+  }
   var counter = 0;
   function newUniqueString() {
     return '__$' + Math.floor(Math.random() * 1e9) + '$' + ++counter + '$__';
   }
-  var symbolInternalProperty = newUniqueString();
-  var symbolDescriptionProperty = newUniqueString();
-  var symbolDataProperty = newUniqueString();
-  var symbolValues = $create(null);
   var privateNames = $create(null);
   function isPrivateName(s) {
     return privateNames[s];
@@ -43,595 +43,307 @@
     privateNames[s] = true;
     return s;
   }
-  function isShimSymbol(symbol) {
-    return typeof symbol === 'object' && symbol instanceof SymbolValue;
+  var CONTINUATION_TYPE = Object.create(null);
+  function createContinuation(operand, thisArg, argsArray) {
+    return [CONTINUATION_TYPE, operand, thisArg, argsArray];
   }
-  function typeOf(v) {
-    if (isShimSymbol(v))
-      return 'symbol';
-    return typeof v;
+  function isContinuation(object) {
+    return object && object[0] === CONTINUATION_TYPE;
   }
-  function Symbol(description) {
-    var value = new SymbolValue(description);
-    if (!(this instanceof Symbol))
-      return value;
-    throw new TypeError('Symbol cannot be new\'ed');
-  }
-  $defineProperty(Symbol.prototype, 'constructor', nonEnum(Symbol));
-  $defineProperty(Symbol.prototype, 'toString', method(function() {
-    var symbolValue = this[symbolDataProperty];
-    if (!getOption('symbols'))
-      return symbolValue[symbolInternalProperty];
-    if (!symbolValue)
-      throw TypeError('Conversion from symbol to string');
-    var desc = symbolValue[symbolDescriptionProperty];
-    if (desc === undefined)
-      desc = '';
-    return 'Symbol(' + desc + ')';
-  }));
-  $defineProperty(Symbol.prototype, 'valueOf', method(function() {
-    var symbolValue = this[symbolDataProperty];
-    if (!symbolValue)
-      throw TypeError('Conversion from symbol to string');
-    if (!getOption('symbols'))
-      return symbolValue[symbolInternalProperty];
-    return symbolValue;
-  }));
-  function SymbolValue(description) {
-    var key = newUniqueString();
-    $defineProperty(this, symbolDataProperty, {value: this});
-    $defineProperty(this, symbolInternalProperty, {value: key});
-    $defineProperty(this, symbolDescriptionProperty, {value: description});
-    freeze(this);
-    symbolValues[key] = this;
-  }
-  $defineProperty(SymbolValue.prototype, 'constructor', nonEnum(Symbol));
-  $defineProperty(SymbolValue.prototype, 'toString', {
-    value: Symbol.prototype.toString,
-    enumerable: false
-  });
-  $defineProperty(SymbolValue.prototype, 'valueOf', {
-    value: Symbol.prototype.valueOf,
-    enumerable: false
-  });
-  var hashProperty = createPrivateName();
-  var hashPropertyDescriptor = {value: undefined};
-  var hashObjectProperties = {
-    hash: {value: undefined},
-    self: {value: undefined}
-  };
-  var hashCounter = 0;
-  function getOwnHashObject(object) {
-    var hashObject = object[hashProperty];
-    if (hashObject && hashObject.self === object)
-      return hashObject;
-    if ($isExtensible(object)) {
-      hashObjectProperties.hash.value = hashCounter++;
-      hashObjectProperties.self.value = object;
-      hashPropertyDescriptor.value = $create(null, hashObjectProperties);
-      $defineProperty(object, hashProperty, hashPropertyDescriptor);
-      return hashPropertyDescriptor.value;
-    }
-    return undefined;
-  }
-  function freeze(object) {
-    getOwnHashObject(object);
-    return $freeze.apply(this, arguments);
-  }
-  function preventExtensions(object) {
-    getOwnHashObject(object);
-    return $preventExtensions.apply(this, arguments);
-  }
-  function seal(object) {
-    getOwnHashObject(object);
-    return $seal.apply(this, arguments);
-  }
-  freeze(SymbolValue.prototype);
-  function isSymbolString(s) {
-    return symbolValues[s] || privateNames[s];
-  }
-  function toProperty(name) {
-    if (isShimSymbol(name))
-      return name[symbolInternalProperty];
-    return name;
-  }
-  function removeSymbolKeys(array) {
-    var rv = [];
-    for (var i = 0; i < array.length; i++) {
-      if (!isSymbolString(array[i])) {
-        rv.push(array[i]);
-      }
-    }
-    return rv;
-  }
-  function getOwnPropertyNames(object) {
-    return removeSymbolKeys($getOwnPropertyNames(object));
-  }
-  function keys(object) {
-    return removeSymbolKeys($keys(object));
-  }
-  function getOwnPropertySymbols(object) {
-    var rv = [];
-    var names = $getOwnPropertyNames(object);
-    for (var i = 0; i < names.length; i++) {
-      var symbol = symbolValues[names[i]];
-      if (symbol) {
-        rv.push(symbol);
-      }
-    }
-    return rv;
-  }
-  function getOwnPropertyDescriptor(object, name) {
-    return $getOwnPropertyDescriptor(object, toProperty(name));
-  }
-  function hasOwnProperty(name) {
-    return $hasOwnProperty.call(this, toProperty(name));
-  }
-  function getOption(name) {
-    return global.$traceurRuntime.options[name];
-  }
-  function defineProperty(object, name, descriptor) {
-    if (isShimSymbol(name)) {
-      name = name[symbolInternalProperty];
-    }
-    $defineProperty(object, name, descriptor);
-    return object;
-  }
-  function polyfillObject(Object) {
-    $defineProperty(Object, 'defineProperty', {value: defineProperty});
-    $defineProperty(Object, 'getOwnPropertyNames', {value: getOwnPropertyNames});
-    $defineProperty(Object, 'getOwnPropertyDescriptor', {value: getOwnPropertyDescriptor});
-    $defineProperty(Object.prototype, 'hasOwnProperty', {value: hasOwnProperty});
-    $defineProperty(Object, 'freeze', {value: freeze});
-    $defineProperty(Object, 'preventExtensions', {value: preventExtensions});
-    $defineProperty(Object, 'seal', {value: seal});
-    $defineProperty(Object, 'keys', {value: keys});
-  }
-  function exportStar(object) {
-    for (var i = 1; i < arguments.length; i++) {
-      var names = $getOwnPropertyNames(arguments[i]);
-      for (var j = 0; j < names.length; j++) {
-        var name = names[j];
-        if (isSymbolString(name))
-          continue;
-        (function(mod, name) {
-          $defineProperty(object, name, {
-            get: function() {
-              return mod[name];
-            },
-            enumerable: true
-          });
-        })(arguments[i], names[j]);
-      }
-    }
-    return object;
-  }
-  function isObject(x) {
-    return x != null && (typeof x === 'object' || typeof x === 'function');
-  }
-  function toObject(x) {
-    if (x == null)
-      throw $TypeError();
-    return $Object(x);
-  }
-  function checkObjectCoercible(argument) {
-    if (argument == null) {
-      throw new TypeError('Value cannot be converted to an Object');
-    }
-    return argument;
-  }
-  function polyfillSymbol(global, Symbol) {
-    if (!global.Symbol) {
-      global.Symbol = Symbol;
-      Object.getOwnPropertySymbols = getOwnPropertySymbols;
-    }
-    if (!global.Symbol.iterator) {
-      global.Symbol.iterator = Symbol('Symbol.iterator');
-    }
-  }
-  function setupGlobals(global) {
-    polyfillSymbol(global, Symbol);
-    global.Reflect = global.Reflect || {};
-    global.Reflect.global = global.Reflect.global || global;
-    polyfillObject(global.Object);
-  }
-  setupGlobals(global);
-  global.$traceurRuntime = {
-    checkObjectCoercible: checkObjectCoercible,
-    createPrivateName: createPrivateName,
-    defineProperties: $defineProperties,
-    defineProperty: $defineProperty,
-    exportStar: exportStar,
-    getOwnHashObject: getOwnHashObject,
-    getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
-    getOwnPropertyNames: $getOwnPropertyNames,
-    isObject: isObject,
-    isPrivateName: isPrivateName,
-    isSymbolString: isSymbolString,
-    keys: $keys,
-    options: {},
-    setupGlobals: setupGlobals,
-    toObject: toObject,
-    toProperty: toProperty,
-    typeof: typeOf
-  };
-})(typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : this);
-(function() {
-  'use strict';
-  var path;
-  function relativeRequire(callerPath, requiredPath) {
-    path = path || typeof require !== 'undefined' && require('path');
-    function isDirectory(path) {
-      return path.slice(-1) === '/';
-    }
-    function isAbsolute(path) {
-      return path[0] === '/';
-    }
-    function isRelative(path) {
-      return path[0] === '.';
-    }
-    if (isDirectory(requiredPath) || isAbsolute(requiredPath))
-      return ;
-    return isRelative(requiredPath) ? require(path.resolve(path.dirname(callerPath), requiredPath)) : require(requiredPath);
-  }
-  $traceurRuntime.require = relativeRequire;
-})();
-(function() {
-  'use strict';
-  function spread() {
-    var rv = [],
-        j = 0,
-        iterResult;
-    for (var i = 0; i < arguments.length; i++) {
-      var valueToSpread = $traceurRuntime.checkObjectCoercible(arguments[i]);
-      if (typeof valueToSpread[$traceurRuntime.toProperty(Symbol.iterator)] !== 'function') {
-        throw new TypeError('Cannot spread non-iterable object.');
-      }
-      var iter = valueToSpread[$traceurRuntime.toProperty(Symbol.iterator)]();
-      while (!(iterResult = iter.next()).done) {
-        rv[j++] = iterResult.value;
-      }
-    }
-    return rv;
-  }
-  $traceurRuntime.spread = spread;
-})();
-(function() {
-  'use strict';
-  function iteratorToArray(iter) {
-    var rv = [];
-    var i = 0;
-    var tmp;
-    while (!(tmp = iter.next()).done) {
-      rv[i++] = tmp.value;
-    }
-    return rv;
-  }
-  $traceurRuntime.iteratorToArray = iteratorToArray;
-})();
-(function() {
-  'use strict';
-  var $Object = Object;
-  var $TypeError = TypeError;
-  var $create = $Object.create;
-  var $defineProperties = $traceurRuntime.defineProperties;
-  var $defineProperty = $traceurRuntime.defineProperty;
-  var $getOwnPropertyDescriptor = $traceurRuntime.getOwnPropertyDescriptor;
-  var $getOwnPropertyNames = $traceurRuntime.getOwnPropertyNames;
-  var $getPrototypeOf = Object.getPrototypeOf;
-  var $__0 = Object,
-      getOwnPropertyNames = $__0.getOwnPropertyNames,
-      getOwnPropertySymbols = $__0.getOwnPropertySymbols;
-  function superDescriptor(homeObject, name) {
-    var proto = $getPrototypeOf(homeObject);
-    do {
-      var result = $getOwnPropertyDescriptor(proto, name);
-      if (result)
-        return result;
-      proto = $getPrototypeOf(proto);
-    } while (proto);
-    return undefined;
-  }
-  function superConstructor(ctor) {
-    return ctor.__proto__;
-  }
-  function superGet(self, homeObject, name) {
-    var descriptor = superDescriptor(homeObject, name);
-    if (descriptor) {
-      if (!descriptor.get)
-        return descriptor.value;
-      return descriptor.get.call(self);
-    }
-    return undefined;
-  }
-  function superSet(self, homeObject, name, value) {
-    var descriptor = superDescriptor(homeObject, name);
-    if (descriptor && descriptor.set) {
-      descriptor.set.call(self, value);
-      return value;
-    }
-    throw $TypeError(("super has no setter '" + name + "'."));
-  }
-  function getDescriptors(object) {
-    var descriptors = {};
-    var names = getOwnPropertyNames(object);
-    for (var i = 0; i < names.length; i++) {
-      var name = names[i];
-      descriptors[name] = $getOwnPropertyDescriptor(object, name);
-    }
-    var symbols = getOwnPropertySymbols(object);
-    for (var i = 0; i < symbols.length; i++) {
-      var symbol = symbols[i];
-      descriptors[$traceurRuntime.toProperty(symbol)] = $getOwnPropertyDescriptor(object, $traceurRuntime.toProperty(symbol));
-    }
-    return descriptors;
-  }
-  function createClass(ctor, object, staticObject, superClass) {
-    $defineProperty(object, 'constructor', {
-      value: ctor,
-      configurable: true,
-      enumerable: false,
-      writable: true
+  var isTailRecursiveName = null;
+  function setupProperTailCalls() {
+    isTailRecursiveName = createPrivateName();
+    Function.prototype.call = initTailRecursiveFunction(function call(thisArg) {
+      var result = tailCall(function(thisArg) {
+        var argArray = [];
+        for (var i = 1; i < arguments.length; ++i) {
+          argArray[i - 1] = arguments[i];
+        }
+        var continuation = createContinuation(this, thisArg, argArray);
+        return continuation;
+      }, this, arguments);
+      return result;
     });
-    if (arguments.length > 3) {
-      if (typeof superClass === 'function')
-        ctor.__proto__ = superClass;
-      ctor.prototype = $create(getProtoParent(superClass), getDescriptors(object));
+    Function.prototype.apply = initTailRecursiveFunction(function apply(thisArg, argArray) {
+      var result = tailCall(function(thisArg, argArray) {
+        var continuation = createContinuation(this, thisArg, argArray);
+        return continuation;
+      }, this, arguments);
+      return result;
+    });
+  }
+  function initTailRecursiveFunction(func) {
+    if (isTailRecursiveName === null) {
+      setupProperTailCalls();
+    }
+    func[isTailRecursiveName] = true;
+    return func;
+  }
+  function isTailRecursive(func) {
+    return !!func[isTailRecursiveName];
+  }
+  function tailCall(func, thisArg, argArray) {
+    var continuation = argArray[0];
+    if (isContinuation(continuation)) {
+      continuation = $apply(func, thisArg, continuation[3]);
+      return continuation;
+    }
+    continuation = createContinuation(func, thisArg, argArray);
+    while (true) {
+      if (isTailRecursive(func)) {
+        continuation = $apply(func, continuation[2], [continuation]);
+      } else {
+        continuation = $apply(func, continuation[2], continuation[3]);
+      }
+      if (!isContinuation(continuation)) {
+        return continuation;
+      }
+      func = continuation[1];
+    }
+  }
+  function construct() {
+    var object;
+    if (isTailRecursive(this)) {
+      object = $construct(this, [createContinuation(null, null, arguments)]);
     } else {
-      ctor.prototype = object;
+      object = $construct(this, arguments);
     }
-    $defineProperty(ctor, 'prototype', {
-      configurable: false,
-      writable: false
-    });
-    return $defineProperties(ctor, getDescriptors(staticObject));
-  }
-  function getProtoParent(superClass) {
-    if (typeof superClass === 'function') {
-      var prototype = superClass.prototype;
-      if ($Object(prototype) === prototype || prototype === null)
-        return superClass.prototype;
-      throw new $TypeError('super prototype must be an Object or null');
-    }
-    if (superClass === null)
-      return null;
-    throw new $TypeError(("Super expression must either be null or a function, not " + typeof superClass + "."));
-  }
-  $traceurRuntime.createClass = createClass;
-  $traceurRuntime.superConstructor = superConstructor;
-  $traceurRuntime.superGet = superGet;
-  $traceurRuntime.superSet = superSet;
-})();
-(function() {
-  'use strict';
-  if (typeof $traceurRuntime !== 'object') {
-    throw new Error('traceur runtime not found.');
-  }
-  var createPrivateName = $traceurRuntime.createPrivateName;
-  var $defineProperties = $traceurRuntime.defineProperties;
-  var $defineProperty = $traceurRuntime.defineProperty;
-  var $create = Object.create;
-  var $TypeError = TypeError;
-  function nonEnum(value) {
-    return {
-      configurable: true,
-      enumerable: false,
-      value: value,
-      writable: true
-    };
-  }
-  var ST_NEWBORN = 0;
-  var ST_EXECUTING = 1;
-  var ST_SUSPENDED = 2;
-  var ST_CLOSED = 3;
-  var END_STATE = -2;
-  var RETHROW_STATE = -3;
-  function getInternalError(state) {
-    return new Error('Traceur compiler bug: invalid state in state machine: ' + state);
-  }
-  function GeneratorContext() {
-    this.state = 0;
-    this.GState = ST_NEWBORN;
-    this.storedException = undefined;
-    this.finallyFallThrough = undefined;
-    this.sent_ = undefined;
-    this.returnValue = undefined;
-    this.tryStack_ = [];
-  }
-  GeneratorContext.prototype = {
-    pushTry: function(catchState, finallyState) {
-      if (finallyState !== null) {
-        var finallyFallThrough = null;
-        for (var i = this.tryStack_.length - 1; i >= 0; i--) {
-          if (this.tryStack_[i].catch !== undefined) {
-            finallyFallThrough = this.tryStack_[i].catch;
-            break;
-          }
-        }
-        if (finallyFallThrough === null)
-          finallyFallThrough = RETHROW_STATE;
-        this.tryStack_.push({
-          finally: finallyState,
-          finallyFallThrough: finallyFallThrough
-        });
-      }
-      if (catchState !== null) {
-        this.tryStack_.push({catch: catchState});
-      }
-    },
-    popTry: function() {
-      this.tryStack_.pop();
-    },
-    get sent() {
-      this.maybeThrow();
-      return this.sent_;
-    },
-    set sent(v) {
-      this.sent_ = v;
-    },
-    get sentIgnoreThrow() {
-      return this.sent_;
-    },
-    maybeThrow: function() {
-      if (this.action === 'throw') {
-        this.action = 'next';
-        throw this.sent_;
-      }
-    },
-    end: function() {
-      switch (this.state) {
-        case END_STATE:
-          return this;
-        case RETHROW_STATE:
-          throw this.storedException;
-        default:
-          throw getInternalError(this.state);
-      }
-    },
-    handleException: function(ex) {
-      this.GState = ST_CLOSED;
-      this.state = END_STATE;
-      throw ex;
-    }
-  };
-  function nextOrThrow(ctx, moveNext, action, x) {
-    switch (ctx.GState) {
-      case ST_EXECUTING:
-        throw new Error(("\"" + action + "\" on executing generator"));
-      case ST_CLOSED:
-        if (action == 'next') {
-          return {
-            value: undefined,
-            done: true
-          };
-        }
-        throw x;
-      case ST_NEWBORN:
-        if (action === 'throw') {
-          ctx.GState = ST_CLOSED;
-          throw x;
-        }
-        if (x !== undefined)
-          throw $TypeError('Sent value to newborn generator');
-      case ST_SUSPENDED:
-        ctx.GState = ST_EXECUTING;
-        ctx.action = action;
-        ctx.sent = x;
-        var value = moveNext(ctx);
-        var done = value === ctx;
-        if (done)
-          value = ctx.returnValue;
-        ctx.GState = done ? ST_CLOSED : ST_SUSPENDED;
-        return {
-          value: value,
-          done: done
-        };
-    }
-  }
-  var ctxName = createPrivateName();
-  var moveNextName = createPrivateName();
-  function GeneratorFunction() {}
-  function GeneratorFunctionPrototype() {}
-  GeneratorFunction.prototype = GeneratorFunctionPrototype;
-  $defineProperty(GeneratorFunctionPrototype, 'constructor', nonEnum(GeneratorFunction));
-  GeneratorFunctionPrototype.prototype = {
-    constructor: GeneratorFunctionPrototype,
-    next: function(v) {
-      return nextOrThrow(this[ctxName], this[moveNextName], 'next', v);
-    },
-    throw: function(v) {
-      return nextOrThrow(this[ctxName], this[moveNextName], 'throw', v);
-    }
-  };
-  $defineProperties(GeneratorFunctionPrototype.prototype, {
-    constructor: {enumerable: false},
-    next: {enumerable: false},
-    throw: {enumerable: false}
-  });
-  Object.defineProperty(GeneratorFunctionPrototype.prototype, Symbol.iterator, nonEnum(function() {
-    return this;
-  }));
-  function createGeneratorInstance(innerFunction, functionObject, self) {
-    var moveNext = getMoveNext(innerFunction, self);
-    var ctx = new GeneratorContext();
-    var object = $create(functionObject.prototype);
-    object[ctxName] = ctx;
-    object[moveNextName] = moveNext;
     return object;
   }
-  function initGeneratorFunction(functionObject) {
-    functionObject.prototype = $create(GeneratorFunctionPrototype.prototype);
-    functionObject.__proto__ = GeneratorFunctionPrototype;
-    return functionObject;
-  }
-  function AsyncFunctionContext() {
-    GeneratorContext.call(this);
-    this.err = undefined;
-    var ctx = this;
-    ctx.result = new Promise(function(resolve, reject) {
-      ctx.resolve = resolve;
-      ctx.reject = reject;
-    });
-  }
-  AsyncFunctionContext.prototype = $create(GeneratorContext.prototype);
-  AsyncFunctionContext.prototype.end = function() {
-    switch (this.state) {
-      case END_STATE:
-        this.resolve(this.returnValue);
-        break;
-      case RETHROW_STATE:
-        this.reject(this.storedException);
-        break;
-      default:
-        this.reject(getInternalError(this.state));
-    }
+  var $traceurRuntime = {
+    initTailRecursiveFunction: initTailRecursiveFunction,
+    call: tailCall,
+    continuation: createContinuation,
+    construct: construct
   };
-  AsyncFunctionContext.prototype.handleException = function() {
-    this.state = RETHROW_STATE;
-  };
-  function asyncWrap(innerFunction, self) {
-    var moveNext = getMoveNext(innerFunction, self);
-    var ctx = new AsyncFunctionContext();
-    ctx.createCallback = function(newState) {
-      return function(value) {
-        ctx.state = newState;
-        ctx.value = value;
-        moveNext(ctx);
+  (function() {
+    function nonEnum(value) {
+      return {
+        configurable: true,
+        enumerable: false,
+        value: value,
+        writable: true
       };
+    }
+    var method = nonEnum;
+    var symbolInternalProperty = newUniqueString();
+    var symbolDescriptionProperty = newUniqueString();
+    var symbolDataProperty = newUniqueString();
+    var symbolValues = $create(null);
+    function isShimSymbol(symbol) {
+      return typeof symbol === 'object' && symbol instanceof SymbolValue;
+    }
+    function typeOf(v) {
+      if (isShimSymbol(v))
+        return 'symbol';
+      return typeof v;
+    }
+    function Symbol(description) {
+      var value = new SymbolValue(description);
+      if (!(this instanceof Symbol))
+        return value;
+      throw new TypeError('Symbol cannot be new\'ed');
+    }
+    $defineProperty(Symbol.prototype, 'constructor', nonEnum(Symbol));
+    $defineProperty(Symbol.prototype, 'toString', method(function() {
+      var symbolValue = this[symbolDataProperty];
+      return symbolValue[symbolInternalProperty];
+    }));
+    $defineProperty(Symbol.prototype, 'valueOf', method(function() {
+      var symbolValue = this[symbolDataProperty];
+      if (!symbolValue)
+        throw TypeError('Conversion from symbol to string');
+      if (!getOption('symbols'))
+        return symbolValue[symbolInternalProperty];
+      return symbolValue;
+    }));
+    function SymbolValue(description) {
+      var key = newUniqueString();
+      $defineProperty(this, symbolDataProperty, {value: this});
+      $defineProperty(this, symbolInternalProperty, {value: key});
+      $defineProperty(this, symbolDescriptionProperty, {value: description});
+      freeze(this);
+      symbolValues[key] = this;
+    }
+    $defineProperty(SymbolValue.prototype, 'constructor', nonEnum(Symbol));
+    $defineProperty(SymbolValue.prototype, 'toString', {
+      value: Symbol.prototype.toString,
+      enumerable: false
+    });
+    $defineProperty(SymbolValue.prototype, 'valueOf', {
+      value: Symbol.prototype.valueOf,
+      enumerable: false
+    });
+    var hashProperty = createPrivateName();
+    var hashPropertyDescriptor = {value: undefined};
+    var hashObjectProperties = {
+      hash: {value: undefined},
+      self: {value: undefined}
     };
-    ctx.errback = function(err) {
-      handleCatch(ctx, err);
-      moveNext(ctx);
-    };
-    moveNext(ctx);
-    return ctx.result;
-  }
-  function getMoveNext(innerFunction, self) {
-    return function(ctx) {
-      while (true) {
-        try {
-          return innerFunction.call(self, ctx);
-        } catch (ex) {
-          handleCatch(ctx, ex);
+    var hashCounter = 0;
+    function getOwnHashObject(object) {
+      var hashObject = object[hashProperty];
+      if (hashObject && hashObject.self === object)
+        return hashObject;
+      if ($isExtensible(object)) {
+        hashObjectProperties.hash.value = hashCounter++;
+        hashObjectProperties.self.value = object;
+        hashPropertyDescriptor.value = $create(null, hashObjectProperties);
+        $defineProperty(object, hashProperty, hashPropertyDescriptor);
+        return hashPropertyDescriptor.value;
+      }
+      return undefined;
+    }
+    function freeze(object) {
+      getOwnHashObject(object);
+      return $freeze.apply(this, arguments);
+    }
+    function preventExtensions(object) {
+      getOwnHashObject(object);
+      return $preventExtensions.apply(this, arguments);
+    }
+    function seal(object) {
+      getOwnHashObject(object);
+      return $seal.apply(this, arguments);
+    }
+    freeze(SymbolValue.prototype);
+    function isSymbolString(s) {
+      return symbolValues[s] || privateNames[s];
+    }
+    function toProperty(name) {
+      if (isShimSymbol(name))
+        return name[symbolInternalProperty];
+      return name;
+    }
+    function removeSymbolKeys(array) {
+      var rv = [];
+      for (var i = 0; i < array.length; i++) {
+        if (!isSymbolString(array[i])) {
+          rv.push(array[i]);
         }
       }
-    };
-  }
-  function handleCatch(ctx, ex) {
-    ctx.storedException = ex;
-    var last = ctx.tryStack_[ctx.tryStack_.length - 1];
-    if (!last) {
-      ctx.handleException(ex);
-      return ;
+      return rv;
     }
-    ctx.state = last.catch !== undefined ? last.catch : last.finally;
-    if (last.finallyFallThrough !== undefined)
-      ctx.finallyFallThrough = last.finallyFallThrough;
-  }
-  $traceurRuntime.asyncWrap = asyncWrap;
-  $traceurRuntime.initGeneratorFunction = initGeneratorFunction;
-  $traceurRuntime.createGeneratorInstance = createGeneratorInstance;
-})();
+    function getOwnPropertyNames(object) {
+      return removeSymbolKeys($getOwnPropertyNames(object));
+    }
+    function keys(object) {
+      return removeSymbolKeys($keys(object));
+    }
+    function getOwnPropertySymbols(object) {
+      var rv = [];
+      var names = $getOwnPropertyNames(object);
+      for (var i = 0; i < names.length; i++) {
+        var symbol = symbolValues[names[i]];
+        if (symbol) {
+          rv.push(symbol);
+        }
+      }
+      return rv;
+    }
+    function getOwnPropertyDescriptor(object, name) {
+      return $getOwnPropertyDescriptor(object, toProperty(name));
+    }
+    function hasOwnProperty(name) {
+      return $hasOwnProperty.call(this, toProperty(name));
+    }
+    function getOption(name) {
+      return global.$traceurRuntime.options[name];
+    }
+    function defineProperty(object, name, descriptor) {
+      if (isShimSymbol(name)) {
+        name = name[symbolInternalProperty];
+      }
+      $defineProperty(object, name, descriptor);
+      return object;
+    }
+    function polyfillObject(Object) {
+      $defineProperty(Object, 'defineProperty', {value: defineProperty});
+      $defineProperty(Object, 'getOwnPropertyNames', {value: getOwnPropertyNames});
+      $defineProperty(Object, 'getOwnPropertyDescriptor', {value: getOwnPropertyDescriptor});
+      $defineProperty(Object.prototype, 'hasOwnProperty', {value: hasOwnProperty});
+      $defineProperty(Object, 'freeze', {value: freeze});
+      $defineProperty(Object, 'preventExtensions', {value: preventExtensions});
+      $defineProperty(Object, 'seal', {value: seal});
+      $defineProperty(Object, 'keys', {value: keys});
+    }
+    function exportStar(object) {
+      for (var i = 1; i < arguments.length; i++) {
+        var names = $getOwnPropertyNames(arguments[i]);
+        for (var j = 0; j < names.length; j++) {
+          var name = names[j];
+          if (name === '__esModule' || isSymbolString(name))
+            continue;
+          (function(mod, name) {
+            $defineProperty(object, name, {
+              get: function() {
+                return mod[name];
+              },
+              enumerable: true
+            });
+          })(arguments[i], names[j]);
+        }
+      }
+      return object;
+    }
+    function isObject(x) {
+      return x != null && (typeof x === 'object' || typeof x === 'function');
+    }
+    function toObject(x) {
+      if (x == null)
+        throw $TypeError();
+      return $Object(x);
+    }
+    function checkObjectCoercible(argument) {
+      if (argument == null) {
+        throw new TypeError('Value cannot be converted to an Object');
+      }
+      return argument;
+    }
+    function polyfillSymbol(global, Symbol) {
+      if (!global.Symbol) {
+        global.Symbol = Symbol;
+        Object.getOwnPropertySymbols = getOwnPropertySymbols;
+      }
+      if (!global.Symbol.iterator) {
+        global.Symbol.iterator = Symbol('Symbol.iterator');
+      }
+      if (!global.Symbol.observer) {
+        global.Symbol.observer = Symbol('Symbol.observer');
+      }
+    }
+    function setupGlobals(global) {
+      polyfillSymbol(global, Symbol);
+      global.Reflect = global.Reflect || {};
+      global.Reflect.global = global.Reflect.global || global;
+      polyfillObject(global.Object);
+    }
+    setupGlobals(global);
+    global.$traceurRuntime = {
+      call: tailCall,
+      checkObjectCoercible: checkObjectCoercible,
+      construct: construct,
+      continuation: createContinuation,
+      createPrivateName: createPrivateName,
+      defineProperties: $defineProperties,
+      defineProperty: $defineProperty,
+      exportStar: exportStar,
+      getOwnHashObject: getOwnHashObject,
+      getOwnPropertyDescriptor: $getOwnPropertyDescriptor,
+      getOwnPropertyNames: $getOwnPropertyNames,
+      initTailRecursiveFunction: initTailRecursiveFunction,
+      isObject: isObject,
+      isPrivateName: isPrivateName,
+      isSymbolString: isSymbolString,
+      keys: $keys,
+      options: {},
+      setupGlobals: setupGlobals,
+      toObject: toObject,
+      toProperty: toProperty,
+      typeof: typeOf
+    };
+  })();
+})(typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : this);
 (function() {
   function buildFromEncodedParts(opt_scheme, opt_userInfo, opt_domain, opt_port, opt_path, opt_queryData, opt_fragment) {
     var out = [];
@@ -753,100 +465,54 @@
   $traceurRuntime.removeDotSegments = removeDotSegments;
   $traceurRuntime.resolveUrl = resolveUrl;
 })();
-(function() {
-  'use strict';
-  var types = {
-    any: {name: 'any'},
-    boolean: {name: 'boolean'},
-    number: {name: 'number'},
-    string: {name: 'string'},
-    symbol: {name: 'symbol'},
-    void: {name: 'void'}
-  };
-  var GenericType = function GenericType(type, argumentTypes) {
-    this.type = type;
-    this.argumentTypes = argumentTypes;
-  };
-  ($traceurRuntime.createClass)(GenericType, {}, {});
-  var typeRegister = Object.create(null);
-  function genericType(type) {
-    for (var argumentTypes = [],
-        $__1 = 1; $__1 < arguments.length; $__1++)
-      argumentTypes[$__1 - 1] = arguments[$__1];
-    var typeMap = typeRegister;
-    var key = $traceurRuntime.getOwnHashObject(type).hash;
-    if (!typeMap[key]) {
-      typeMap[key] = Object.create(null);
-    }
-    typeMap = typeMap[key];
-    for (var i = 0; i < argumentTypes.length - 1; i++) {
-      key = $traceurRuntime.getOwnHashObject(argumentTypes[i]).hash;
-      if (!typeMap[key]) {
-        typeMap[key] = Object.create(null);
-      }
-      typeMap = typeMap[key];
-    }
-    var tail = argumentTypes[argumentTypes.length - 1];
-    key = $traceurRuntime.getOwnHashObject(tail).hash;
-    if (!typeMap[key]) {
-      typeMap[key] = new GenericType(type, argumentTypes);
-    }
-    return typeMap[key];
-  }
-  $traceurRuntime.GenericType = GenericType;
-  $traceurRuntime.genericType = genericType;
-  $traceurRuntime.type = types;
-})();
 (function(global) {
   'use strict';
-  var $__2 = $traceurRuntime,
-      canonicalizeUrl = $__2.canonicalizeUrl,
-      resolveUrl = $__2.resolveUrl,
-      isAbsolute = $__2.isAbsolute;
+  var $__1 = $traceurRuntime,
+      canonicalizeUrl = $__1.canonicalizeUrl,
+      resolveUrl = $__1.resolveUrl,
+      isAbsolute = $__1.isAbsolute;
   var moduleInstantiators = Object.create(null);
   var baseURL;
   if (global.location && global.location.href)
     baseURL = resolveUrl(global.location.href, './');
   else
     baseURL = '';
-  var UncoatedModuleEntry = function UncoatedModuleEntry(url, uncoatedModule) {
+  function UncoatedModuleEntry(url, uncoatedModule) {
     this.url = url;
     this.value_ = uncoatedModule;
-  };
-  ($traceurRuntime.createClass)(UncoatedModuleEntry, {}, {});
-  var ModuleEvaluationError = function ModuleEvaluationError(erroneousModuleName, cause) {
+  }
+  function ModuleEvaluationError(erroneousModuleName, cause) {
     this.message = this.constructor.name + ': ' + this.stripCause(cause) + ' in ' + erroneousModuleName;
-    if (!(cause instanceof $ModuleEvaluationError) && cause.stack)
+    if (!(cause instanceof ModuleEvaluationError) && cause.stack)
       this.stack = this.stripStack(cause.stack);
     else
       this.stack = '';
+  }
+  ModuleEvaluationError.prototype = Object.create(Error.prototype);
+  ModuleEvaluationError.prototype.constructor = ModuleEvaluationError;
+  ModuleEvaluationError.prototype.stripError = function(message) {
+    return message.replace(/.*Error:/, this.constructor.name + ':');
   };
-  var $ModuleEvaluationError = ModuleEvaluationError;
-  ($traceurRuntime.createClass)(ModuleEvaluationError, {
-    stripError: function(message) {
-      return message.replace(/.*Error:/, this.constructor.name + ':');
-    },
-    stripCause: function(cause) {
-      if (!cause)
-        return '';
-      if (!cause.message)
-        return cause + '';
-      return this.stripError(cause.message);
-    },
-    loadedBy: function(moduleName) {
-      this.stack += '\n loaded by ' + moduleName;
-    },
-    stripStack: function(causeStack) {
-      var stack = [];
-      causeStack.split('\n').some((function(frame) {
-        if (/UncoatedModuleInstantiator/.test(frame))
-          return true;
-        stack.push(frame);
-      }));
-      stack[0] = this.stripError(stack[0]);
-      return stack.join('\n');
-    }
-  }, {}, Error);
+  ModuleEvaluationError.prototype.stripCause = function(cause) {
+    if (!cause)
+      return '';
+    if (!cause.message)
+      return cause + '';
+    return this.stripError(cause.message);
+  };
+  ModuleEvaluationError.prototype.loadedBy = function(moduleName) {
+    this.stack += '\n loaded by ' + moduleName;
+  };
+  ModuleEvaluationError.prototype.stripStack = function(causeStack) {
+    var stack = [];
+    causeStack.split('\n').some((function(frame) {
+      if (/UncoatedModuleInstantiator/.test(frame))
+        return true;
+      stack.push(frame);
+    }));
+    stack[0] = this.stripError(stack[0]);
+    return stack.join('\n');
+  };
   function beforeLines(lines, number) {
     var result = [];
     var first = number - 3;
@@ -874,47 +540,52 @@
     }
     return result;
   }
-  var UncoatedModuleInstantiator = function UncoatedModuleInstantiator(url, func) {
-    $traceurRuntime.superConstructor($UncoatedModuleInstantiator).call(this, url, null);
+  function UncoatedModuleInstantiator(url, func) {
+    UncoatedModuleEntry.call(this, url, null);
     this.func = func;
-  };
-  var $UncoatedModuleInstantiator = UncoatedModuleInstantiator;
-  ($traceurRuntime.createClass)(UncoatedModuleInstantiator, {getUncoatedModule: function() {
-      if (this.value_)
-        return this.value_;
-      try {
-        var relativeRequire;
-        if (typeof $traceurRuntime !== undefined) {
-          relativeRequire = $traceurRuntime.require.bind(null, this.url);
-        }
-        return this.value_ = this.func.call(global, relativeRequire);
-      } catch (ex) {
-        if (ex instanceof ModuleEvaluationError) {
-          ex.loadedBy(this.url);
-          throw ex;
-        }
-        if (ex.stack) {
-          var lines = this.func.toString().split('\n');
-          var evaled = [];
-          ex.stack.split('\n').some(function(frame) {
-            if (frame.indexOf('UncoatedModuleInstantiator.getUncoatedModule') > 0)
-              return true;
-            var m = /(at\s[^\s]*\s).*>:(\d*):(\d*)\)/.exec(frame);
-            if (m) {
-              var line = parseInt(m[2], 10);
-              evaled = evaled.concat(beforeLines(lines, line));
-              evaled.push(columnSpacing(m[3]) + '^');
-              evaled = evaled.concat(afterLines(lines, line));
-              evaled.push('= = = = = = = = =');
-            } else {
-              evaled.push(frame);
-            }
-          });
-          ex.stack = evaled.join('\n');
-        }
-        throw new ModuleEvaluationError(this.url, ex);
+  }
+  UncoatedModuleInstantiator.prototype = Object.create(UncoatedModuleEntry.prototype);
+  UncoatedModuleInstantiator.prototype.getUncoatedModule = function() {
+    var $__0 = this;
+    if (this.value_)
+      return this.value_;
+    try {
+      var relativeRequire;
+      if (typeof $traceurRuntime !== undefined && $traceurRuntime.require) {
+        relativeRequire = $traceurRuntime.require.bind(null, this.url);
       }
-    }}, {}, UncoatedModuleEntry);
+      return this.value_ = this.func.call(global, relativeRequire);
+    } catch (ex) {
+      if (ex instanceof ModuleEvaluationError) {
+        ex.loadedBy(this.url);
+        throw ex;
+      }
+      if (ex.stack) {
+        var lines = this.func.toString().split('\n');
+        var evaled = [];
+        ex.stack.split('\n').some((function(frame, index) {
+          if (frame.indexOf('UncoatedModuleInstantiator.getUncoatedModule') > 0)
+            return true;
+          var m = /(at\s[^\s]*\s).*>:(\d*):(\d*)\)/.exec(frame);
+          if (m) {
+            var line = parseInt(m[2], 10);
+            evaled = evaled.concat(beforeLines(lines, line));
+            if (index === 1) {
+              evaled.push(columnSpacing(m[3]) + '^ ' + $__0.url);
+            } else {
+              evaled.push(columnSpacing(m[3]) + '^');
+            }
+            evaled = evaled.concat(afterLines(lines, line));
+            evaled.push('= = = = = = = = =');
+          } else {
+            evaled.push(frame);
+          }
+        }));
+        ex.stack = evaled.join('\n');
+      }
+      throw new ModuleEvaluationError(this.url, ex);
+    }
+  };
   function getUncoatedModuleInstantiator(name) {
     if (!name)
       return ;
@@ -1029,7 +700,6 @@
     }
   };
   var moduleStoreModule = new Module({ModuleStore: ModuleStore});
-  ModuleStore.set('@traceur/src/runtime/ModuleStore', moduleStoreModule);
   ModuleStore.set('@traceur/src/runtime/ModuleStore.js', moduleStoreModule);
   var setupGlobals = $traceurRuntime.setupGlobals;
   $traceurRuntime.setupGlobals = function(global) {
@@ -1043,14 +713,711 @@
     set: ModuleStore.set,
     normalize: ModuleStore.normalize
   };
-  $traceurRuntime.getModuleImpl = function(name) {
-    var instantiator = getUncoatedModuleInstantiator(name);
-    return instantiator && instantiator.getUncoatedModule();
-  };
 })(typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : this);
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js", [], function() {
+System.registerModule("traceur-runtime@0.0.88/src/runtime/async.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/utils.js";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/async.js";
+  if (typeof $traceurRuntime !== 'object') {
+    throw new Error('traceur runtime not found.');
+  }
+  var $createPrivateName = $traceurRuntime.createPrivateName;
+  var $defineProperty = $traceurRuntime.defineProperty;
+  var $defineProperties = $traceurRuntime.defineProperties;
+  var $create = Object.create;
+  var thisName = $createPrivateName();
+  var argsName = $createPrivateName();
+  var observeName = $createPrivateName();
+  function AsyncGeneratorFunction() {}
+  function AsyncGeneratorFunctionPrototype() {}
+  AsyncGeneratorFunction.prototype = AsyncGeneratorFunctionPrototype;
+  AsyncGeneratorFunctionPrototype.constructor = AsyncGeneratorFunction;
+  $defineProperty(AsyncGeneratorFunctionPrototype, 'constructor', {enumerable: false});
+  var AsyncGeneratorContext = (function() {
+    function AsyncGeneratorContext(observer) {
+      var $__0 = this;
+      this.decoratedObserver = $traceurRuntime.createDecoratedGenerator(observer, (function() {
+        $__0.done = true;
+      }));
+      this.done = false;
+      this.inReturn = false;
+    }
+    return ($traceurRuntime.createClass)(AsyncGeneratorContext, {
+      throw: function(error) {
+        if (!this.inReturn) {
+          throw error;
+        }
+      },
+      yield: function(value) {
+        if (this.done) {
+          this.inReturn = true;
+          throw undefined;
+        }
+        var result;
+        try {
+          result = this.decoratedObserver.next(value);
+        } catch (e) {
+          this.done = true;
+          throw e;
+        }
+        if (result === undefined) {
+          return ;
+        }
+        if (result.done) {
+          this.done = true;
+          this.inReturn = true;
+          throw undefined;
+        }
+        return result.value;
+      },
+      yieldFor: function(observable) {
+        var ctx = this;
+        return $traceurRuntime.observeForEach(observable[$traceurRuntime.toProperty(Symbol.observer)].bind(observable), function(value) {
+          if (ctx.done) {
+            this.return();
+            return ;
+          }
+          var result;
+          try {
+            result = ctx.decoratedObserver.next(value);
+          } catch (e) {
+            ctx.done = true;
+            throw e;
+          }
+          if (result === undefined) {
+            return ;
+          }
+          if (result.done) {
+            ctx.done = true;
+          }
+          return result;
+        });
+      }
+    }, {});
+  }());
+  AsyncGeneratorFunctionPrototype.prototype[Symbol.observer] = function(observer) {
+    var observe = this[observeName];
+    var ctx = new AsyncGeneratorContext(observer);
+    $traceurRuntime.schedule((function() {
+      return observe(ctx);
+    })).then((function(value) {
+      if (!ctx.done) {
+        ctx.decoratedObserver.return(value);
+      }
+    })).catch((function(error) {
+      if (!ctx.done) {
+        ctx.decoratedObserver.throw(error);
+      }
+    }));
+    return ctx.decoratedObserver;
+  };
+  $defineProperty(AsyncGeneratorFunctionPrototype.prototype, Symbol.observer, {enumerable: false});
+  function initAsyncGeneratorFunction(functionObject) {
+    functionObject.prototype = $create(AsyncGeneratorFunctionPrototype.prototype);
+    functionObject.__proto__ = AsyncGeneratorFunctionPrototype;
+    return functionObject;
+  }
+  function createAsyncGeneratorInstance(observe, functionObject) {
+    for (var args = [],
+        $__2 = 2; $__2 < arguments.length; $__2++)
+      args[$__2 - 2] = arguments[$__2];
+    var object = $create(functionObject.prototype);
+    object[thisName] = this;
+    object[argsName] = args;
+    object[observeName] = observe;
+    return object;
+  }
+  function observeForEach(observe, next) {
+    return new Promise((function(resolve, reject) {
+      var generator = observe({
+        next: function(value) {
+          return next.call(generator, value);
+        },
+        throw: function(error) {
+          reject(error);
+        },
+        return: function(value) {
+          resolve(value);
+        }
+      });
+    }));
+  }
+  function schedule(asyncF) {
+    return Promise.resolve().then(asyncF);
+  }
+  var generator = Symbol();
+  var onDone = Symbol();
+  var DecoratedGenerator = (function() {
+    function DecoratedGenerator(_generator, _onDone) {
+      this[generator] = _generator;
+      this[onDone] = _onDone;
+    }
+    return ($traceurRuntime.createClass)(DecoratedGenerator, {
+      next: function(value) {
+        var result = this[generator].next(value);
+        if (result !== undefined && result.done) {
+          this[onDone].call(this);
+        }
+        return result;
+      },
+      throw: function(error) {
+        this[onDone].call(this);
+        return this[generator].throw(error);
+      },
+      return: function(value) {
+        this[onDone].call(this);
+        return this[generator].return(value);
+      }
+    }, {});
+  }());
+  function createDecoratedGenerator(generator, onDone) {
+    return new DecoratedGenerator(generator, onDone);
+  }
+  $traceurRuntime.initAsyncGeneratorFunction = initAsyncGeneratorFunction;
+  $traceurRuntime.createAsyncGeneratorInstance = createAsyncGeneratorInstance;
+  $traceurRuntime.observeForEach = observeForEach;
+  $traceurRuntime.schedule = schedule;
+  $traceurRuntime.createDecoratedGenerator = createDecoratedGenerator;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/classes.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/classes.js";
+  var $Object = Object;
+  var $TypeError = TypeError;
+  var $create = $Object.create;
+  var $defineProperties = $traceurRuntime.defineProperties;
+  var $defineProperty = $traceurRuntime.defineProperty;
+  var $getOwnPropertyDescriptor = $traceurRuntime.getOwnPropertyDescriptor;
+  var $getOwnPropertyNames = $traceurRuntime.getOwnPropertyNames;
+  var $getPrototypeOf = Object.getPrototypeOf;
+  var $__0 = Object,
+      getOwnPropertyNames = $__0.getOwnPropertyNames,
+      getOwnPropertySymbols = $__0.getOwnPropertySymbols;
+  function superDescriptor(homeObject, name) {
+    var proto = $getPrototypeOf(homeObject);
+    do {
+      var result = $getOwnPropertyDescriptor(proto, name);
+      if (result)
+        return result;
+      proto = $getPrototypeOf(proto);
+    } while (proto);
+    return undefined;
+  }
+  function superConstructor(ctor) {
+    return ctor.__proto__;
+  }
+  function superGet(self, homeObject, name) {
+    var descriptor = superDescriptor(homeObject, name);
+    if (descriptor) {
+      if (!descriptor.get)
+        return descriptor.value;
+      return descriptor.get.call(self);
+    }
+    return undefined;
+  }
+  function superSet(self, homeObject, name, value) {
+    var descriptor = superDescriptor(homeObject, name);
+    if (descriptor && descriptor.set) {
+      descriptor.set.call(self, value);
+      return value;
+    }
+    throw $TypeError(("super has no setter '" + name + "'."));
+  }
+  function forEachPropertyKey(object, f) {
+    getOwnPropertyNames(object).forEach(f);
+    getOwnPropertySymbols(object).forEach(f);
+  }
+  function getDescriptors(object) {
+    var descriptors = {};
+    forEachPropertyKey(object, (function(key) {
+      descriptors[key] = $getOwnPropertyDescriptor(object, key);
+      descriptors[key].enumerable = false;
+    }));
+    return descriptors;
+  }
+  var nonEnum = {enumerable: false};
+  function makePropertiesNonEnumerable(object) {
+    forEachPropertyKey(object, (function(key) {
+      $defineProperty(object, key, nonEnum);
+    }));
+  }
+  function createClass(ctor, object, staticObject, superClass) {
+    $defineProperty(object, 'constructor', {
+      value: ctor,
+      configurable: true,
+      enumerable: false,
+      writable: true
+    });
+    if (arguments.length > 3) {
+      if (typeof superClass === 'function')
+        ctor.__proto__ = superClass;
+      ctor.prototype = $create(getProtoParent(superClass), getDescriptors(object));
+    } else {
+      makePropertiesNonEnumerable(object);
+      ctor.prototype = object;
+    }
+    $defineProperty(ctor, 'prototype', {
+      configurable: false,
+      writable: false
+    });
+    return $defineProperties(ctor, getDescriptors(staticObject));
+  }
+  function getProtoParent(superClass) {
+    if (typeof superClass === 'function') {
+      var prototype = superClass.prototype;
+      if ($Object(prototype) === prototype || prototype === null)
+        return superClass.prototype;
+      throw new $TypeError('super prototype must be an Object or null');
+    }
+    if (superClass === null)
+      return null;
+    throw new $TypeError(("Super expression must either be null or a function, not " + typeof superClass + "."));
+  }
+  $traceurRuntime.createClass = createClass;
+  $traceurRuntime.superConstructor = superConstructor;
+  $traceurRuntime.superGet = superGet;
+  $traceurRuntime.superSet = superSet;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/destructuring.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/destructuring.js";
+  function iteratorToArray(iter) {
+    var rv = [];
+    var i = 0;
+    var tmp;
+    while (!(tmp = iter.next()).done) {
+      rv[i++] = tmp.value;
+    }
+    return rv;
+  }
+  $traceurRuntime.iteratorToArray = iteratorToArray;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/generators.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/generators.js";
+  if (typeof $traceurRuntime !== 'object') {
+    throw new Error('traceur runtime not found.');
+  }
+  var createPrivateName = $traceurRuntime.createPrivateName;
+  var $defineProperties = $traceurRuntime.defineProperties;
+  var $defineProperty = $traceurRuntime.defineProperty;
+  var $create = Object.create;
+  var $TypeError = TypeError;
+  function nonEnum(value) {
+    return {
+      configurable: true,
+      enumerable: false,
+      value: value,
+      writable: true
+    };
+  }
+  var ST_NEWBORN = 0;
+  var ST_EXECUTING = 1;
+  var ST_SUSPENDED = 2;
+  var ST_CLOSED = 3;
+  var END_STATE = -2;
+  var RETHROW_STATE = -3;
+  function getInternalError(state) {
+    return new Error('Traceur compiler bug: invalid state in state machine: ' + state);
+  }
+  var RETURN_SENTINEL = {};
+  function GeneratorContext() {
+    this.state = 0;
+    this.GState = ST_NEWBORN;
+    this.storedException = undefined;
+    this.finallyFallThrough = undefined;
+    this.sent_ = undefined;
+    this.returnValue = undefined;
+    this.oldReturnValue = undefined;
+    this.tryStack_ = [];
+  }
+  GeneratorContext.prototype = {
+    pushTry: function(catchState, finallyState) {
+      if (finallyState !== null) {
+        var finallyFallThrough = null;
+        for (var i = this.tryStack_.length - 1; i >= 0; i--) {
+          if (this.tryStack_[i].catch !== undefined) {
+            finallyFallThrough = this.tryStack_[i].catch;
+            break;
+          }
+        }
+        if (finallyFallThrough === null)
+          finallyFallThrough = RETHROW_STATE;
+        this.tryStack_.push({
+          finally: finallyState,
+          finallyFallThrough: finallyFallThrough
+        });
+      }
+      if (catchState !== null) {
+        this.tryStack_.push({catch: catchState});
+      }
+    },
+    popTry: function() {
+      this.tryStack_.pop();
+    },
+    maybeUncatchable: function() {
+      if (this.storedException === RETURN_SENTINEL) {
+        throw RETURN_SENTINEL;
+      }
+    },
+    get sent() {
+      this.maybeThrow();
+      return this.sent_;
+    },
+    set sent(v) {
+      this.sent_ = v;
+    },
+    get sentIgnoreThrow() {
+      return this.sent_;
+    },
+    maybeThrow: function() {
+      if (this.action === 'throw') {
+        this.action = 'next';
+        throw this.sent_;
+      }
+    },
+    end: function() {
+      switch (this.state) {
+        case END_STATE:
+          return this;
+        case RETHROW_STATE:
+          throw this.storedException;
+        default:
+          throw getInternalError(this.state);
+      }
+    },
+    handleException: function(ex) {
+      this.GState = ST_CLOSED;
+      this.state = END_STATE;
+      throw ex;
+    },
+    wrapYieldStar: function(iterator) {
+      var ctx = this;
+      return {
+        next: function(v) {
+          return iterator.next(v);
+        },
+        throw: function(e) {
+          var result;
+          if (e === RETURN_SENTINEL) {
+            if (iterator.return) {
+              result = iterator.return(ctx.returnValue);
+              if (!result.done) {
+                ctx.returnValue = ctx.oldReturnValue;
+                return result;
+              }
+              ctx.returnValue = result.value;
+            }
+            throw e;
+          }
+          if (iterator.throw) {
+            return iterator.throw(e);
+          }
+          iterator.return && iterator.return();
+          throw $TypeError('Inner iterator does not have a throw method');
+        }
+      };
+    }
+  };
+  function nextOrThrow(ctx, moveNext, action, x) {
+    switch (ctx.GState) {
+      case ST_EXECUTING:
+        throw new Error(("\"" + action + "\" on executing generator"));
+      case ST_CLOSED:
+        if (action == 'next') {
+          return {
+            value: undefined,
+            done: true
+          };
+        }
+        if (x === RETURN_SENTINEL) {
+          return {
+            value: ctx.returnValue,
+            done: true
+          };
+        }
+        throw x;
+      case ST_NEWBORN:
+        if (action === 'throw') {
+          ctx.GState = ST_CLOSED;
+          if (x === RETURN_SENTINEL) {
+            return {
+              value: ctx.returnValue,
+              done: true
+            };
+          }
+          throw x;
+        }
+        if (x !== undefined)
+          throw $TypeError('Sent value to newborn generator');
+      case ST_SUSPENDED:
+        ctx.GState = ST_EXECUTING;
+        ctx.action = action;
+        ctx.sent = x;
+        var value;
+        try {
+          value = moveNext(ctx);
+        } catch (ex) {
+          if (ex === RETURN_SENTINEL) {
+            value = ctx;
+          } else {
+            throw ex;
+          }
+        }
+        var done = value === ctx;
+        if (done)
+          value = ctx.returnValue;
+        ctx.GState = done ? ST_CLOSED : ST_SUSPENDED;
+        return {
+          value: value,
+          done: done
+        };
+    }
+  }
+  var ctxName = createPrivateName();
+  var moveNextName = createPrivateName();
+  function GeneratorFunction() {}
+  function GeneratorFunctionPrototype() {}
+  GeneratorFunction.prototype = GeneratorFunctionPrototype;
+  $defineProperty(GeneratorFunctionPrototype, 'constructor', nonEnum(GeneratorFunction));
+  GeneratorFunctionPrototype.prototype = {
+    constructor: GeneratorFunctionPrototype,
+    next: function(v) {
+      return nextOrThrow(this[ctxName], this[moveNextName], 'next', v);
+    },
+    throw: function(v) {
+      return nextOrThrow(this[ctxName], this[moveNextName], 'throw', v);
+    },
+    return: function(v) {
+      this[ctxName].oldReturnValue = this[ctxName].returnValue;
+      this[ctxName].returnValue = v;
+      return nextOrThrow(this[ctxName], this[moveNextName], 'throw', RETURN_SENTINEL);
+    }
+  };
+  $defineProperties(GeneratorFunctionPrototype.prototype, {
+    constructor: {enumerable: false},
+    next: {enumerable: false},
+    throw: {enumerable: false},
+    return: {enumerable: false}
+  });
+  Object.defineProperty(GeneratorFunctionPrototype.prototype, Symbol.iterator, nonEnum(function() {
+    return this;
+  }));
+  function createGeneratorInstance(innerFunction, functionObject, self) {
+    var moveNext = getMoveNext(innerFunction, self);
+    var ctx = new GeneratorContext();
+    var object = $create(functionObject.prototype);
+    object[ctxName] = ctx;
+    object[moveNextName] = moveNext;
+    return object;
+  }
+  function initGeneratorFunction(functionObject) {
+    functionObject.prototype = $create(GeneratorFunctionPrototype.prototype);
+    functionObject.__proto__ = GeneratorFunctionPrototype;
+    return functionObject;
+  }
+  function AsyncFunctionContext() {
+    GeneratorContext.call(this);
+    this.err = undefined;
+    var ctx = this;
+    ctx.result = new Promise(function(resolve, reject) {
+      ctx.resolve = resolve;
+      ctx.reject = reject;
+    });
+  }
+  AsyncFunctionContext.prototype = $create(GeneratorContext.prototype);
+  AsyncFunctionContext.prototype.end = function() {
+    switch (this.state) {
+      case END_STATE:
+        this.resolve(this.returnValue);
+        break;
+      case RETHROW_STATE:
+        this.reject(this.storedException);
+        break;
+      default:
+        this.reject(getInternalError(this.state));
+    }
+  };
+  AsyncFunctionContext.prototype.handleException = function() {
+    this.state = RETHROW_STATE;
+  };
+  function asyncWrap(innerFunction, self) {
+    var moveNext = getMoveNext(innerFunction, self);
+    var ctx = new AsyncFunctionContext();
+    ctx.createCallback = function(newState) {
+      return function(value) {
+        ctx.state = newState;
+        ctx.value = value;
+        moveNext(ctx);
+      };
+    };
+    ctx.errback = function(err) {
+      handleCatch(ctx, err);
+      moveNext(ctx);
+    };
+    moveNext(ctx);
+    return ctx.result;
+  }
+  function getMoveNext(innerFunction, self) {
+    return function(ctx) {
+      while (true) {
+        try {
+          return innerFunction.call(self, ctx);
+        } catch (ex) {
+          handleCatch(ctx, ex);
+        }
+      }
+    };
+  }
+  function handleCatch(ctx, ex) {
+    ctx.storedException = ex;
+    var last = ctx.tryStack_[ctx.tryStack_.length - 1];
+    if (!last) {
+      ctx.handleException(ex);
+      return ;
+    }
+    ctx.state = last.catch !== undefined ? last.catch : last.finally;
+    if (last.finallyFallThrough !== undefined)
+      ctx.finallyFallThrough = last.finallyFallThrough;
+  }
+  $traceurRuntime.asyncWrap = asyncWrap;
+  $traceurRuntime.initGeneratorFunction = initGeneratorFunction;
+  $traceurRuntime.createGeneratorInstance = createGeneratorInstance;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/relativeRequire.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/relativeRequire.js";
+  var path;
+  function relativeRequire(callerPath, requiredPath) {
+    path = path || typeof require !== 'undefined' && require('path');
+    function isDirectory(path) {
+      return path.slice(-1) === '/';
+    }
+    function isAbsolute(path) {
+      return path[0] === '/';
+    }
+    function isRelative(path) {
+      return path[0] === '.';
+    }
+    if (isDirectory(requiredPath) || isAbsolute(requiredPath))
+      return ;
+    return isRelative(requiredPath) ? require(path.resolve(path.dirname(callerPath), requiredPath)) : require(requiredPath);
+  }
+  $traceurRuntime.require = relativeRequire;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/spread.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/spread.js";
+  function spread() {
+    var rv = [],
+        j = 0,
+        iterResult;
+    for (var i = 0; i < arguments.length; i++) {
+      var valueToSpread = $traceurRuntime.checkObjectCoercible(arguments[i]);
+      if (typeof valueToSpread[$traceurRuntime.toProperty(Symbol.iterator)] !== 'function') {
+        throw new TypeError('Cannot spread non-iterable object.');
+      }
+      var iter = valueToSpread[$traceurRuntime.toProperty(Symbol.iterator)]();
+      while (!(iterResult = iter.next()).done) {
+        rv[j++] = iterResult.value;
+      }
+    }
+    return rv;
+  }
+  $traceurRuntime.spread = spread;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/template.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/template.js";
+  var $__0 = Object,
+      defineProperty = $__0.defineProperty,
+      freeze = $__0.freeze;
+  var slice = Array.prototype.slice;
+  var map = Object.create(null);
+  function getTemplateObject(raw) {
+    var cooked = arguments[1];
+    var key = raw.join('${}');
+    var templateObject = map[key];
+    if (templateObject)
+      return templateObject;
+    if (!cooked) {
+      cooked = slice.call(raw);
+    }
+    return map[key] = freeze(defineProperty(cooked, 'raw', {value: freeze(raw)}));
+  }
+  $traceurRuntime.getTemplateObject = getTemplateObject;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/type-assertions.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/type-assertions.js";
+  var types = {
+    any: {name: 'any'},
+    boolean: {name: 'boolean'},
+    number: {name: 'number'},
+    string: {name: 'string'},
+    symbol: {name: 'symbol'},
+    void: {name: 'void'}
+  };
+  var GenericType = (function() {
+    function GenericType(type, argumentTypes) {
+      this.type = type;
+      this.argumentTypes = argumentTypes;
+    }
+    return ($traceurRuntime.createClass)(GenericType, {}, {});
+  }());
+  var typeRegister = Object.create(null);
+  function genericType(type) {
+    for (var argumentTypes = [],
+        $__1 = 1; $__1 < arguments.length; $__1++)
+      argumentTypes[$__1 - 1] = arguments[$__1];
+    var typeMap = typeRegister;
+    var key = $traceurRuntime.getOwnHashObject(type).hash;
+    if (!typeMap[key]) {
+      typeMap[key] = Object.create(null);
+    }
+    typeMap = typeMap[key];
+    for (var i = 0; i < argumentTypes.length - 1; i++) {
+      key = $traceurRuntime.getOwnHashObject(argumentTypes[i]).hash;
+      if (!typeMap[key]) {
+        typeMap[key] = Object.create(null);
+      }
+      typeMap = typeMap[key];
+    }
+    var tail = argumentTypes[argumentTypes.length - 1];
+    key = $traceurRuntime.getOwnHashObject(tail).hash;
+    if (!typeMap[key]) {
+      typeMap[key] = new GenericType(type, argumentTypes);
+    }
+    return typeMap[key];
+  }
+  $traceurRuntime.GenericType = GenericType;
+  $traceurRuntime.genericType = genericType;
+  $traceurRuntime.type = types;
+  return {};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/runtime-modules.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/runtime-modules.js";
+  System.get("traceur-runtime@0.0.88/src/runtime/relativeRequire.js");
+  System.get("traceur-runtime@0.0.88/src/runtime/spread.js");
+  System.get("traceur-runtime@0.0.88/src/runtime/destructuring.js");
+  System.get("traceur-runtime@0.0.88/src/runtime/classes.js");
+  System.get("traceur-runtime@0.0.88/src/runtime/async.js");
+  System.get("traceur-runtime@0.0.88/src/runtime/generators.js");
+  System.get("traceur-runtime@0.0.88/src/runtime/template.js");
+  System.get("traceur-runtime@0.0.88/src/runtime/type-assertions.js");
+  return {};
+});
+System.get("traceur-runtime@0.0.88/src/runtime/runtime-modules.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/utils.js";
   var $ceil = Math.ceil;
   var $floor = Math.floor;
   var $isFinite = isFinite;
@@ -1208,10 +1575,10 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js", [
     }
   };
 });
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Map.js", [], function() {
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/Map.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/Map.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/Map.js";
+  var $__0 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       isObject = $__0.isObject,
       maybeAddIterator = $__0.maybeAddIterator,
       registerPolyfill = $__0.registerPolyfill;
@@ -1234,225 +1601,245 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Map.js", [],
     map.primitiveIndex_ = Object.create(null);
     map.deletedCount_ = 0;
   }
-  var Map = function Map() {
-    var $__5,
-        $__6;
-    var iterable = arguments[0];
-    if (!isObject(this))
-      throw new TypeError('Map called on incompatible type');
-    if ($hasOwnProperty.call(this, 'entries_')) {
-      throw new TypeError('Map can not be reentrantly initialised');
-    }
-    initMap(this);
-    if (iterable !== null && iterable !== undefined) {
-      for (var $__2 = iterable[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__3 = void 0; !($__3 = $__2.next()).done; ) {
-        var $__4 = $__3.value,
-            key = ($__5 = $__4[$traceurRuntime.toProperty(Symbol.iterator)](), ($__6 = $__5.next()).done ? void 0 : $__6.value),
-            value = ($__6 = $__5.next()).done ? void 0 : $__6.value;
-        {
-          this.set(key, value);
+  var Map = (function() {
+    function Map() {
+      var $__10,
+          $__11;
+      var iterable = arguments[0];
+      if (!isObject(this))
+        throw new TypeError('Map called on incompatible type');
+      if ($hasOwnProperty.call(this, 'entries_')) {
+        throw new TypeError('Map can not be reentrantly initialised');
+      }
+      initMap(this);
+      if (iterable !== null && iterable !== undefined) {
+        var $__5 = true;
+        var $__6 = false;
+        var $__7 = undefined;
+        try {
+          for (var $__3 = void 0,
+              $__2 = (iterable)[$traceurRuntime.toProperty(Symbol.iterator)](); !($__5 = ($__3 = $__2.next()).done); $__5 = true) {
+            var $__9 = $__3.value,
+                key = ($__10 = $__9[$traceurRuntime.toProperty(Symbol.iterator)](), ($__11 = $__10.next()).done ? void 0 : $__11.value),
+                value = ($__11 = $__10.next()).done ? void 0 : $__11.value;
+            {
+              this.set(key, value);
+            }
+          }
+        } catch ($__8) {
+          $__6 = true;
+          $__7 = $__8;
+        } finally {
+          try {
+            if (!$__5 && $__2.return != null) {
+              $__2.return();
+            }
+          } finally {
+            if ($__6) {
+              throw $__7;
+            }
+          }
         }
       }
     }
-  };
-  ($traceurRuntime.createClass)(Map, {
-    get size() {
-      return this.entries_.length / 2 - this.deletedCount_;
-    },
-    get: function(key) {
-      var index = lookupIndex(this, key);
-      if (index !== undefined)
-        return this.entries_[index + 1];
-    },
-    set: function(key, value) {
-      var objectMode = isObject(key);
-      var stringMode = typeof key === 'string';
-      var index = lookupIndex(this, key);
-      if (index !== undefined) {
-        this.entries_[index + 1] = value;
-      } else {
-        index = this.entries_.length;
-        this.entries_[index] = key;
-        this.entries_[index + 1] = value;
+    return ($traceurRuntime.createClass)(Map, {
+      get size() {
+        return this.entries_.length / 2 - this.deletedCount_;
+      },
+      get: function(key) {
+        var index = lookupIndex(this, key);
+        if (index !== undefined)
+          return this.entries_[index + 1];
+      },
+      set: function(key, value) {
+        var objectMode = isObject(key);
+        var stringMode = typeof key === 'string';
+        var index = lookupIndex(this, key);
+        if (index !== undefined) {
+          this.entries_[index + 1] = value;
+        } else {
+          index = this.entries_.length;
+          this.entries_[index] = key;
+          this.entries_[index + 1] = value;
+          if (objectMode) {
+            var hashObject = getOwnHashObject(key);
+            var hash = hashObject.hash;
+            this.objectIndex_[hash] = index;
+          } else if (stringMode) {
+            this.stringIndex_[key] = index;
+          } else {
+            this.primitiveIndex_[key] = index;
+          }
+        }
+        return this;
+      },
+      has: function(key) {
+        return lookupIndex(this, key) !== undefined;
+      },
+      delete: function(key) {
+        var objectMode = isObject(key);
+        var stringMode = typeof key === 'string';
+        var index;
+        var hash;
         if (objectMode) {
           var hashObject = getOwnHashObject(key);
-          var hash = hashObject.hash;
-          this.objectIndex_[hash] = index;
+          if (hashObject) {
+            index = this.objectIndex_[hash = hashObject.hash];
+            delete this.objectIndex_[hash];
+          }
         } else if (stringMode) {
-          this.stringIndex_[key] = index;
+          index = this.stringIndex_[key];
+          delete this.stringIndex_[key];
         } else {
-          this.primitiveIndex_[key] = index;
+          index = this.primitiveIndex_[key];
+          delete this.primitiveIndex_[key];
         }
-      }
-      return this;
-    },
-    has: function(key) {
-      return lookupIndex(this, key) !== undefined;
-    },
-    delete: function(key) {
-      var objectMode = isObject(key);
-      var stringMode = typeof key === 'string';
-      var index;
-      var hash;
-      if (objectMode) {
-        var hashObject = getOwnHashObject(key);
-        if (hashObject) {
-          index = this.objectIndex_[hash = hashObject.hash];
-          delete this.objectIndex_[hash];
+        if (index !== undefined) {
+          this.entries_[index] = deletedSentinel;
+          this.entries_[index + 1] = undefined;
+          this.deletedCount_++;
+          return true;
         }
-      } else if (stringMode) {
-        index = this.stringIndex_[key];
-        delete this.stringIndex_[key];
-      } else {
-        index = this.primitiveIndex_[key];
-        delete this.primitiveIndex_[key];
-      }
-      if (index !== undefined) {
-        this.entries_[index] = deletedSentinel;
-        this.entries_[index + 1] = undefined;
-        this.deletedCount_++;
-        return true;
-      }
-      return false;
-    },
-    clear: function() {
-      initMap(this);
-    },
-    forEach: function(callbackFn) {
-      var thisArg = arguments[1];
-      for (var i = 0; i < this.entries_.length; i += 2) {
-        var key = this.entries_[i];
-        var value = this.entries_[i + 1];
-        if (key === deletedSentinel)
-          continue;
-        callbackFn.call(thisArg, value, key, this);
-      }
-    },
-    entries: $traceurRuntime.initGeneratorFunction(function $__7() {
-      var i,
-          key,
-          value;
-      return $traceurRuntime.createGeneratorInstance(function($ctx) {
-        while (true)
-          switch ($ctx.state) {
-            case 0:
-              i = 0;
-              $ctx.state = 12;
-              break;
-            case 12:
-              $ctx.state = (i < this.entries_.length) ? 8 : -2;
-              break;
-            case 4:
-              i += 2;
-              $ctx.state = 12;
-              break;
-            case 8:
-              key = this.entries_[i];
-              value = this.entries_[i + 1];
-              $ctx.state = 9;
-              break;
-            case 9:
-              $ctx.state = (key === deletedSentinel) ? 4 : 6;
-              break;
-            case 6:
-              $ctx.state = 2;
-              return [key, value];
-            case 2:
-              $ctx.maybeThrow();
-              $ctx.state = 4;
-              break;
-            default:
-              return $ctx.end();
-          }
-      }, $__7, this);
-    }),
-    keys: $traceurRuntime.initGeneratorFunction(function $__8() {
-      var i,
-          key,
-          value;
-      return $traceurRuntime.createGeneratorInstance(function($ctx) {
-        while (true)
-          switch ($ctx.state) {
-            case 0:
-              i = 0;
-              $ctx.state = 12;
-              break;
-            case 12:
-              $ctx.state = (i < this.entries_.length) ? 8 : -2;
-              break;
-            case 4:
-              i += 2;
-              $ctx.state = 12;
-              break;
-            case 8:
-              key = this.entries_[i];
-              value = this.entries_[i + 1];
-              $ctx.state = 9;
-              break;
-            case 9:
-              $ctx.state = (key === deletedSentinel) ? 4 : 6;
-              break;
-            case 6:
-              $ctx.state = 2;
-              return key;
-            case 2:
-              $ctx.maybeThrow();
-              $ctx.state = 4;
-              break;
-            default:
-              return $ctx.end();
-          }
-      }, $__8, this);
-    }),
-    values: $traceurRuntime.initGeneratorFunction(function $__9() {
-      var i,
-          key,
-          value;
-      return $traceurRuntime.createGeneratorInstance(function($ctx) {
-        while (true)
-          switch ($ctx.state) {
-            case 0:
-              i = 0;
-              $ctx.state = 12;
-              break;
-            case 12:
-              $ctx.state = (i < this.entries_.length) ? 8 : -2;
-              break;
-            case 4:
-              i += 2;
-              $ctx.state = 12;
-              break;
-            case 8:
-              key = this.entries_[i];
-              value = this.entries_[i + 1];
-              $ctx.state = 9;
-              break;
-            case 9:
-              $ctx.state = (key === deletedSentinel) ? 4 : 6;
-              break;
-            case 6:
-              $ctx.state = 2;
-              return value;
-            case 2:
-              $ctx.maybeThrow();
-              $ctx.state = 4;
-              break;
-            default:
-              return $ctx.end();
-          }
-      }, $__9, this);
-    })
-  }, {});
+        return false;
+      },
+      clear: function() {
+        initMap(this);
+      },
+      forEach: function(callbackFn) {
+        var thisArg = arguments[1];
+        for (var i = 0; i < this.entries_.length; i += 2) {
+          var key = this.entries_[i];
+          var value = this.entries_[i + 1];
+          if (key === deletedSentinel)
+            continue;
+          callbackFn.call(thisArg, value, key, this);
+        }
+      },
+      entries: $traceurRuntime.initGeneratorFunction(function $__12() {
+        var i,
+            key,
+            value;
+        return $traceurRuntime.createGeneratorInstance(function($ctx) {
+          while (true)
+            switch ($ctx.state) {
+              case 0:
+                i = 0;
+                $ctx.state = 12;
+                break;
+              case 12:
+                $ctx.state = (i < this.entries_.length) ? 8 : -2;
+                break;
+              case 4:
+                i += 2;
+                $ctx.state = 12;
+                break;
+              case 8:
+                key = this.entries_[i];
+                value = this.entries_[i + 1];
+                $ctx.state = 9;
+                break;
+              case 9:
+                $ctx.state = (key === deletedSentinel) ? 4 : 6;
+                break;
+              case 6:
+                $ctx.state = 2;
+                return [key, value];
+              case 2:
+                $ctx.maybeThrow();
+                $ctx.state = 4;
+                break;
+              default:
+                return $ctx.end();
+            }
+        }, $__12, this);
+      }),
+      keys: $traceurRuntime.initGeneratorFunction(function $__13() {
+        var i,
+            key,
+            value;
+        return $traceurRuntime.createGeneratorInstance(function($ctx) {
+          while (true)
+            switch ($ctx.state) {
+              case 0:
+                i = 0;
+                $ctx.state = 12;
+                break;
+              case 12:
+                $ctx.state = (i < this.entries_.length) ? 8 : -2;
+                break;
+              case 4:
+                i += 2;
+                $ctx.state = 12;
+                break;
+              case 8:
+                key = this.entries_[i];
+                value = this.entries_[i + 1];
+                $ctx.state = 9;
+                break;
+              case 9:
+                $ctx.state = (key === deletedSentinel) ? 4 : 6;
+                break;
+              case 6:
+                $ctx.state = 2;
+                return key;
+              case 2:
+                $ctx.maybeThrow();
+                $ctx.state = 4;
+                break;
+              default:
+                return $ctx.end();
+            }
+        }, $__13, this);
+      }),
+      values: $traceurRuntime.initGeneratorFunction(function $__14() {
+        var i,
+            key,
+            value;
+        return $traceurRuntime.createGeneratorInstance(function($ctx) {
+          while (true)
+            switch ($ctx.state) {
+              case 0:
+                i = 0;
+                $ctx.state = 12;
+                break;
+              case 12:
+                $ctx.state = (i < this.entries_.length) ? 8 : -2;
+                break;
+              case 4:
+                i += 2;
+                $ctx.state = 12;
+                break;
+              case 8:
+                key = this.entries_[i];
+                value = this.entries_[i + 1];
+                $ctx.state = 9;
+                break;
+              case 9:
+                $ctx.state = (key === deletedSentinel) ? 4 : 6;
+                break;
+              case 6:
+                $ctx.state = 2;
+                return value;
+              case 2:
+                $ctx.maybeThrow();
+                $ctx.state = 4;
+                break;
+              default:
+                return $ctx.end();
+            }
+        }, $__14, this);
+      })
+    }, {});
+  }());
   Object.defineProperty(Map.prototype, Symbol.iterator, {
     configurable: true,
     writable: true,
     value: Map.prototype.entries
   });
   function polyfillMap(global) {
-    var $__4 = global,
-        Object = $__4.Object,
-        Symbol = $__4.Symbol;
+    var $__9 = global,
+        Object = $__9.Object,
+        Symbol = $__9.Symbol;
     if (!global.Map)
       global.Map = Map;
     var mapPrototype = global.Map.prototype;
@@ -1475,125 +1862,145 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Map.js", [],
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Map.js" + '');
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Set.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Map.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/Set.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/Set.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/Set.js";
+  var $__0 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       isObject = $__0.isObject,
       maybeAddIterator = $__0.maybeAddIterator,
       registerPolyfill = $__0.registerPolyfill;
-  var Map = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Map.js").Map;
+  var Map = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Map.js").Map;
   var getOwnHashObject = $traceurRuntime.getOwnHashObject;
   var $hasOwnProperty = Object.prototype.hasOwnProperty;
   function initSet(set) {
     set.map_ = new Map();
   }
-  var Set = function Set() {
-    var iterable = arguments[0];
-    if (!isObject(this))
-      throw new TypeError('Set called on incompatible type');
-    if ($hasOwnProperty.call(this, 'map_')) {
-      throw new TypeError('Set can not be reentrantly initialised');
-    }
-    initSet(this);
-    if (iterable !== null && iterable !== undefined) {
-      for (var $__4 = iterable[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__5 = void 0; !($__5 = $__4.next()).done; ) {
-        var item = $__5.value;
-        {
-          this.add(item);
+  var Set = (function() {
+    function Set() {
+      var iterable = arguments[0];
+      if (!isObject(this))
+        throw new TypeError('Set called on incompatible type');
+      if ($hasOwnProperty.call(this, 'map_')) {
+        throw new TypeError('Set can not be reentrantly initialised');
+      }
+      initSet(this);
+      if (iterable !== null && iterable !== undefined) {
+        var $__7 = true;
+        var $__8 = false;
+        var $__9 = undefined;
+        try {
+          for (var $__5 = void 0,
+              $__4 = (iterable)[$traceurRuntime.toProperty(Symbol.iterator)](); !($__7 = ($__5 = $__4.next()).done); $__7 = true) {
+            var item = $__5.value;
+            {
+              this.add(item);
+            }
+          }
+        } catch ($__10) {
+          $__8 = true;
+          $__9 = $__10;
+        } finally {
+          try {
+            if (!$__7 && $__4.return != null) {
+              $__4.return();
+            }
+          } finally {
+            if ($__8) {
+              throw $__9;
+            }
+          }
         }
       }
     }
-  };
-  ($traceurRuntime.createClass)(Set, {
-    get size() {
-      return this.map_.size;
-    },
-    has: function(key) {
-      return this.map_.has(key);
-    },
-    add: function(key) {
-      this.map_.set(key, key);
-      return this;
-    },
-    delete: function(key) {
-      return this.map_.delete(key);
-    },
-    clear: function() {
-      return this.map_.clear();
-    },
-    forEach: function(callbackFn) {
-      var thisArg = arguments[1];
-      var $__2 = this;
-      return this.map_.forEach((function(value, key) {
-        callbackFn.call(thisArg, key, key, $__2);
-      }));
-    },
-    values: $traceurRuntime.initGeneratorFunction(function $__7() {
-      var $__8,
-          $__9;
-      return $traceurRuntime.createGeneratorInstance(function($ctx) {
-        while (true)
-          switch ($ctx.state) {
-            case 0:
-              $__8 = this.map_.keys()[Symbol.iterator]();
-              $ctx.sent = void 0;
-              $ctx.action = 'next';
-              $ctx.state = 12;
-              break;
-            case 12:
-              $__9 = $__8[$ctx.action]($ctx.sentIgnoreThrow);
-              $ctx.state = 9;
-              break;
-            case 9:
-              $ctx.state = ($__9.done) ? 3 : 2;
-              break;
-            case 3:
-              $ctx.sent = $__9.value;
-              $ctx.state = -2;
-              break;
-            case 2:
-              $ctx.state = 12;
-              return $__9.value;
-            default:
-              return $ctx.end();
-          }
-      }, $__7, this);
-    }),
-    entries: $traceurRuntime.initGeneratorFunction(function $__10() {
-      var $__11,
-          $__12;
-      return $traceurRuntime.createGeneratorInstance(function($ctx) {
-        while (true)
-          switch ($ctx.state) {
-            case 0:
-              $__11 = this.map_.entries()[Symbol.iterator]();
-              $ctx.sent = void 0;
-              $ctx.action = 'next';
-              $ctx.state = 12;
-              break;
-            case 12:
-              $__12 = $__11[$ctx.action]($ctx.sentIgnoreThrow);
-              $ctx.state = 9;
-              break;
-            case 9:
-              $ctx.state = ($__12.done) ? 3 : 2;
-              break;
-            case 3:
-              $ctx.sent = $__12.value;
-              $ctx.state = -2;
-              break;
-            case 2:
-              $ctx.state = 12;
-              return $__12.value;
-            default:
-              return $ctx.end();
-          }
-      }, $__10, this);
-    })
-  }, {});
+    return ($traceurRuntime.createClass)(Set, {
+      get size() {
+        return this.map_.size;
+      },
+      has: function(key) {
+        return this.map_.has(key);
+      },
+      add: function(key) {
+        this.map_.set(key, key);
+        return this;
+      },
+      delete: function(key) {
+        return this.map_.delete(key);
+      },
+      clear: function() {
+        return this.map_.clear();
+      },
+      forEach: function(callbackFn) {
+        var thisArg = arguments[1];
+        var $__2 = this;
+        return this.map_.forEach((function(value, key) {
+          callbackFn.call(thisArg, key, key, $__2);
+        }));
+      },
+      values: $traceurRuntime.initGeneratorFunction(function $__12() {
+        var $__13,
+            $__14;
+        return $traceurRuntime.createGeneratorInstance(function($ctx) {
+          while (true)
+            switch ($ctx.state) {
+              case 0:
+                $__13 = $ctx.wrapYieldStar(this.map_.keys()[Symbol.iterator]());
+                $ctx.sent = void 0;
+                $ctx.action = 'next';
+                $ctx.state = 12;
+                break;
+              case 12:
+                $__14 = $__13[$ctx.action]($ctx.sentIgnoreThrow);
+                $ctx.state = 9;
+                break;
+              case 9:
+                $ctx.state = ($__14.done) ? 3 : 2;
+                break;
+              case 3:
+                $ctx.sent = $__14.value;
+                $ctx.state = -2;
+                break;
+              case 2:
+                $ctx.state = 12;
+                return $__14.value;
+              default:
+                return $ctx.end();
+            }
+        }, $__12, this);
+      }),
+      entries: $traceurRuntime.initGeneratorFunction(function $__15() {
+        var $__16,
+            $__17;
+        return $traceurRuntime.createGeneratorInstance(function($ctx) {
+          while (true)
+            switch ($ctx.state) {
+              case 0:
+                $__16 = $ctx.wrapYieldStar(this.map_.entries()[Symbol.iterator]());
+                $ctx.sent = void 0;
+                $ctx.action = 'next';
+                $ctx.state = 12;
+                break;
+              case 12:
+                $__17 = $__16[$ctx.action]($ctx.sentIgnoreThrow);
+                $ctx.state = 9;
+                break;
+              case 9:
+                $ctx.state = ($__17.done) ? 3 : 2;
+                break;
+              case 3:
+                $ctx.sent = $__17.value;
+                $ctx.state = -2;
+                break;
+              case 2:
+                $ctx.state = 12;
+                return $__17.value;
+              default:
+                return $ctx.end();
+            }
+        }, $__15, this);
+      })
+    }, {});
+  }());
   Object.defineProperty(Set.prototype, Symbol.iterator, {
     configurable: true,
     writable: true,
@@ -1605,9 +2012,9 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Set.js", [],
     value: Set.prototype.values
   });
   function polyfillSet(global) {
-    var $__6 = global,
-        Object = $__6.Object,
-        Symbol = $__6.Symbol;
+    var $__11 = global,
+        Object = $__11.Object,
+        Symbol = $__11.Symbol;
     if (!global.Set)
       global.Set = Set;
     var setPrototype = global.Set.prototype;
@@ -1628,10 +2035,10 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Set.js", [],
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Set.js" + '');
-System.registerModule("traceur-runtime@0.0.82/node_modules/rsvp/lib/rsvp/asap.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Set.js" + '');
+System.registerModule("traceur-runtime@0.0.88/node_modules/rsvp/lib/rsvp/asap.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/node_modules/rsvp/lib/rsvp/asap.js";
+  var __moduleName = "traceur-runtime@0.0.88/node_modules/rsvp/lib/rsvp/asap.js";
   var len = 0;
   function asap(callback, arg) {
     queue[len] = callback;
@@ -1696,11 +2103,11 @@ System.registerModule("traceur-runtime@0.0.82/node_modules/rsvp/lib/rsvp/asap.js
       return $__default;
     }};
 });
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Promise.js", [], function() {
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/Promise.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/Promise.js";
-  var async = System.get("traceur-runtime@0.0.82/node_modules/rsvp/lib/rsvp/asap.js").default;
-  var registerPolyfill = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js").registerPolyfill;
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/Promise.js";
+  var async = System.get("traceur-runtime@0.0.88/node_modules/rsvp/lib/rsvp/asap.js").default;
+  var registerPolyfill = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js").registerPolyfill;
   var promiseRaw = {};
   function isPromise(x) {
     return x && typeof x === 'object' && x.status_ !== undefined;
@@ -1762,109 +2169,129 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Promise.js",
   function promiseInit(promise) {
     return promiseSet(promise, 0, undefined, [], []);
   }
-  var Promise = function Promise(resolver) {
-    if (resolver === promiseRaw)
-      return ;
-    if (typeof resolver !== 'function')
-      throw new TypeError;
-    var promise = promiseInit(this);
-    try {
-      resolver((function(x) {
-        promiseResolve(promise, x);
-      }), (function(r) {
-        promiseReject(promise, r);
-      }));
-    } catch (e) {
-      promiseReject(promise, e);
-    }
-  };
-  ($traceurRuntime.createClass)(Promise, {
-    catch: function(onReject) {
-      return this.then(undefined, onReject);
-    },
-    then: function(onResolve, onReject) {
-      if (typeof onResolve !== 'function')
-        onResolve = idResolveHandler;
-      if (typeof onReject !== 'function')
-        onReject = idRejectHandler;
-      var that = this;
-      var constructor = this.constructor;
-      return chain(this, function(x) {
-        x = promiseCoerce(constructor, x);
-        return x === that ? onReject(new TypeError) : isPromise(x) ? x.then(onResolve, onReject) : onResolve(x);
-      }, onReject);
-    }
-  }, {
-    resolve: function(x) {
-      if (this === $Promise) {
-        if (isPromise(x)) {
-          return x;
-        }
-        return promiseSet(new $Promise(promiseRaw), +1, x);
-      } else {
-        return new this(function(resolve, reject) {
-          resolve(x);
-        });
-      }
-    },
-    reject: function(r) {
-      if (this === $Promise) {
-        return promiseSet(new $Promise(promiseRaw), -1, r);
-      } else {
-        return new this((function(resolve, reject) {
-          reject(r);
+  var Promise = (function() {
+    function Promise(resolver) {
+      if (resolver === promiseRaw)
+        return ;
+      if (typeof resolver !== 'function')
+        throw new TypeError;
+      var promise = promiseInit(this);
+      try {
+        resolver((function(x) {
+          promiseResolve(promise, x);
+        }), (function(r) {
+          promiseReject(promise, r);
         }));
-      }
-    },
-    all: function(values) {
-      var deferred = getDeferred(this);
-      var resolutions = [];
-      try {
-        var makeCountdownFunction = function(i) {
-          return (function(x) {
-            resolutions[i] = x;
-            if (--count === 0)
-              deferred.resolve(resolutions);
-          });
-        };
-        var count = 0;
-        var i = 0;
-        for (var $__3 = values[$traceurRuntime.toProperty(Symbol.iterator)](),
-            $__4 = void 0; !($__4 = $__3.next()).done; ) {
-          var value = $__4.value;
-          {
-            var countdownFunction = makeCountdownFunction(i);
-            this.resolve(value).then(countdownFunction, (function(r) {
-              deferred.reject(r);
-            }));
-            ++i;
-            ++count;
-          }
-        }
-        if (count === 0) {
-          deferred.resolve(resolutions);
-        }
       } catch (e) {
-        deferred.reject(e);
+        promiseReject(promise, e);
       }
-      return deferred.promise;
-    },
-    race: function(values) {
-      var deferred = getDeferred(this);
-      try {
-        for (var i = 0; i < values.length; i++) {
-          this.resolve(values[i]).then((function(x) {
-            deferred.resolve(x);
-          }), (function(r) {
-            deferred.reject(r);
+    }
+    return ($traceurRuntime.createClass)(Promise, {
+      catch: function(onReject) {
+        return this.then(undefined, onReject);
+      },
+      then: function(onResolve, onReject) {
+        if (typeof onResolve !== 'function')
+          onResolve = idResolveHandler;
+        if (typeof onReject !== 'function')
+          onReject = idRejectHandler;
+        var that = this;
+        var constructor = this.constructor;
+        return chain(this, function(x) {
+          x = promiseCoerce(constructor, x);
+          return x === that ? onReject(new TypeError) : isPromise(x) ? x.then(onResolve, onReject) : onResolve(x);
+        }, onReject);
+      }
+    }, {
+      resolve: function(x) {
+        if (this === $Promise) {
+          if (isPromise(x)) {
+            return x;
+          }
+          return promiseSet(new $Promise(promiseRaw), +1, x);
+        } else {
+          return new this(function(resolve, reject) {
+            resolve(x);
+          });
+        }
+      },
+      reject: function(r) {
+        if (this === $Promise) {
+          return promiseSet(new $Promise(promiseRaw), -1, r);
+        } else {
+          return new this((function(resolve, reject) {
+            reject(r);
           }));
         }
-      } catch (e) {
-        deferred.reject(e);
+      },
+      all: function(values) {
+        var deferred = getDeferred(this);
+        var resolutions = [];
+        try {
+          var makeCountdownFunction = function(i) {
+            return (function(x) {
+              resolutions[i] = x;
+              if (--count === 0)
+                deferred.resolve(resolutions);
+            });
+          };
+          var count = 0;
+          var i = 0;
+          var $__6 = true;
+          var $__7 = false;
+          var $__8 = undefined;
+          try {
+            for (var $__4 = void 0,
+                $__3 = (values)[$traceurRuntime.toProperty(Symbol.iterator)](); !($__6 = ($__4 = $__3.next()).done); $__6 = true) {
+              var value = $__4.value;
+              {
+                var countdownFunction = makeCountdownFunction(i);
+                this.resolve(value).then(countdownFunction, (function(r) {
+                  deferred.reject(r);
+                }));
+                ++i;
+                ++count;
+              }
+            }
+          } catch ($__9) {
+            $__7 = true;
+            $__8 = $__9;
+          } finally {
+            try {
+              if (!$__6 && $__3.return != null) {
+                $__3.return();
+              }
+            } finally {
+              if ($__7) {
+                throw $__8;
+              }
+            }
+          }
+          if (count === 0) {
+            deferred.resolve(resolutions);
+          }
+        } catch (e) {
+          deferred.reject(e);
+        }
+        return deferred.promise;
+      },
+      race: function(values) {
+        var deferred = getDeferred(this);
+        try {
+          for (var i = 0; i < values.length; i++) {
+            this.resolve(values[i]).then((function(x) {
+              deferred.resolve(x);
+            }), (function(r) {
+              deferred.reject(r);
+            }));
+          }
+        } catch (e) {
+          deferred.reject(e);
+        }
+        return deferred.promise;
       }
-      return deferred.promise;
-    }
-  });
+    });
+  }());
   var $Promise = Promise;
   var $PromiseReject = $Promise.reject;
   function promiseResolve(promise, x) {
@@ -1947,61 +2374,63 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Promise.js",
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Promise.js" + '');
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/StringIterator.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Promise.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/StringIterator.js", [], function() {
   "use strict";
-  var $__2;
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/StringIterator.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/StringIterator.js";
+  var $__0 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       createIteratorResultObject = $__0.createIteratorResultObject,
       isObject = $__0.isObject;
   var toProperty = $traceurRuntime.toProperty;
   var hasOwnProperty = Object.prototype.hasOwnProperty;
   var iteratedString = Symbol('iteratedString');
   var stringIteratorNextIndex = Symbol('stringIteratorNextIndex');
-  var StringIterator = function StringIterator() {};
-  ($traceurRuntime.createClass)(StringIterator, ($__2 = {}, Object.defineProperty($__2, "next", {
-    value: function() {
-      var o = this;
-      if (!isObject(o) || !hasOwnProperty.call(o, iteratedString)) {
-        throw new TypeError('this must be a StringIterator object');
-      }
-      var s = o[toProperty(iteratedString)];
-      if (s === undefined) {
-        return createIteratorResultObject(undefined, true);
-      }
-      var position = o[toProperty(stringIteratorNextIndex)];
-      var len = s.length;
-      if (position >= len) {
-        o[toProperty(iteratedString)] = undefined;
-        return createIteratorResultObject(undefined, true);
-      }
-      var first = s.charCodeAt(position);
-      var resultString;
-      if (first < 0xD800 || first > 0xDBFF || position + 1 === len) {
-        resultString = String.fromCharCode(first);
-      } else {
-        var second = s.charCodeAt(position + 1);
-        if (second < 0xDC00 || second > 0xDFFF) {
+  var StringIterator = (function() {
+    var $__2;
+    function StringIterator() {}
+    return ($traceurRuntime.createClass)(StringIterator, ($__2 = {}, Object.defineProperty($__2, "next", {
+      value: function() {
+        var o = this;
+        if (!isObject(o) || !hasOwnProperty.call(o, iteratedString)) {
+          throw new TypeError('this must be a StringIterator object');
+        }
+        var s = o[toProperty(iteratedString)];
+        if (s === undefined) {
+          return createIteratorResultObject(undefined, true);
+        }
+        var position = o[toProperty(stringIteratorNextIndex)];
+        var len = s.length;
+        if (position >= len) {
+          o[toProperty(iteratedString)] = undefined;
+          return createIteratorResultObject(undefined, true);
+        }
+        var first = s.charCodeAt(position);
+        var resultString;
+        if (first < 0xD800 || first > 0xDBFF || position + 1 === len) {
           resultString = String.fromCharCode(first);
         } else {
-          resultString = String.fromCharCode(first) + String.fromCharCode(second);
+          var second = s.charCodeAt(position + 1);
+          if (second < 0xDC00 || second > 0xDFFF) {
+            resultString = String.fromCharCode(first);
+          } else {
+            resultString = String.fromCharCode(first) + String.fromCharCode(second);
+          }
         }
-      }
-      o[toProperty(stringIteratorNextIndex)] = position + resultString.length;
-      return createIteratorResultObject(resultString, false);
-    },
-    configurable: true,
-    enumerable: true,
-    writable: true
-  }), Object.defineProperty($__2, Symbol.iterator, {
-    value: function() {
-      return this;
-    },
-    configurable: true,
-    enumerable: true,
-    writable: true
-  }), $__2), {});
+        o[toProperty(stringIteratorNextIndex)] = position + resultString.length;
+        return createIteratorResultObject(resultString, false);
+      },
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), Object.defineProperty($__2, Symbol.iterator, {
+      value: function() {
+        return this;
+      },
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__2), {});
+  }());
   function createStringIterator(string) {
     var s = String(string);
     var iterator = Object.create(StringIterator.prototype);
@@ -2013,11 +2442,11 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/StringIterat
       return createStringIterator;
     }};
 });
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/String.js", [], function() {
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/String.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/String.js";
-  var createStringIterator = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/StringIterator.js").createStringIterator;
-  var $__1 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/String.js";
+  var createStringIterator = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/StringIterator.js").createStringIterator;
+  var $__1 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       maybeAddFunctions = $__1.maybeAddFunctions,
       maybeAddIterator = $__1.maybeAddIterator,
       registerPolyfill = $__1.registerPolyfill;
@@ -2145,7 +2574,7 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/String.js", 
       s += arguments[++i];
     }
   }
-  function fromCodePoint() {
+  function fromCodePoint(_) {
     var codeUnits = [];
     var floor = Math.floor;
     var highSurrogate;
@@ -2213,51 +2642,53 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/String.js", 
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/String.js" + '');
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/ArrayIterator.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/String.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/ArrayIterator.js", [], function() {
   "use strict";
-  var $__2;
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/ArrayIterator.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/ArrayIterator.js";
+  var $__0 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       toObject = $__0.toObject,
       toUint32 = $__0.toUint32,
       createIteratorResultObject = $__0.createIteratorResultObject;
   var ARRAY_ITERATOR_KIND_KEYS = 1;
   var ARRAY_ITERATOR_KIND_VALUES = 2;
   var ARRAY_ITERATOR_KIND_ENTRIES = 3;
-  var ArrayIterator = function ArrayIterator() {};
-  ($traceurRuntime.createClass)(ArrayIterator, ($__2 = {}, Object.defineProperty($__2, "next", {
-    value: function() {
-      var iterator = toObject(this);
-      var array = iterator.iteratorObject_;
-      if (!array) {
-        throw new TypeError('Object is not an ArrayIterator');
-      }
-      var index = iterator.arrayIteratorNextIndex_;
-      var itemKind = iterator.arrayIterationKind_;
-      var length = toUint32(array.length);
-      if (index >= length) {
-        iterator.arrayIteratorNextIndex_ = Infinity;
-        return createIteratorResultObject(undefined, true);
-      }
-      iterator.arrayIteratorNextIndex_ = index + 1;
-      if (itemKind == ARRAY_ITERATOR_KIND_VALUES)
-        return createIteratorResultObject(array[index], false);
-      if (itemKind == ARRAY_ITERATOR_KIND_ENTRIES)
-        return createIteratorResultObject([index, array[index]], false);
-      return createIteratorResultObject(index, false);
-    },
-    configurable: true,
-    enumerable: true,
-    writable: true
-  }), Object.defineProperty($__2, Symbol.iterator, {
-    value: function() {
-      return this;
-    },
-    configurable: true,
-    enumerable: true,
-    writable: true
-  }), $__2), {});
+  var ArrayIterator = (function() {
+    var $__2;
+    function ArrayIterator() {}
+    return ($traceurRuntime.createClass)(ArrayIterator, ($__2 = {}, Object.defineProperty($__2, "next", {
+      value: function() {
+        var iterator = toObject(this);
+        var array = iterator.iteratorObject_;
+        if (!array) {
+          throw new TypeError('Object is not an ArrayIterator');
+        }
+        var index = iterator.arrayIteratorNextIndex_;
+        var itemKind = iterator.arrayIterationKind_;
+        var length = toUint32(array.length);
+        if (index >= length) {
+          iterator.arrayIteratorNextIndex_ = Infinity;
+          return createIteratorResultObject(undefined, true);
+        }
+        iterator.arrayIteratorNextIndex_ = index + 1;
+        if (itemKind == ARRAY_ITERATOR_KIND_VALUES)
+          return createIteratorResultObject(array[index], false);
+        if (itemKind == ARRAY_ITERATOR_KIND_ENTRIES)
+          return createIteratorResultObject([index, array[index]], false);
+        return createIteratorResultObject(index, false);
+      },
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), Object.defineProperty($__2, Symbol.iterator, {
+      value: function() {
+        return this;
+      },
+      configurable: true,
+      enumerable: true,
+      writable: true
+    }), $__2), {});
+  }());
   function createArrayIterator(array, kind) {
     var object = toObject(array);
     var iterator = new ArrayIterator;
@@ -2287,14 +2718,14 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/ArrayIterato
     }
   };
 });
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Array.js", [], function() {
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/Array.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/Array.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/ArrayIterator.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/Array.js";
+  var $__0 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/ArrayIterator.js"),
       entries = $__0.entries,
       keys = $__0.keys,
-      values = $__0.values;
-  var $__1 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+      jsValues = $__0.values;
+  var $__1 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       checkIterable = $__1.checkIterable,
       isCallable = $__1.isCallable,
       isConstructor = $__1.isConstructor,
@@ -2318,16 +2749,34 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Array.js", [
     }
     if (checkIterable(items)) {
       arr = isConstructor(C) ? new C() : [];
-      for (var $__2 = items[$traceurRuntime.toProperty(Symbol.iterator)](),
-          $__3 = void 0; !($__3 = $__2.next()).done; ) {
-        var item = $__3.value;
-        {
-          if (mapping) {
-            arr[k] = mapFn.call(thisArg, item, k);
-          } else {
-            arr[k] = item;
+      var $__5 = true;
+      var $__6 = false;
+      var $__7 = undefined;
+      try {
+        for (var $__3 = void 0,
+            $__2 = (items)[$traceurRuntime.toProperty(Symbol.iterator)](); !($__5 = ($__3 = $__2.next()).done); $__5 = true) {
+          var item = $__3.value;
+          {
+            if (mapping) {
+              arr[k] = mapFn.call(thisArg, item, k);
+            } else {
+              arr[k] = item;
+            }
+            k++;
           }
-          k++;
+        }
+      } catch ($__8) {
+        $__6 = true;
+        $__7 = $__8;
+      } finally {
+        try {
+          if (!$__5 && $__2.return != null) {
+            $__2.return();
+          }
+        } finally {
+          if ($__6) {
+            throw $__7;
+          }
         }
       }
       arr.length = k;
@@ -2347,8 +2796,8 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Array.js", [
   }
   function of() {
     for (var items = [],
-        $__4 = 0; $__4 < arguments.length; $__4++)
-      items[$__4] = arguments[$__4];
+        $__9 = 0; $__9 < arguments.length; $__9++)
+      items[$__9] = arguments[$__9];
     var C = this;
     var len = items.length;
     var arr = isConstructor(C) ? new C(len) : new Array(len);
@@ -2398,10 +2847,14 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Array.js", [
     return returnIndex ? -1 : undefined;
   }
   function polyfillArray(global) {
-    var $__5 = global,
-        Array = $__5.Array,
-        Object = $__5.Object,
-        Symbol = $__5.Symbol;
+    var $__10 = global,
+        Array = $__10.Array,
+        Object = $__10.Object,
+        Symbol = $__10.Symbol;
+    var values = jsValues;
+    if (Symbol && Symbol.iterator && Array.prototype[Symbol.iterator]) {
+      values = Array.prototype[Symbol.iterator];
+    }
     maybeAddFunctions(Array.prototype, ['entries', entries, 'keys', keys, 'values', values, 'fill', fill, 'find', find, 'findIndex', findIndex]);
     maybeAddFunctions(Array, ['from', from, 'of', of]);
     maybeAddIterator(Array.prototype, values, Symbol);
@@ -2431,11 +2884,11 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Array.js", [
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Array.js" + '');
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Object.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Array.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/Object.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/Object.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/Object.js";
+  var $__0 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       maybeAddFunctions = $__0.maybeAddFunctions,
       registerPolyfill = $__0.registerPolyfill;
   var $__1 = $traceurRuntime,
@@ -2498,11 +2951,11 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Object.js", 
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Object.js" + '');
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Number.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Object.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/Number.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/Number.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/Number.js";
+  var $__0 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
       isNumber = $__0.isNumber,
       maybeAddConsts = $__0.maybeAddConsts,
       maybeAddFunctions = $__0.maybeAddFunctions,
@@ -2517,14 +2970,12 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Number.js", 
   function NumberIsFinite(number) {
     return isNumber(number) && $isFinite(number);
   }
-  ;
   function isInteger(number) {
     return NumberIsFinite(number) && toInteger(number) === number;
   }
   function NumberIsNaN(number) {
     return isNumber(number) && $isNaN(number);
   }
-  ;
   function isSafeInteger(number) {
     if (NumberIsFinite(number)) {
       var integral = toInteger(number);
@@ -2566,24 +3017,158 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Number.js", 
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Number.js" + '');
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Math.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Number.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/fround.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/Math.js";
-  var $__0 = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js"),
-      maybeAddFunctions = $__0.maybeAddFunctions,
-      registerPolyfill = $__0.registerPolyfill,
-      toUint32 = $__0.toUint32;
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/fround.js";
   var $isFinite = isFinite;
   var $isNaN = isNaN;
-  var $__1 = Math,
-      abs = $__1.abs,
-      ceil = $__1.ceil,
-      exp = $__1.exp,
-      floor = $__1.floor,
-      log = $__1.log,
-      pow = $__1.pow,
-      sqrt = $__1.sqrt;
+  var $__0 = Math,
+      LN2 = $__0.LN2,
+      abs = $__0.abs,
+      floor = $__0.floor,
+      log = $__0.log,
+      min = $__0.min,
+      pow = $__0.pow;
+  function packIEEE754(v, ebits, fbits) {
+    var bias = (1 << (ebits - 1)) - 1,
+        s,
+        e,
+        f,
+        ln,
+        i,
+        bits,
+        str,
+        bytes;
+    function roundToEven(n) {
+      var w = floor(n),
+          f = n - w;
+      if (f < 0.5)
+        return w;
+      if (f > 0.5)
+        return w + 1;
+      return w % 2 ? w + 1 : w;
+    }
+    if (v !== v) {
+      e = (1 << ebits) - 1;
+      f = pow(2, fbits - 1);
+      s = 0;
+    } else if (v === Infinity || v === -Infinity) {
+      e = (1 << ebits) - 1;
+      f = 0;
+      s = (v < 0) ? 1 : 0;
+    } else if (v === 0) {
+      e = 0;
+      f = 0;
+      s = (1 / v === -Infinity) ? 1 : 0;
+    } else {
+      s = v < 0;
+      v = abs(v);
+      if (v >= pow(2, 1 - bias)) {
+        e = min(floor(log(v) / LN2), 1023);
+        f = roundToEven(v / pow(2, e) * pow(2, fbits));
+        if (f / pow(2, fbits) >= 2) {
+          e = e + 1;
+          f = 1;
+        }
+        if (e > bias) {
+          e = (1 << ebits) - 1;
+          f = 0;
+        } else {
+          e = e + bias;
+          f = f - pow(2, fbits);
+        }
+      } else {
+        e = 0;
+        f = roundToEven(v / pow(2, 1 - bias - fbits));
+      }
+    }
+    bits = [];
+    for (i = fbits; i; i -= 1) {
+      bits.push(f % 2 ? 1 : 0);
+      f = floor(f / 2);
+    }
+    for (i = ebits; i; i -= 1) {
+      bits.push(e % 2 ? 1 : 0);
+      e = floor(e / 2);
+    }
+    bits.push(s ? 1 : 0);
+    bits.reverse();
+    str = bits.join('');
+    bytes = [];
+    while (str.length) {
+      bytes.push(parseInt(str.substring(0, 8), 2));
+      str = str.substring(8);
+    }
+    return bytes;
+  }
+  function unpackIEEE754(bytes, ebits, fbits) {
+    var bits = [],
+        i,
+        j,
+        b,
+        str,
+        bias,
+        s,
+        e,
+        f;
+    for (i = bytes.length; i; i -= 1) {
+      b = bytes[i - 1];
+      for (j = 8; j; j -= 1) {
+        bits.push(b % 2 ? 1 : 0);
+        b = b >> 1;
+      }
+    }
+    bits.reverse();
+    str = bits.join('');
+    bias = (1 << (ebits - 1)) - 1;
+    s = parseInt(str.substring(0, 1), 2) ? -1 : 1;
+    e = parseInt(str.substring(1, 1 + ebits), 2);
+    f = parseInt(str.substring(1 + ebits), 2);
+    if (e === (1 << ebits) - 1) {
+      return f !== 0 ? NaN : s * Infinity;
+    } else if (e > 0) {
+      return s * pow(2, e - bias) * (1 + f / pow(2, fbits));
+    } else if (f !== 0) {
+      return s * pow(2, -(bias - 1)) * (f / pow(2, fbits));
+    } else {
+      return s < 0 ? -0 : 0;
+    }
+  }
+  function unpackF32(b) {
+    return unpackIEEE754(b, 8, 23);
+  }
+  function packF32(v) {
+    return packIEEE754(v, 8, 23);
+  }
+  function fround(x) {
+    if (x === 0 || !$isFinite(x) || $isNaN(x)) {
+      return x;
+    }
+    return unpackF32(packF32(Number(x)));
+  }
+  return {get fround() {
+      return fround;
+    }};
+});
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/Math.js", [], function() {
+  "use strict";
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/Math.js";
+  var jsFround = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/fround.js").fround;
+  var $__1 = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js"),
+      maybeAddFunctions = $__1.maybeAddFunctions,
+      registerPolyfill = $__1.registerPolyfill,
+      toUint32 = $__1.toUint32;
+  var $isFinite = isFinite;
+  var $isNaN = isNaN;
+  var $__2 = Math,
+      abs = $__2.abs,
+      ceil = $__2.ceil,
+      exp = $__2.exp,
+      floor = $__2.floor,
+      log = $__2.log,
+      pow = $__2.pow,
+      sqrt = $__2.sqrt;
   function clz32(x) {
     x = toUint32(+x);
     if (x == 0)
@@ -2777,10 +3362,16 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Math.js", []
       return ceil(x);
     return x;
   }
-  var f32 = new Float32Array(1);
-  function fround(x) {
-    f32[0] = +x;
-    return f32[0];
+  var fround,
+      f32;
+  if (typeof Float32Array === 'function') {
+    f32 = new Float32Array(1);
+    fround = function(x) {
+      f32[0] = Number(x);
+      return f32[0];
+    };
+  } else {
+    fround = jsFround;
   }
   function cbrt(x) {
     x = +x;
@@ -2854,11 +3445,11 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/Math.js", []
     }
   };
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/Math.js" + '');
-System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/polyfills.js", [], function() {
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/Math.js" + '');
+System.registerModule("traceur-runtime@0.0.88/src/runtime/polyfills/polyfills.js", [], function() {
   "use strict";
-  var __moduleName = "traceur-runtime@0.0.82/src/runtime/polyfills/polyfills.js";
-  var polyfillAll = System.get("traceur-runtime@0.0.82/src/runtime/polyfills/utils.js").polyfillAll;
+  var __moduleName = "traceur-runtime@0.0.88/src/runtime/polyfills/polyfills.js";
+  var polyfillAll = System.get("traceur-runtime@0.0.88/src/runtime/polyfills/utils.js").polyfillAll;
   polyfillAll(Reflect.global);
   var setupGlobals = $traceurRuntime.setupGlobals;
   $traceurRuntime.setupGlobals = function(global) {
@@ -2867,4 +3458,4 @@ System.registerModule("traceur-runtime@0.0.82/src/runtime/polyfills/polyfills.js
   };
   return {};
 });
-System.get("traceur-runtime@0.0.82/src/runtime/polyfills/polyfills.js" + '');
+System.get("traceur-runtime@0.0.88/src/runtime/polyfills/polyfills.js" + '');

@@ -21,11 +21,11 @@ System.register("byinjection/PetInput", ["angular2/angular2", "angular2/di", "an
       PetList = $__m.PetList;
     }],
     execute: function() {
-      PetInput = $__export("PetInput", (function() {
-        var PetInput = function PetInput(petList) {
+      PetInput = (function() {
+        function PetInput(petList) {
           this.petList = petList;
           this.name = '';
-        };
+        }
         return ($traceurRuntime.createClass)(PetInput, {
           update: function(input) {
             this.name = input;
@@ -36,7 +36,8 @@ System.register("byinjection/PetInput", ["angular2/angular2", "angular2/di", "an
             }
           }
         }, {});
-      }()));
+      }());
+      $__export("PetInput", PetInput);
       Object.defineProperty(PetInput, "annotations", {get: function() {
           return [new Component({selector: 'pet-input'}), new Template({
             url: "byinjection/pet_input.html",

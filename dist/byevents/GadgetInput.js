@@ -15,11 +15,11 @@ System.register("byevents/GadgetInput", ["angular2/angular2", "angular2/src/core
       EventEmitter = $__m.EventEmitter;
     }],
     execute: function() {
-      GadgetInput = $__export("GadgetInput", (function() {
-        var GadgetInput = function GadgetInput(addHandler) {
+      GadgetInput = (function() {
+        function GadgetInput(addHandler) {
           this.name = '';
           this.addHandler = addHandler;
-        };
+        }
         return ($traceurRuntime.createClass)(GadgetInput, {
           update: function(username) {
             this.name = username;
@@ -30,7 +30,8 @@ System.register("byevents/GadgetInput", ["angular2/angular2", "angular2/src/core
             }
           }
         }, {});
-      }()));
+      }());
+      $__export("GadgetInput", GadgetInput);
       Object.defineProperty(GadgetInput, "annotations", {get: function() {
           return [new Component({selector: 'gadget-input'}), new Template({
             url: "byevents/gadget_input.html",

@@ -18,11 +18,11 @@ System.register("byservice/FriendList", ["angular2/angular2", "angular2/di", "Fr
       FriendsService = $__m.FriendsService;
     }],
     execute: function() {
-      FriendList = $__export("FriendList", (function() {
-        var FriendList = function FriendList(friendsService) {
+      FriendList = (function() {
+        function FriendList(friendsService) {
           this.friendsService = friendsService;
           this.init();
-        };
+        }
         return ($traceurRuntime.createClass)(FriendList, {
           init: function() {
             var $__0 = this;
@@ -34,7 +34,8 @@ System.register("byservice/FriendList", ["angular2/angular2", "angular2/di", "Fr
             this.friendsService.remove(item);
           }
         }, {});
-      }()));
+      }());
+      $__export("FriendList", FriendList);
       Object.defineProperty(FriendList, "annotations", {get: function() {
           return [new Component({selector: 'friend-list'}), new Template({
             url: "byservice/friend_list.html",

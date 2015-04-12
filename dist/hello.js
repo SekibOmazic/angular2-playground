@@ -34,7 +34,7 @@ System.register("hello", ["angular2/angular2", "FriendsService", "byservice/Frie
     }],
     execute: function() {
       Hello = (function() {
-        var Hello = function Hello() {};
+        function Hello() {}
         return ($traceurRuntime.createClass)(Hello, {}, {});
       }());
       Object.defineProperty(Hello, "annotations", {get: function() {

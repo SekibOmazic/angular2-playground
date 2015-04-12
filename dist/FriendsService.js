@@ -17,8 +17,8 @@ System.register("FriendsService", [], function($__export) {
   return {
     setters: [],
     execute: function() {
-      FriendsService = $__export("FriendsService", (function() {
-        var FriendsService = function FriendsService() {};
+      FriendsService = (function() {
+        function FriendsService() {}
         return ($traceurRuntime.createClass)(FriendsService, {
           getAll: function() {
             return new Promise((function(resolve) {
@@ -41,7 +41,8 @@ System.register("FriendsService", [], function($__export) {
             }));
           }
         }, {});
-      }()));
+      }());
+      $__export("FriendsService", FriendsService);
       Object.defineProperty(FriendsService.prototype.add, "parameters", {get: function() {
           return [[$traceurRuntime.type.string]];
         }});

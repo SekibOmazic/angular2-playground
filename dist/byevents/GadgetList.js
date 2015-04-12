@@ -17,10 +17,10 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
       ListWrapper = $__m.ListWrapper;
     }],
     execute: function() {
-      GadgetList = $__export("GadgetList", (function() {
-        var GadgetList = function GadgetList() {
+      GadgetList = (function() {
+        function GadgetList() {
           this.gadgets = [];
-        };
+        }
         return ($traceurRuntime.createClass)(GadgetList, {
           addItem: function(item) {
             ListWrapper.push(this.gadgets, {name: item});
@@ -31,7 +31,8 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
             }
           }
         }, {});
-      }()));
+      }());
+      $__export("GadgetList", GadgetList);
       Object.defineProperty(GadgetList, "annotations", {get: function() {
           return [new Component({selector: 'gadget-list'}), new Template({
             url: "byevents/gadget_list.html",
