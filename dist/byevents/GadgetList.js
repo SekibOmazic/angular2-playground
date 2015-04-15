@@ -2,7 +2,7 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
   "use strict";
   var __moduleName = "byevents/GadgetList";
   var Component,
-      Template,
+      View,
       For,
       List,
       ListWrapper,
@@ -10,7 +10,7 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
   return {
     setters: [function($__m) {
       Component = $__m.Component;
-      Template = $__m.Template;
+      View = $__m.View;
       For = $__m.For;
     }, function($__m) {
       List = $__m.List;
@@ -34,8 +34,8 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
       }());
       $__export("GadgetList", GadgetList);
       Object.defineProperty(GadgetList, "annotations", {get: function() {
-          return [new Component({selector: 'gadget-list'}), new Template({
-            url: "byevents/gadget_list.html",
+          return [new Component({selector: 'gadget-list'}), new View({
+            templateUrl: "byevents/gadget_list.html",
             directives: [For]
           })];
         }});

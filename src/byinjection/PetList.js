@@ -1,12 +1,12 @@
-import {Component, Template, For} from 'angular2/angular2';
+import {Component, View, For} from 'angular2/angular2';
 import {List, ListWrapper} from 'angular2/src/facade/collection';
 
 
 @Component({
   selector: 'pet-list'
 })
-@Template({
-  url: `byinjection/pet_list.html`,
+@View({
+  templateUrl: `byinjection/pet_list.html`,
   directives: [For]
 })
 export class PetList {

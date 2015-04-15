@@ -1,11 +1,11 @@
-import {Component, Template, For} from 'angular2/angular2';
+import {Component, View, For} from 'angular2/angular2';
 import {List, ListWrapper} from 'angular2/src/facade/collection';
 
 @Component({
   selector: 'gadget-list'
 })
-@Template({
-  url: `byevents/gadget_list.html`,
+@View({
+  templateUrl: `byevents/gadget_list.html`,
   directives: [For]
 })
 export class GadgetList {

@@ -2,14 +2,14 @@ System.register("byevents/GadgetInput", ["angular2/angular2", "angular2/src/core
   "use strict";
   var __moduleName = "byevents/GadgetInput";
   var Component,
-      Template,
+      View,
       If,
       EventEmitter,
       GadgetInput;
   return {
     setters: [function($__m) {
       Component = $__m.Component;
-      Template = $__m.Template;
+      View = $__m.View;
       If = $__m.If;
     }, function($__m) {
       EventEmitter = $__m.EventEmitter;
@@ -23,8 +23,10 @@ System.register("byevents/GadgetInput", ["angular2/angular2", "angular2/src/core
         return ($traceurRuntime.createClass)(GadgetInput, {
           update: function(username) {
             this.name = username;
+            console.log('update', this.name);
           },
           add: function() {
+            console.log('add clicked', this.name);
             if (this.name !== undefined && this.name !== '') {
               this.addHandler('' + this.name);
             }
@@ -33,8 +35,8 @@ System.register("byevents/GadgetInput", ["angular2/angular2", "angular2/src/core
       }());
       $__export("GadgetInput", GadgetInput);
       Object.defineProperty(GadgetInput, "annotations", {get: function() {
-          return [new Component({selector: 'gadget-input'}), new Template({
-            url: "byevents/gadget_input.html",
+          return [new Component({selector: 'gadget-input'}), new View({
+            templateUrl: "byevents/gadget_input.html",
             directives: [If]
           })];
         }});

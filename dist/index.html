@@ -7,15 +7,8 @@
     <script src="lib/traceur-runtime.js"></script>
     <script src="lib/es6-module-loader-sans-promises.src.js"></script>
     <script src="lib/extension-register.js"></script>
-    <script src="lib/extension-cjs.js"></script>
     <script>
-        System.paths = {
-            'rx/dist/rx.all': 'lib/rx.all.js',
-            'angular2/*': 'lib/angular2.js',
-            '*': '*.js'
-        };
         register(System);
-        cjs(System);
     </script>
 
     <!-- Angular2-related imports -->
@@ -31,16 +24,7 @@
 
 <!-- Application bootstrap logic -->
 <script>
-
-    // Kick off the application
-    System.import('hello');
-    
-    //TODO: we need some defaults for this in the FRW
-    //TODO: maybe we could use sth like <div ng-app="app::AppCmpt"></div> or similar?
-
-    //Promise.all([System.import('angular2/core'), System.import('hello')]).then(function (modules) {
-    //    modules[0].bootstrap(modules[1].Hello);
-    //}, console.log.bind(console));
+    System.import('hello').catch(console.log.bind(console));
 </script>
 
 </html>

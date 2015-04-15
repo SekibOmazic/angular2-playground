@@ -2,7 +2,7 @@ System.register("hello", ["angular2/angular2", "FriendsService", "byservice/Frie
   "use strict";
   var __moduleName = "hello";
   var Component,
-      Template,
+      View,
       bootstrap,
       FriendsService,
       FriendInput,
@@ -15,7 +15,7 @@ System.register("hello", ["angular2/angular2", "FriendsService", "byservice/Frie
   return {
     setters: [function($__m) {
       Component = $__m.Component;
-      Template = $__m.Template;
+      View = $__m.View;
       bootstrap = $__m.bootstrap;
     }, function($__m) {
       FriendsService = $__m.FriendsService;
@@ -40,9 +40,9 @@ System.register("hello", ["angular2/angular2", "FriendsService", "byservice/Frie
       Object.defineProperty(Hello, "annotations", {get: function() {
           return [new Component({
             selector: 'hello',
-            services: [FriendsService]
-          }), new Template({
-            url: "hello.html",
+            injectables: [FriendsService]
+          }), new View({
+            templateUrl: "hello.html",
             directives: [GadgetInput, GadgetList, FriendInput, FriendList, PetInput, PetList]
           })];
         }});

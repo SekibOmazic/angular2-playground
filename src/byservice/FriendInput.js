@@ -1,12 +1,12 @@
-import {Component, Template, If} from 'angular2/angular2';
+import {Component, View, If} from 'angular2/angular2';
 import {Inject} from 'angular2/di';
 import {FriendsService} from 'FriendsService';
 
 @Component({
   selector: 'friend-input'
 })
-@Template({
-  url: `byservice/friend_input.html`,
+@View({
+  templateUrl: `byservice/friend_input.html`,
   directives: [If]
 })
 export class FriendInput {

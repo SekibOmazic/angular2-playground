@@ -1,4 +1,4 @@
-import {Component, Template, bootstrap} from 'angular2/angular2';
+import {Component, View, bootstrap} from 'angular2/angular2';
 
 
 import {FriendsService} from 'FriendsService';
@@ -15,10 +15,10 @@ import {PetInput} from 'byinjection/PetInput';
 
 @Component({
   selector: 'hello',
-  services: [FriendsService]
+  injectables: [FriendsService]
 })
-@Template({
-  url: `hello.html`,
+@View({
+  templateUrl: `hello.html`,
   directives: [GadgetInput, GadgetList, FriendInput, FriendList, PetInput, PetList]
 })
 class Hello {

@@ -8,7 +8,7 @@
 
         <form class="form-inline">
             <div class="form-group">
-                <input class="form-control" type="text" placeholder="Your new gadget" #gadget (keyup)="update(gadget.value)">
+                <input class="form-control" type="text" placeholder="Your new gadget" #gadget (keyup)="update(gadget.domElement.value)" >
                 <a href="#" class="btn btn-primary" (click)="add()">Add</a>
             </div>
         </form>

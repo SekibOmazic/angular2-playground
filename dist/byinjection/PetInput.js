@@ -2,7 +2,7 @@ System.register("byinjection/PetInput", ["angular2/angular2", "angular2/di", "an
   "use strict";
   var __moduleName = "byinjection/PetInput";
   var Component,
-      Template,
+      View,
       If,
       Inject,
       Parent,
@@ -11,7 +11,7 @@ System.register("byinjection/PetInput", ["angular2/angular2", "angular2/di", "an
   return {
     setters: [function($__m) {
       Component = $__m.Component;
-      Template = $__m.Template;
+      View = $__m.View;
       If = $__m.If;
     }, function($__m) {
       Inject = $__m.Inject;
@@ -39,8 +39,8 @@ System.register("byinjection/PetInput", ["angular2/angular2", "angular2/di", "an
       }());
       $__export("PetInput", PetInput);
       Object.defineProperty(PetInput, "annotations", {get: function() {
-          return [new Component({selector: 'pet-input'}), new Template({
-            url: "byinjection/pet_input.html",
+          return [new Component({selector: 'pet-input'}), new View({
+            templateUrl: "byinjection/pet_input.html",
             directives: [If]
           })];
         }});

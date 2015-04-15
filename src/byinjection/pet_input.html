@@ -8,7 +8,7 @@
 
         <form class="form-inline">
             <div class="form-group">
-                <input class="form-control" type="text" placeholder="Your new pet" #pet (keyup)="update(pet.value)">
+                <input class="form-control" type="text" placeholder="Your new pet" #pet (keyup)="update(pet.domElement.value)">
                 <a href="#" class="btn btn-danger" (click)="add()">Add</a>
             </div>
         </form>

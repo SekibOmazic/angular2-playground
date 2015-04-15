@@ -1,12 +1,12 @@
-import {Component, Template, For} from 'angular2/angular2';
+import {Component, View, For} from 'angular2/angular2';
 import {Inject} from 'angular2/di';
 import {FriendsService} from 'FriendsService';
 
 @Component({
   selector: 'friend-list'
 })
-@Template({
-  url: `byservice/friend_list.html`,
+@View({
+  templateUrl: `byservice/friend_list.html`,
   directives: [For]
 })
 export class FriendList {

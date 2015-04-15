@@ -2,7 +2,7 @@ System.register("byservice/FriendInput", ["angular2/angular2", "angular2/di", "F
   "use strict";
   var __moduleName = "byservice/FriendInput";
   var Component,
-      Template,
+      View,
       If,
       Inject,
       FriendsService,
@@ -10,7 +10,7 @@ System.register("byservice/FriendInput", ["angular2/angular2", "angular2/di", "F
   return {
     setters: [function($__m) {
       Component = $__m.Component;
-      Template = $__m.Template;
+      View = $__m.View;
       If = $__m.If;
     }, function($__m) {
       Inject = $__m.Inject;
@@ -36,8 +36,8 @@ System.register("byservice/FriendInput", ["angular2/angular2", "angular2/di", "F
       }());
       $__export("FriendInput", FriendInput);
       Object.defineProperty(FriendInput, "annotations", {get: function() {
-          return [new Component({selector: 'friend-input'}), new Template({
-            url: "byservice/friend_input.html",
+          return [new Component({selector: 'friend-input'}), new View({
+            templateUrl: "byservice/friend_input.html",
             directives: [If]
           })];
         }});
