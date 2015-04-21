@@ -19,11 +19,16 @@
         <h2>How components communicate? </h2>
         <p>Just learning Angular2 and want to show how two components can interact. <strong>Feedback welcome.</strong></p>
     </div>
+
+    <div class="row">
+        <h2>Warning: Broken after update to alpha 20. Need to investigate.</h2>
+    </div>
+
     <div class="row">
 
         <div class="col-lg-6">
             <h4>By events</h4>
-            <gadget-input (add)="gadget.addItem($event)"></gadget-input>
+            <gadget-input (add)="gadget.onAddItem($event)"></gadget-input>
             <gadget-list #gadget></gadget-list>
         </div>
 

@@ -2,7 +2,10 @@ import {Component, View, For} from 'angular2/angular2';
 import {List, ListWrapper} from 'angular2/src/facade/collection';
 
 @Component({
-  selector: 'gadget-list'
+  selector: 'gadget-list',
+  hostListeners: {
+    'add-item': 'onAddItem($event)'
+  }
 })
 @View({
   templateUrl: `byevents/gadget_list.html`,
@@ -16,7 +19,7 @@ export class GadgetList {
     this.gadgets = [];
   }
 
-  addItem(item) {
+  onAddItem(item:string) {
     ListWrapper.push(this.gadgets, {name:item});
   }
 

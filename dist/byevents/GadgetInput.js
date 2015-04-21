@@ -1,9 +1,10 @@
-System.register("byevents/GadgetInput", ["angular2/angular2", "angular2/src/core/annotations/di"], function($__export) {
+System.register("byevents/GadgetInput", ["angular2/angular2"], function($__export) {
   "use strict";
   var __moduleName = "byevents/GadgetInput";
   var Component,
       View,
       If,
+      Observable,
       EventEmitter,
       GadgetInput;
   return {
@@ -11,37 +12,37 @@ System.register("byevents/GadgetInput", ["angular2/angular2", "angular2/src/core
       Component = $__m.Component;
       View = $__m.View;
       If = $__m.If;
-    }, function($__m) {
+      Observable = $__m.Observable;
       EventEmitter = $__m.EventEmitter;
     }],
     execute: function() {
       GadgetInput = (function() {
-        function GadgetInput(addHandler) {
+        function GadgetInput() {
           this.name = '';
-          this.addHandler = addHandler;
+          this.addItem = new EventEmitter();
         }
         return ($traceurRuntime.createClass)(GadgetInput, {
           update: function(username) {
             this.name = username;
             console.log('update', this.name);
           },
-          add: function() {
-            console.log('add clicked', this.name);
+          onAdd: function() {
+            console.log('GadgetInput.add called with', this.name);
             if (this.name !== undefined && this.name !== '') {
-              this.addHandler('' + this.name);
+              this.addItem.next('' + this.name);
             }
           }
         }, {});
       }());
       $__export("GadgetInput", GadgetInput);
       Object.defineProperty(GadgetInput, "annotations", {get: function() {
-          return [new Component({selector: 'gadget-input'}), new View({
+          return [new Component({
+            selector: 'gadget-input',
+            events: ['add-item']
+          }), new View({
             templateUrl: "byevents/gadget_input.html",
             directives: [If]
           })];
-        }});
-      Object.defineProperty(GadgetInput, "parameters", {get: function() {
-          return [[Function, new EventEmitter('add')]];
         }});
     }
   };

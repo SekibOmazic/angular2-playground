@@ -1,8 +1,8 @@
-import {Component, View, If} from 'angular2/angular2';
-import {EventEmitter} from 'angular2/src/core/annotations/di';
+import {Component, View, If, Observable, EventEmitter} from 'angular2/angular2';
 
 @Component({
-  selector: 'gadget-input'
+  selector: 'gadget-input',
+  events: ['add-item']
 })
 @View({
   templateUrl: `byevents/gadget_input.html`,
@@ -11,24 +11,23 @@ import {EventEmitter} from 'angular2/src/core/annotations/di';
 export class GadgetInput {
 
   name:string;
-  addHandler:Function;
+  addItem: EventEmitter;
 
-  constructor(@EventEmitter('add') addHandler:Function) {
+  constructor() {
     this.name = '';
-    this.addHandler = addHandler;
+    this.addItem = new EventEmitter();
   }
 
   update(username) {
-
     this.name = username;
-  console.log('update', this.name);
+    console.log('update', this.name);
   }
 
-  add() {
-    console.log('add clicked', this.name);
+  onAdd() {
+    console.log('GadgetInput.add called with', this.name);
     if (this.name !== undefined && this.name !== '') {
-      this.addHandler(''+this.name);
-      //this.name='';
+
+      this.addItem.next(''+this.name);
     }
   }
 
