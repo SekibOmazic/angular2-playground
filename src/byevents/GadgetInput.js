@@ -1,8 +1,8 @@
 import {Component, View, If, Observable, EventEmitter} from 'angular2/angular2';
 
 @Component({
-  selector: 'gadget-input',
-  events: ['add-item']
+  selector: 'gadget-input'
+  //events: ['add-item']
 })
 @View({
   templateUrl: `byevents/gadget_input.html`,
@@ -23,7 +23,7 @@ export class GadgetInput {
     console.log('update', this.name);
   }
 
-  onAdd() {
+  add() {
     console.log('GadgetInput.add called with', this.name);
     if (this.name !== undefined && this.name !== '') {
 

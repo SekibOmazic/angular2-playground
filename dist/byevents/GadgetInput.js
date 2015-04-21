@@ -26,7 +26,7 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
             this.name = username;
             console.log('update', this.name);
           },
-          onAdd: function() {
+          add: function() {
             console.log('GadgetInput.add called with', this.name);
             if (this.name !== undefined && this.name !== '') {
               this.addItem.next('' + this.name);
@@ -36,10 +36,7 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
       }());
       $__export("GadgetInput", GadgetInput);
       Object.defineProperty(GadgetInput, "annotations", {get: function() {
-          return [new Component({
-            selector: 'gadget-input',
-            events: ['add-item']
-          }), new View({
+          return [new Component({selector: 'gadget-input'}), new View({
             templateUrl: "byevents/gadget_input.html",
             directives: [If]
           })];

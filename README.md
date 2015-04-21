@@ -3,7 +3,7 @@
 Just want to show how components can interact
 
 ## Waring
-Warning: Broken after update to alpha 20. Need to investigate. 
+Communication via events broken after update to alpha 20. Need to investigate. 
 
 ## Demo
 
