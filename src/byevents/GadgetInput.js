@@ -1,8 +1,8 @@
 import {Component, View, If, Observable, EventEmitter} from 'angular2/angular2';
 
 @Component({
-  selector: 'gadget-input'
-  //events: ['add-item']
+  selector: 'gadget-input',
+  events: ['store']
 })
 @View({
   templateUrl: `byevents/gadget_input.html`,
@@ -11,11 +11,11 @@ import {Component, View, If, Observable, EventEmitter} from 'angular2/angular2';
 export class GadgetInput {
 
   name:string;
-  addItem: EventEmitter;
+  store: EventEmitter;
 
   constructor() {
     this.name = '';
-    this.addItem = new EventEmitter();
+    this.store = new EventEmitter();
   }
 
   update(username) {
@@ -24,10 +24,8 @@ export class GadgetInput {
   }
 
   add() {
-    console.log('GadgetInput.add called with', this.name);
     if (this.name !== undefined && this.name !== '') {
-
-      this.addItem.next(''+this.name);
+      this.store.next(''+this.name);
     }
   }
 

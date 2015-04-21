@@ -4,7 +4,7 @@ import {List, ListWrapper} from 'angular2/src/facade/collection';
 @Component({
   selector: 'gadget-list',
   hostListeners: {
-    'add-item': 'onAddItem($event)'
+    'store': 'onAddItem($event)'
   }
 })
 @View({

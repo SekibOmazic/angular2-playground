@@ -36,7 +36,7 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
       Object.defineProperty(GadgetList, "annotations", {get: function() {
           return [new Component({
             selector: 'gadget-list',
-            hostListeners: {'add-item': 'onAddItem($event)'}
+            hostListeners: {'store': 'onAddItem($event)'}
           }), new View({
             templateUrl: "byevents/gadget_list.html",
             directives: [For]

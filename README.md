@@ -2,9 +2,6 @@
 
 Just want to show how components can interact
 
-## Waring
-Communication via events broken after update to alpha 20. Need to investigate. 
-
 ## Demo
 
 See <a href="http://rawgit.com/SekibOmazic/angular2-playground/master/dist/index.html">Live demo</a>

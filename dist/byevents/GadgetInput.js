@@ -19,7 +19,7 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
       GadgetInput = (function() {
         function GadgetInput() {
           this.name = '';
-          this.addItem = new EventEmitter();
+          this.store = new EventEmitter();
         }
         return ($traceurRuntime.createClass)(GadgetInput, {
           update: function(username) {
@@ -27,16 +27,18 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
             console.log('update', this.name);
           },
           add: function() {
-            console.log('GadgetInput.add called with', this.name);
             if (this.name !== undefined && this.name !== '') {
-              this.addItem.next('' + this.name);
+              this.store.next('' + this.name);
             }
           }
         }, {});
       }());
       $__export("GadgetInput", GadgetInput);
       Object.defineProperty(GadgetInput, "annotations", {get: function() {
-          return [new Component({selector: 'gadget-input'}), new View({
+          return [new Component({
+            selector: 'gadget-input',
+            events: ['store']
+          }), new View({
             templateUrl: "byevents/gadget_input.html",
             directives: [If]
           })];
