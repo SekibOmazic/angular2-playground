@@ -14,8 +14,8 @@ System.register("hello", ["angular2/angular2", "FriendsService", "byservice/Frie
       Hello;
   return {
     setters: [function($__m) {
-      Component = $__m.Component;
-      View = $__m.View;
+      Component = $__m.ComponentAnnotation;
+      View = $__m.ViewAnnotation;
       bootstrap = $__m.bootstrap;
     }, function($__m) {
       FriendsService = $__m.FriendsService;

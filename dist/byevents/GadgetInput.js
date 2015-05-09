@@ -9,8 +9,8 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
       GadgetInput;
   return {
     setters: [function($__m) {
-      Component = $__m.Component;
-      View = $__m.View;
+      Component = $__m.ComponentAnnotation;
+      View = $__m.ViewAnnotation;
       If = $__m.If;
       Observable = $__m.Observable;
       EventEmitter = $__m.EventEmitter;

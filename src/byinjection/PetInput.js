@@ -1,6 +1,9 @@
-import {Component, View, If} from 'angular2/angular2';
-import {Inject} from 'angular2/di';
-import {Parent} from 'angular2/src/core/annotations/visibility';
+import {
+    ComponentAnnotation as Component,
+    ViewAnnotation as View,
+    ParentAnnotation as Parent,
+    If
+} from 'angular2/angular2';
 
 import {PetList} from 'byinjection/PetList';
 

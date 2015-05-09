@@ -1,4 +1,9 @@
-import {Component, View, For} from 'angular2/angular2';
+import {
+    ComponentAnnotation as Component,
+    ViewAnnotation as View,
+    For
+} from 'angular2/angular2';
+
 import {List, ListWrapper} from 'angular2/src/facade/collection';
 
 

@@ -1,5 +1,5 @@
-import {Component, View, For} from 'angular2/angular2';
-import {Inject} from 'angular2/di';
+import {ComponentAnnotation as Component, ViewAnnotation as View, For} from 'angular2/angular2';
+import {InjectAnnotation as Inject} from 'angular2/di';
 import {FriendsService} from 'FriendsService';
 
 @Component({

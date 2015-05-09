@@ -9,8 +9,8 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
       GadgetList;
   return {
     setters: [function($__m) {
-      Component = $__m.Component;
-      View = $__m.View;
+      Component = $__m.ComponentAnnotation;
+      View = $__m.ViewAnnotation;
       For = $__m.For;
     }, function($__m) {
       List = $__m.List;

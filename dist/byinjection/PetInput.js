@@ -1,22 +1,18 @@
-System.register("byinjection/PetInput", ["angular2/angular2", "angular2/di", "angular2/src/core/annotations/visibility", "byinjection/PetList"], function($__export) {
+System.register("byinjection/PetInput", ["angular2/angular2", "byinjection/PetList"], function($__export) {
   "use strict";
   var __moduleName = "byinjection/PetInput";
   var Component,
       View,
-      If,
-      Inject,
       Parent,
+      If,
       PetList,
       PetInput;
   return {
     setters: [function($__m) {
-      Component = $__m.Component;
-      View = $__m.View;
+      Component = $__m.ComponentAnnotation;
+      View = $__m.ViewAnnotation;
+      Parent = $__m.ParentAnnotation;
       If = $__m.If;
-    }, function($__m) {
-      Inject = $__m.Inject;
-    }, function($__m) {
-      Parent = $__m.Parent;
     }, function($__m) {
       PetList = $__m.PetList;
     }],

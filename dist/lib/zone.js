@@ -1,4 +1,8 @@
+(function (exports) {
+
 'use strict';
+
+var zone = null;
 
 
 function Zone(parentZone, data) {
@@ -79,10 +83,10 @@ Zone.prototype = {
   run: function run (fn, applyTo, applyWith) {
     applyWith = applyWith || [];
 
-    var oldZone = window.zone,
+    var oldZone = zone,
         result;
 
-    window.zone = this;
+    exports.zone = zone = this;
 
     try {
       this.beforeTask();
@@ -95,11 +99,21 @@ Zone.prototype = {
       }
     } finally {
       this.afterTask();
-      window.zone = oldZone;
+      exports.zone = zone = oldZone;
     }
     return result;
   },
 
+  // onError is used to override error handling.
+  // When a custom error handler is provided, it should most probably rethrow the exception
+  // not to break the expected control flow:
+  //
+  // `promise.then(fnThatThrows).catch(fn);`
+  //
+  // When this code is executed in a zone with a custom onError handler that doesn't rethrow, the
+  // `.catch()` branch will not be taken as the `fnThatThrows` exception will be swallowed by the
+  // handler.
+  onError: null,
   beforeTask: function () {},
   onZoneCreated: function () {},
   afterTask: function () {},
@@ -326,13 +340,18 @@ Zone.patchProperties = function (obj, properties) {
 Zone.patchEventTargetMethods = function (obj) {
   var addDelegate = obj.addEventListener;
   obj.addEventListener = function (eventName, fn) {
-    arguments[1] = fn._bound = zone.bind(fn);
+    fn._bound = fn._bound || {};
+    arguments[1] = fn._bound[eventName] = zone.bind(fn);
     return addDelegate.apply(this, arguments);
   };
 
   var removeDelegate = obj.removeEventListener;
   obj.removeEventListener = function (eventName, fn) {
-    arguments[1] = arguments[1]._bound || arguments[1];
+    if(arguments[1]._bound && arguments[1]._bound[eventName]) {
+      var _bound = arguments[1]._bound;
+      arguments[1] = _bound[eventName];
+      delete _bound[eventName];
+    }
     var result = removeDelegate.apply(this, arguments);
     zone.dequeueTask(fn);
     return result;
@@ -391,8 +410,13 @@ Zone.patch = function patch () {
   }
 
   if (Zone.canPatchViaPropertyDescriptor()) {
-    Zone.patchViaPropertyDescriptor();
+    // for browsers that we can patch the descriptor:
+    // - Chrome, Firefox
+    Zone.patchProperties(HTMLElement.prototype, Zone.onEventNames);
+    Zone.patchProperties(XMLHttpRequest.prototype);
+    Zone.patchProperties(WebSocket.prototype);
   } else {
+    // Safari
     Zone.patchViaCapturingAllTheEvents();
     Zone.patchClass('XMLHttpRequest');
     Zone.patchWebSocket();
@@ -432,13 +456,6 @@ Zone.canPatchViaPropertyDescriptor = function () {
   return result;
 };
 
-// for browsers that we can patch the descriptor:
-// - eventually Chrome once this bug gets resolved
-// - Firefox
-Zone.patchViaPropertyDescriptor = function () {
-  Zone.patchProperties(HTMLElement.prototype, Zone.onEventNames);
-  Zone.patchProperties(XMLHttpRequest.prototype);
-};
 
 // Whenever any event fires, we check the event target and all parents
 // for `onwhatever` properties and replace them with zone-bound functions
@@ -460,15 +477,34 @@ Zone.patchViaCapturingAllTheEvents = function () {
   });
 };
 
+
 // we have to patch the instance since the proto is non-configurable
 Zone.patchWebSocket = function() {
   var WS = window.WebSocket;
+  Zone.patchEventTargetMethods(WS.prototype);
   window.WebSocket = function(a, b) {
     var socket = arguments.length > 1 ? new WS(a, b) : new WS(a);
-    Zone.patchProperties(socket, ['onclose', 'onerror', 'onmessage', 'onopen']);
-    return socket;
+    var proxySocket;
+
+    // Safari 7.0 has non-configurable own 'onmessage' and friends properties on the socket instance
+    var onmessageDesc = Object.getOwnPropertyDescriptor(socket, 'onmessage');
+    if (onmessageDesc && onmessageDesc.configurable === false) {
+      proxySocket = Object.create(socket);
+      ['addEventListener', 'removeEventListener', 'send', 'close'].forEach(function(propName) {
+        proxySocket[propName] = function() {
+          return socket[propName].apply(socket, arguments);
+        };
+      });
+    } else {
+      // we can patch the real socket
+      proxySocket = socket;
+    }
+
+    Zone.patchProperties(proxySocket, ['onclose', 'onerror', 'onmessage', 'onopen']);
+
+    return proxySocket;
   };
-}
+};
 
 
 // wrap some native API on `window`
@@ -665,13 +701,16 @@ Zone.onEventNames = Zone.eventNames.map(function (property) {
 });
 
 Zone.init = function init () {
-  if (typeof module !== 'undefined' && module && module.exports) {
-    module.exports = new Zone();
-  } else {
-    window.zone = new Zone();
-  }
+  exports.zone = zone = new Zone();
   Zone.patch();
 };
 
+if (window.Zone) {
+  console.warn('Zone already exported on window the object!');
+}
 
 Zone.init();
+exports.Zone = Zone;
+
+}((typeof module !== 'undefined' && module && module.exports) ?
+    module.exports : window));

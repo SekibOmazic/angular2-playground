@@ -9,11 +9,11 @@ System.register("byservice/FriendList", ["angular2/angular2", "angular2/di", "Fr
       FriendList;
   return {
     setters: [function($__m) {
-      Component = $__m.Component;
-      View = $__m.View;
+      Component = $__m.ComponentAnnotation;
+      View = $__m.ViewAnnotation;
       For = $__m.For;
     }, function($__m) {
-      Inject = $__m.Inject;
+      Inject = $__m.InjectAnnotation;
     }, function($__m) {
       FriendsService = $__m.FriendsService;
     }],

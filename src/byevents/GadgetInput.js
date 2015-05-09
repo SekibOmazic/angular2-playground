@@ -1,4 +1,10 @@
-import {Component, View, If, Observable, EventEmitter} from 'angular2/angular2';
+import {
+    ComponentAnnotation as Component,
+    ViewAnnotation as View,
+    If,
+    Observable,
+    EventEmitter
+} from 'angular2/angular2';
 
 @Component({
   selector: 'gadget-input',

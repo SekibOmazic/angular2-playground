@@ -1,4 +1,8 @@
-import {Component, View, bootstrap} from 'angular2/angular2';
+import {
+    ComponentAnnotation as Component,
+    ViewAnnotation as View,
+    bootstrap
+} from 'angular2/angular2';
 
 
 import {FriendsService} from 'FriendsService';
