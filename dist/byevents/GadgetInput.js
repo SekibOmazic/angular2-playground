@@ -3,7 +3,7 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
   var __moduleName = "byevents/GadgetInput";
   var Component,
       View,
-      If,
+      NgIf,
       Observable,
       EventEmitter,
       GadgetInput;
@@ -11,7 +11,7 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
     setters: [function($__m) {
       Component = $__m.ComponentAnnotation;
       View = $__m.ViewAnnotation;
-      If = $__m.If;
+      NgIf = $__m.NgIf;
       Observable = $__m.Observable;
       EventEmitter = $__m.EventEmitter;
     }],
@@ -40,7 +40,7 @@ System.register("byevents/GadgetInput", ["angular2/angular2"], function($__expor
             events: ['store']
           }), new View({
             templateUrl: "byevents/gadget_input.html",
-            directives: [If]
+            directives: [NgIf]
           })];
         }});
     }

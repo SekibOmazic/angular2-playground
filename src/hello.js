@@ -19,7 +19,7 @@ import {PetInput} from 'byinjection/PetInput';
 
 @Component({
   selector: 'hello',
-  injectables: [FriendsService]
+  appInjector: [FriendsService]
 })
 @View({
   templateUrl: `hello.html`,

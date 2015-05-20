@@ -1,7 +1,7 @@
 import {
     ComponentAnnotation as Component,
     ViewAnnotation as View,
-    For
+    NgFor
 } from 'angular2/angular2';
 
 import {List, ListWrapper} from 'angular2/src/facade/collection';
@@ -12,7 +12,7 @@ import {List, ListWrapper} from 'angular2/src/facade/collection';
 })
 @View({
   templateUrl: `byinjection/pet_list.html`,
-  directives: [For]
+  directives: [NgFor]
 })
 export class PetList {
 

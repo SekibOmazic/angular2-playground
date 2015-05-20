@@ -4,7 +4,7 @@
     </div>
     <div class="panel-body">
         <ul class="list-group">
-            <li *for="#gadget of gadgets" class="list-group-item">
+            <li *ng-for="#gadget of gadgets" class="list-group-item">
                 <span>{{gadget.name}}</span>
                 <a href="#" (click)="delete(gadget)" class="badge" aria-hidden="true">&times;</a>
             </li>

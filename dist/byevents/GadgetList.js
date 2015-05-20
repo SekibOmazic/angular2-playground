@@ -3,7 +3,7 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
   var __moduleName = "byevents/GadgetList";
   var Component,
       View,
-      For,
+      NgFor,
       List,
       ListWrapper,
       GadgetList;
@@ -11,7 +11,7 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
     setters: [function($__m) {
       Component = $__m.ComponentAnnotation;
       View = $__m.ViewAnnotation;
-      For = $__m.For;
+      NgFor = $__m.NgFor;
     }, function($__m) {
       List = $__m.List;
       ListWrapper = $__m.ListWrapper;
@@ -39,7 +39,7 @@ System.register("byevents/GadgetList", ["angular2/angular2", "angular2/src/facad
             hostListeners: {'store': 'onAddItem($event)'}
           }), new View({
             templateUrl: "byevents/gadget_list.html",
-            directives: [For]
+            directives: [NgFor]
           })];
         }});
       Object.defineProperty(GadgetList.prototype.onAddItem, "parameters", {get: function() {

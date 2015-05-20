@@ -1,7 +1,7 @@
 import {
     ComponentAnnotation as Component,
     ViewAnnotation as View,
-    If,
+    NgIf,
     Observable,
     EventEmitter
 } from 'angular2/angular2';
@@ -12,7 +12,7 @@ import {
 })
 @View({
   templateUrl: `byevents/gadget_input.html`,
-  directives: [If]
+  directives: [NgIf]
 })
 export class GadgetInput {
 

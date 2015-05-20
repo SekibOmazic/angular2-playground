@@ -2,7 +2,7 @@ import {
     ComponentAnnotation as Component,
     ViewAnnotation as View,
     ParentAnnotation as Parent,
-    If
+    NgIf
 } from 'angular2/angular2';
 
 import {PetList} from 'byinjection/PetList';
@@ -12,7 +12,7 @@ import {PetList} from 'byinjection/PetList';
 })
 @View({
   templateUrl: `byinjection/pet_input.html`,
-  directives: [If]
+  directives: [NgIf]
 })
 export class PetInput {
 

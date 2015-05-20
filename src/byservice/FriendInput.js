@@ -1,4 +1,4 @@
-import {ComponentAnnotation as Component, ViewAnnotation as View, If} from 'angular2/angular2';
+import {ComponentAnnotation as Component, ViewAnnotation as View, NgIf} from 'angular2/angular2';
 import {InjectAnnotation as Inject} from 'angular2/di';
 import {FriendsService} from 'FriendsService';
 
@@ -7,7 +7,7 @@ import {FriendsService} from 'FriendsService';
 })
 @View({
   templateUrl: `byservice/friend_input.html`,
-  directives: [If]
+  directives: [NgIf]
 })
 export class FriendInput {
 

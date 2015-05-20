@@ -3,7 +3,7 @@ System.register("byservice/FriendList", ["angular2/angular2", "angular2/di", "Fr
   var __moduleName = "byservice/FriendList";
   var Component,
       View,
-      For,
+      NgFor,
       Inject,
       FriendsService,
       FriendList;
@@ -11,7 +11,7 @@ System.register("byservice/FriendList", ["angular2/angular2", "angular2/di", "Fr
     setters: [function($__m) {
       Component = $__m.ComponentAnnotation;
       View = $__m.ViewAnnotation;
-      For = $__m.For;
+      NgFor = $__m.NgFor;
     }, function($__m) {
       Inject = $__m.InjectAnnotation;
     }, function($__m) {
@@ -39,7 +39,7 @@ System.register("byservice/FriendList", ["angular2/angular2", "angular2/di", "Fr
       Object.defineProperty(FriendList, "annotations", {get: function() {
           return [new Component({selector: 'friend-list'}), new View({
             templateUrl: "byservice/friend_list.html",
-            directives: [For]
+            directives: [NgFor]
           })];
         }});
       Object.defineProperty(FriendList, "parameters", {get: function() {

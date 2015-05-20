@@ -40,7 +40,7 @@ System.register("hello", ["angular2/angular2", "FriendsService", "byservice/Frie
       Object.defineProperty(Hello, "annotations", {get: function() {
           return [new Component({
             selector: 'hello',
-            injectables: [FriendsService]
+            appInjector: [FriendsService]
           }), new View({
             templateUrl: "hello.html",
             directives: [GadgetInput, GadgetList, FriendInput, FriendList, PetInput, PetList]

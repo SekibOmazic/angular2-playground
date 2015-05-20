@@ -4,7 +4,7 @@ System.register("byinjection/PetInput", ["angular2/angular2", "byinjection/PetLi
   var Component,
       View,
       Parent,
-      If,
+      NgIf,
       PetList,
       PetInput;
   return {
@@ -12,7 +12,7 @@ System.register("byinjection/PetInput", ["angular2/angular2", "byinjection/PetLi
       Component = $__m.ComponentAnnotation;
       View = $__m.ViewAnnotation;
       Parent = $__m.ParentAnnotation;
-      If = $__m.If;
+      NgIf = $__m.NgIf;
     }, function($__m) {
       PetList = $__m.PetList;
     }],
@@ -37,7 +37,7 @@ System.register("byinjection/PetInput", ["angular2/angular2", "byinjection/PetLi
       Object.defineProperty(PetInput, "annotations", {get: function() {
           return [new Component({selector: 'pet-input'}), new View({
             templateUrl: "byinjection/pet_input.html",
-            directives: [If]
+            directives: [NgIf]
           })];
         }});
       Object.defineProperty(PetInput, "parameters", {get: function() {

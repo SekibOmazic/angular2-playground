@@ -1,4 +1,4 @@
-import {ComponentAnnotation as Component, ViewAnnotation as View, For} from 'angular2/angular2';
+import {ComponentAnnotation as Component, ViewAnnotation as View, NgFor} from 'angular2/angular2';
 import {InjectAnnotation as Inject} from 'angular2/di';
 import {FriendsService} from 'FriendsService';
 
@@ -7,7 +7,7 @@ import {FriendsService} from 'FriendsService';
 })
 @View({
   templateUrl: `byservice/friend_list.html`,
-  directives: [For]
+  directives: [NgFor]
 })
 export class FriendList {
 

@@ -3,7 +3,7 @@ System.register("byinjection/PetList", ["angular2/angular2", "angular2/src/facad
   var __moduleName = "byinjection/PetList";
   var Component,
       View,
-      For,
+      NgFor,
       List,
       ListWrapper,
       PetList;
@@ -11,7 +11,7 @@ System.register("byinjection/PetList", ["angular2/angular2", "angular2/src/facad
     setters: [function($__m) {
       Component = $__m.ComponentAnnotation;
       View = $__m.ViewAnnotation;
-      For = $__m.For;
+      NgFor = $__m.NgFor;
     }, function($__m) {
       List = $__m.List;
       ListWrapper = $__m.ListWrapper;
@@ -36,7 +36,7 @@ System.register("byinjection/PetList", ["angular2/angular2", "angular2/src/facad
       Object.defineProperty(PetList, "annotations", {get: function() {
           return [new Component({selector: 'pet-list'}), new View({
             templateUrl: "byinjection/pet_list.html",
-            directives: [For]
+            directives: [NgFor]
           })];
         }});
     }

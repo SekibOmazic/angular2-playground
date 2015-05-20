@@ -6,7 +6,7 @@
     </div>
     <div class="panel-body">
         <ul class="list-group">
-            <li *for="#pet of pets" class="list-group-item">
+            <li *ng-for="#pet of pets" class="list-group-item">
                 <span>{{pet.name}}</span>
                 <a href="#" (click)="delete(pet)" class="badge" aria-hidden="true">&times;</a>
             </li>
