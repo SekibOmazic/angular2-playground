@@ -2,10 +2,7 @@ import {ComponentAnnotation as Component, ViewAnnotation as View, NgFor} from 'a
 import {List, ListWrapper} from 'angular2/src/facade/collection';
 
 @Component({
-  selector: 'gadget-list',
-  hostListeners: {
-    'store': 'onAddItem($event)'
-  }
+  selector: 'gadget-list'
 })
 @View({
   templateUrl: `byevents/gadget_list.html`,
